@@ -10,12 +10,7 @@
 
 # Map 0, Global, base 10
 {10}{}{Глобальная карта}
-{15}{}{20car}
-{15}{}{23world}
-{15}{}{03 - A Way To Anywhere.ogg}
-{15}{}{04 - 12h. Dusk.ogg}
-{15}{}{08 - Blue Grass.ogg}
-{15}{}{12 - Kill Klesk.ogg}
+{15}{}{14.WorldMap.ogg}
 {16}{}{blank:100}
 
 # Map 1, base 20
