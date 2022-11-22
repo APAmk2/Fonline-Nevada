@@ -68,12 +68,12 @@ void InitializeGame()
 	__WisperDist=2;
 	__ShoutDist=400;
 	__CustomItemCost=false;
-	__RegistrationTimeout=5*60;
-	__AccountPlayTime=10*60;
+	__RegistrationTimeout=5*0;
+	__AccountPlayTime=10*0;
 	__TalkDistance=3;
 	__NpcMaxTalkers=1;
 	__MinNameLength=4;
-	__MaxNameLength=12;
+	__MaxNameLength=20;
 	__PermanentDeath=0;
 	__DlgTalkMinTime=100000;
 	__DlgBarterMinTime=50000;
@@ -135,12 +135,12 @@ void InitializeGame()
 	__SkillModAdd5=175;
 	__SkillModAdd6=200;  
 	
-	__RoofAlpha=200;
+	__RoofAlpha=0;
 	__HideCursor=false;
 	__DisableLMenu=false;
 	__DisableMouseEvents=false;
 	__DisableKeyboardEvents=false;
-	__HidePassword=true;
+	__HidePassword=false;
 	__PlayerOffAppendix="|0x44ffffff  (off)";
 	__SpritesZoomMax=2.5f;
 	__SpritesZoomMin=0.2f;
