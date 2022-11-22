@@ -1,0 +1,1461 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+class Serializator
+{
+	Serializator()
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+	}
+	
+	Serializator(uint approxSize)
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+		GrowBuffer(approxSize);
+	}
+	
+	void GrowBuffer()
+	{
+		BufSize+=(128);
+		Array.resize(BufSize);
+	}
+	
+	void GrowBuffer(uint length)
+	{
+		BufSize+=length;
+		Array.resize(BufSize);
+	}
+	
+	bool Save(string&name)
+	{
+		if(DataSize==0)
+		return false;
+		bool result=SetAnyData(name,Array,DataSize);
+		Clear();
+		return result;
+	}
+	
+	bool Load(string&name)
+	{
+		Clear();
+		if(not GetAnyData(name,Array))
+		return false;
+		BufSize=Array.length();
+		DataSize=BufSize;
+		return true;
+	}
+	
+	void Clear()
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+	}
+	
+	Serializator@SetCurPos(uint pos)
+	{
+		if(pos>BufSize)
+		GrowBuffer(pos-BufSize+(128));
+		CurPos=pos;
+		return this;
+	}
+	
+	Serializator@Fill(uint8 value,uint length)
+	{
+		if(CurPos+length>BufSize)
+		GrowBuffer(CurPos+length-BufSize+(128));
+		for(uint i=0;i<length;i++)
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int64&value)
+	{
+		if(CurPos+8>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>56)&0xFF;
+		Array[CurPos++]=(value>>48)&0xFF;
+		Array[CurPos++]=(value>>40)&0xFF;
+		Array[CurPos++]=(value>>32)&0xFF;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int32&value)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int16&value)
+	{
+		if(CurPos+2>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int8&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint64&value)
+	{
+		if(CurPos+8>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>56)&0xFF;
+		Array[CurPos++]=(value>>48)&0xFF;
+		Array[CurPos++]=(value>>40)&0xFF;
+		Array[CurPos++]=(value>>32)&0xFF;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint32&value)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint16&value)
+	{
+		if(CurPos+2>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint8&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const bool&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value?1:0;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const string&value)
+	{
+		uint len=value.rawLength();
+		if(CurPos+len+1>BufSize)
+		GrowBuffer(CurPos+len+1-BufSize+(128));
+		for(uint i=0;i<len;i++)
+		Array[CurPos++]=value.rawGet(i);
+		Array[CurPos++]=0;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int64[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*8;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int32[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*4;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int16[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*2;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int8[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint64[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*8;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint32[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*4;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint16[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*2;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint8[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const bool[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const string[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		for(uint i=0,j=valuesLen;i<j;i++)
+		len+=values[i].length();
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const Critter&cr)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		uint value=cr.Id;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const Item&item)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		uint value=item.Id;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Get(int64&value)
+	{
+		value=0;
+		if(CurPos+8>DataSize)
+		return this;
+		value|=Array[CurPos++]<<56;
+		value|=Array[CurPos++]<<48;
+		value|=Array[CurPos++]<<40;
+		value|=Array[CurPos++]<<32;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int32&value)
+	{
+		value=0;
+		if(CurPos+4>DataSize)
+		return this;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int16&value)
+	{
+		value=0;
+		if(CurPos+2>DataSize)
+		return this;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int8&value)
+	{
+		value=0;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint64&value)
+	{
+		value=0;
+		if(CurPos+8>DataSize)
+		return this;
+		value|=Array[CurPos++]<<56;
+		value|=Array[CurPos++]<<48;
+		value|=Array[CurPos++]<<40;
+		value|=Array[CurPos++]<<32;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint32&value)
+	{
+		value=0;
+		if(CurPos+4>DataSize)
+		return this;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint16&value)
+	{
+		value=0;
+		if(CurPos+2>DataSize)
+		return this;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint8&value)
+	{
+		value=0;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(bool&value)
+	{
+		value=false;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++]==1?true:false;
+		return this;
+	}
+	
+	Serializator@Get(string&str)
+	{
+		uint len=0;
+		for(uint i=CurPos;;i++)
+		{
+			if(i==DataSize)
+			{
+				str="";
+				return this;
+			}
+			if(Array[i]==0)
+			{
+				len=i-CurPos;
+				break;
+			}
+		}
+		str.rawResize(len);
+		for(uint i=0;i<len;i++)
+		str.rawSet(i,Array[CurPos++]);
+		CurPos++;
+		return this;
+	}
+	
+	Serializator@Get(int64[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int32[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int16[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int8[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint64[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint32[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint16[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint8[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(bool[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(string[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(Critter@&cr)
+	{
+		@cr=null;
+		if(CurPos+4>DataSize)
+		return this;
+		uint id=0;
+		id|=Array[CurPos++]<<24;
+		id|=Array[CurPos++]<<16;
+		id|=Array[CurPos++]<<8;
+		id|=Array[CurPos++];
+		@cr=::GetCritter(id);
+		return this;
+	}
+	
+	Serializator@Get(Item@&item)
+	{
+		@item=null;
+		if(CurPos+4>DataSize)
+		return this;
+		uint id=0;
+		id|=Array[CurPos++]<<24;
+		id|=Array[CurPos++]<<16;
+		id|=Array[CurPos++]<<8;
+		id|=Array[CurPos++];
+		@item=::GetItem(id);
+		return this;
+	}
+	
+	uint8[]Array;
+	uint CurPos;
+	uint BufSize;
+	uint DataSize;
+};                
+
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+
+class MarchOrder
+{
+	uint8 Type;
+	uint16 HexX;
+	uint16 HexY;
+	uint8 Steps;
+	uint8 Dir;
+	bool Armed;
+	bool Run;
+	uint TimeCheck;
+	uint TimeNext;
+	
+	void Save(string key)
+	{
+		Serializator save;
+		save.Set(this.Type);
+		save.Set(this.HexX);
+		save.Set(this.HexY);
+		save.Set(this.Steps);
+		save.Set(this.Dir);
+		save.Set(this.Armed);
+		save.Set(this.Run);
+		save.Set(this.TimeCheck);
+		save.Set(this.TimeNext);
+		save.Save(key);
+	}
+	
+	void Load(string key)
+	{
+		Serializator load;
+		if(!load.Load(key))
+		{
+			Log("Can't load MarchOrder. Key: "+key);
+			return;
+		}
+		load.Get(this.Type);
+		load.Get(this.HexX);
+		load.Get(this.HexY);
+		load.Get(this.Steps);
+		load.Get(this.Dir);
+		load.Get(this.Armed);
+		load.Get(this.Run);
+		load.Get(this.TimeCheck);
+		load.Get(this.TimeNext);
+	}
+	
+	void Erase(string key)
+	{
+		if(IsAnyData(key))
+		EraseAnyData(key);
+	}
+	
+	string ToString()
+	{
+		string s="MarchOrder";
+		s+="\n type     : "+(this.Type==(0)?"ORDER_TYPE_POS":
+		(this.Type==(1)?"ORDER_TYPE_MOVE":
+		(this.Type==(2)?"ORDER_TYPE_DIR":"ORDER_TYPE_ARM")));
+		s+="\n HexX     : "+this.HexX;
+		s+="\n HexY     : "+this.HexY;
+		s+="\n Steps    : "+this.Steps;
+		s+="\n Dir      : "+this.Dir;
+		s+="\n Armed    : "+(this.Armed?"true":"false");
+		s+="\n Run      : "+(this.Run?"true":"false");
+		s+="\n TimeCheck: "+this.TimeCheck;
+		s+="\n TimeNext : "+this.TimeNext;
+		return s;
+	}
+}  
+
+MarchOrder@DefineSetPosition(uint16 hexX,uint16 hexY,uint8 dir,bool run,uint timeCheck,uint timeNext)
+{
+	MarchOrder@order=MarchOrder();
+	order.Type=(0);
+	order.HexX=hexX;
+	order.HexY=hexY;
+	order.Dir=dir;
+	order.Run=run;
+	order.TimeCheck=timeCheck;
+	order.TimeNext=timeNext;
+	return order;
+} 
+
+MarchOrder@DefineMove(uint8 steps,uint8 dir,bool run,uint timeCheck,uint timeNext)
+{
+	MarchOrder@order=MarchOrder();
+	order.Type=(1);
+	order.Steps=steps;
+	order.Dir=dir;
+	order.Run=run;
+	order.TimeCheck=timeCheck;
+	order.TimeNext=timeNext;
+	return order;
+} 
+
+MarchOrder@DefineDirection(uint8 dir,uint timeCheck,uint timeNext)
+{
+	MarchOrder@order=MarchOrder();
+	order.Type=(2);
+	order.Dir=dir;
+	order.TimeCheck=timeCheck;
+	order.TimeNext=timeNext;
+	return order;
+} 
+
+MarchOrder@DefineArmWeapon(bool armed,uint timeCheck,uint timeNext)
+{
+	MarchOrder@order=MarchOrder();
+	order.Type=(3);
+	order.Armed=armed;
+	order.TimeCheck=timeCheck;
+	order.TimeNext=timeNext;
+	return order;
+}  
+
+class MarchQueue
+{
+	MarchQueue(Critter&cr)
+	{
+		this.OrderCurrent=-1;
+		this.CritterId=cr.Id;
+		this.Auto=false;
+	}
+	
+	MarchQueue(uint crId)
+	{
+		this.OrderCurrent=-1;
+		this.CritterId=crId;
+		this.Auto=false;
+	}
+	
+	bool Auto;
+	uint CritterId;
+	int8 OrderCurrent;
+	MarchOrder[]Orders;
+	
+	void AddOrder(MarchOrder@order)
+	{
+		if((@order!=null))
+		{
+			this.Orders.insertLast(order);
+		}
+	}
+	
+	void Save()
+	{
+		if(this.CritterId==0)
+		return;
+		string key=("MarchQueue_"+this.CritterId);
+		uint orders=this.Orders.length();
+		;
+		Serializator save;
+		save.Set(this.Auto);
+		save.Set(this.CritterId);
+		save.Set(this.OrderCurrent);
+		save.Set(orders);
+		for(uint i=0;i<orders;i++)
+		{
+			this.Orders[i].Save(key+i);
+		}
+		save.Save(key);
+	}
+	
+	void Load()
+	{
+		string key=("MarchQueue_"+this.CritterId);
+		if(!IsAnyData(key))
+		return;
+		Serializator load;
+		if(!load.Load(key))
+		{
+			return;
+		}
+		uint orders=0;
+		load.Get(this.Auto);
+		load.Get(this.CritterId);
+		load.Get(this.OrderCurrent);
+		load.Get(orders);
+		this.Orders.resize(0);
+		for(uint i=0;i<orders;i++)
+		{
+			MarchOrder@o=MarchOrder();
+			o.Load(key+i);
+			this.AddOrder(o);
+		}
+	}
+	
+	void Erase()
+	{
+		string key=("MarchQueue_"+this.CritterId);
+		uint orders=this.Orders.length();
+		for(uint i=0;i<orders;i++)
+		{
+			this.Orders[i].Erase(key+i);
+		}
+		if(IsAnyData(key))
+		EraseAnyData(key);
+		Critter@cr=GetCritter(this.CritterId);
+		if((@cr!=null)&&cr.IsNpc())
+		cr.ModeBase[(517)]=0;
+	}  
+	
+	void ConfirmOrder()
+	{
+		if(this.OrderCurrent<0)
+		return;
+		Critter@cr=GetCritter(this.CritterId);
+		if(!(@cr!=null))
+		return;
+		MarchOrder@order=this.Orders[OrderCurrent];
+		if(!(@order!=null))
+		return;
+		order.HexX=cr.HexX;
+		order.HexY=cr.HexY;
+		order.Dir=cr.Dir;
+		this.Save();
+	} 
+	
+	bool CheckOrderCompleted()
+	{
+		if(this.OrderCurrent<0)
+		return true;
+		Critter@cr=GetCritter(this.CritterId);
+		if(!(@cr!=null))
+		return false;
+		MarchOrder@order=this.Orders[this.OrderCurrent];
+		if(!(@order!=null))
+		return false;
+		Item@weapon;
+		switch(order.Type)
+		{
+			case(0):
+			return(cr.HexX==order.HexX&&cr.HexY==cr.HexY);
+			case(1):
+			if(this.OrderCurrent==0)
+			{
+				return true;
+			}
+			else
+			{
+				MarchOrder@orderPrev=this.Orders[OrderCurrent-1];
+				if(!(@orderPrev!=null))
+				return true;
+				uint16 hx=orderPrev.HexX;
+				uint16 hy=orderPrev.HexY;
+				Map@map=cr.GetMap();
+				if(!(@map!=null))
+				return true;
+				map.MoveHexByDir(hx,hy,order.Dir,order.Steps);
+				return(cr.HexX==hx&&cr.HexY==hy);
+			}
+			case(2):
+			return(cr.Dir==order.Dir);
+			case(3):
+			@weapon=cr.GetItem(0,(1));
+			if((@weapon!=null))
+			{
+				if(order.Armed)
+				{
+					return!weapon.Proto.Weapon_IsUnarmed;
+				}
+				else
+				{
+					return weapon.Proto.Weapon_IsUnarmed;
+				}
+			}
+			return!order.Armed;
+			default:
+			break;
+		}
+		return false;
+	}
+	
+	void ExecuteOrder()
+	{
+		Critter@cr=GetCritter(this.CritterId);
+		if(!(@cr!=null)||cr.IsPlayer())
+		return;
+		cr.ModeBase[(517)]=1;
+		MarchOrder@order=this.Orders[OrderCurrent];
+		if(!(@order!=null))
+		return;
+		Map@map=cr.GetMap();
+		if(!(@map!=null))
+		return;
+		;
+		Item@weapon;
+		ProtoItem@proto;
+		Item@[]weapons;
+		uint16 hx=0;
+		uint16 hy=0;
+		uint pid1=0;
+		uint pid2=0;
+		switch(order.Type)
+		{
+			case(0):
+			AddWalkPlane(cr,0,order.HexX,order.HexY,order.Dir,order.Run,0);
+			break;
+			case(1):
+			if(this.OrderCurrent==0)
+			{
+				break;
+			}
+			else
+			{
+				MarchOrder@orderPrev=this.Orders[OrderCurrent-1];
+				if(!(@orderPrev!=null))
+				return;
+				hx=orderPrev.HexX;
+				hy=orderPrev.HexY;
+				map.MoveHexByDir(hx,hy,order.Dir,order.Steps);
+				AddWalkPlane(cr,0,hx,hy,order.Dir,order.Run,0);
+				break;
+			}
+			case(2):
+			cr.SetDir(order.Dir);
+			break;
+			case(3):
+			@weapon=cr.GetItem(0,(1));
+			if(order.Armed)
+			{
+				if((@weapon!=null)&&!weapon.Proto.Weapon_IsUnarmed)
+				break;
+				pid1=cr.GetFavoriteItem((1));
+				
+				pid2=cr.GetFavoriteItem((2));
+				@proto=GetProtoItem(pid2);
+				if(!(@proto!=null)||proto.Type!=(3))
+				{
+					if(cr.GetItemsByType((3),weapons)>0)
+					{
+						
+						for(uint i=0,l=weapons.length();i<l;i++)
+						{
+							if(weapons[i].GetType()==(3)&&!weapons[i].Proto.Weapon_IsUnarmed)
+							pid2=weapons[i].GetProtoId();
+						}
+					}
+				}
+				cr.SetFavoriteItem((1),pid2);
+				cr.SetFavoriteItem((2),pid1);
+			}
+			else
+			{
+				if((@weapon!=null)&&!weapon.Proto.Weapon_IsUnarmed)
+				{
+					pid1=weapon.GetProtoId();
+					
+					pid2=cr.GetFavoriteItem((2));
+					@proto=GetProtoItem(pid2);
+					if(!(@proto!=null)||proto.Type==(3))
+					pid2=(0);
+					cr.DropPlanes();
+					cr.SetFavoriteItem((1),pid2);
+					cr.SetFavoriteItem((2),pid1);
+				}
+			}
+			break;
+			default:
+			break;
+		}
+	}
+	
+	void NextOrder()
+	{
+		if(this.Orders.length()==0)
+		return;
+		uint newIndex=this.OrderCurrent+1;
+		MarchOrder@order;
+		if(newIndex>=this.Orders.length())
+		{
+			@order=this.Orders[this.OrderCurrent];
+			if(order.TimeNext==0)
+			{
+				this.Erase();
+				return;
+			}
+			else
+			{
+				newIndex=0;
+			}
+		}
+		this.OrderCurrent=newIndex;
+		this.Save();
+		if(this.Auto)
+		{
+			ExecuteOrder();
+			@order=this.Orders[this.OrderCurrent];
+			if((@order!=null))
+			{
+				uint[]values={this.CritterId,0};
+				CreateTimeEvent(__FullSecond+order.TimeNext,"e_NextOrder",values,false);
+			}
+		}
+	}
+}    
+
+uint e_NextOrder(uint[]@values)
+{
+	;
+	Critter@cr=GetCritter(values[0]);
+	if(!(@cr!=null)||values[1]>=(10)||!cr.IsNpc())
+	{
+		return 0;
+	}
+	MarchQueue@march=MarchQueue(cr);
+	values[1]++;
+	if(cr.IsNoPlanes()&&(@march!=null)&&march.CheckOrderCompleted())
+	{
+		march.ConfirmOrder();
+		march.NextOrder();
+		return 0;
+	}
+	return(((5)*__TimeMultiplier));
+}
+
+class SquadCommander
+{
+	SquadCommander(Critter&cr)
+	{
+		this.CommanderId=cr.Id;
+	}
+	
+	uint CommanderId;
+	uint[]Squad;
+	
+	void Save()
+	{
+		string key=("MarchCommander_"+this.CommanderId);
+		Serializator save;
+		save.Set(this.CommanderId);
+		save.Set(this.Squad);
+		save.Save(key);
+	}
+	
+	void Load()
+	{
+		string key=("MarchCommander_"+this.CommanderId);
+		if(!IsAnyData(key))
+		return;
+		Serializator load;
+		if(!load.Load(key))
+		{
+			return;
+		}
+		load.Get(this.CommanderId);
+		load.Get(this.Squad);
+	}
+	
+	void Erase()
+	{
+		string key=("MarchCommander_"+this.CommanderId);
+		for(uint i=0,l=this.Squad.length();i<l;i++)
+		{
+			MarchQueue@q=MarchQueue(this.Squad[i]);
+			if((@q!=null))
+			{
+				q.Load();
+				q.Erase();
+			}
+		}
+		if(IsAnyData(key))
+		EraseAnyData(key);
+	}
+	
+	bool CheckCommandExecuted()
+	{
+		for(uint i=0,l=this.Squad.length();i<l;i++)
+		{
+			MarchQueue@q=MarchQueue(this.Squad[i]);
+			q.Load();
+			Critter@cr=GetCritter(this.Squad[i]);
+			if(!(@cr!=null)||!(@q!=null))
+			{
+				return false;
+			}
+			if(cr.IsPlayer()&&!q.CheckOrderCompleted())
+			{
+				cr.SayMsg((11),(0),(5917));
+				return false;
+				
+			}
+		}
+		return true;
+	}
+	
+	void Command(uint strNum)
+	{
+		Critter@cr=GetCritter(this.CommanderId);
+		if((@cr!=null)&&strNum>=0)
+		cr.SayMsg((3),(1),(1000000000+(cr.Stat[(104)])*100000+(strNum)));
+		for(uint i=0,l=this.Squad.length();i<l;i++)
+		{
+			MarchQueue@q=MarchQueue(this.Squad[i]);
+			q.Load();
+			if((@q!=null))
+			{
+				q.ConfirmOrder();
+				q.Save();
+				;
+				q.NextOrder();
+				q.Save();
+				Critter@c=GetCritter(q.CritterId);
+				if(!(@c!=null))
+				return;
+				if(c.IsNpc())
+				q.ExecuteOrder();
+			}
+		}
+	}
+}   
+
+import void SetDeterioration(Item&item,int deteriorationProcent)from"repair";
+import int GetDeteriorationProcent(Item&item)from"repair";   
+
+void r_GiveWearItems(Critter&player,Critter@npc,int pid,int count,int deteriorationPercent)
+{
+	Item@item;
+	for(int i=0;i<count;i++)
+	{
+		@item=player.AddItem(pid,1);
+		if(!(@item!=null))
+		continue;
+		SetDeterioration(item,deteriorationPercent);
+	}
+}
+
+bool d_CheckWear(Critter&player,Critter@npc,int pid,int count,int deteriorationPercent)
+{
+	if(count==0)
+	return false;
+	Item@item;
+	Item@[]items;
+	if(player.GetItems(-1,items)==0)
+	return false;
+	int num=0;
+	for(uint i=0,l=items.length();i<l;i++)
+	{
+		@item=items[i];
+		if(!(@item!=null)||item.GetProtoId()!=pid)
+		continue;
+		if(GetDeteriorationProcent(item)<=deteriorationPercent)
+		num++;
+	}
+	return(num>=count);
+}               
+
+void t_Enter(Critter&player,Scenery&trigger,bool entered,uint8 dir)
+{
+	if(!player.IsPlayer()||!entered)
+	return;
+	GameVar@qVar=GetLocalVar((8823),player.Id);
+	GameVar@status=GetGlobalVar((8824));
+	if(!(@qVar!=null)||!(@status!=null))
+	return;
+	if(qVar.GetValue()!=1||status!=0)
+	return;
+	player.Wait(0);
+	player.SayMsg((11),(0),(5915));
+	Map@map=player.GetMap();
+	Critter@cr=map.GetNpc((92),(0x01)|(0x20),0);
+	if(!(@cr!=null)||cr.Stat[(99)]>0)
+	return;
+	uint[]values={cr.Id,player.Id,0};
+	cr.StatBase[(99)]=player.Id;
+	qVar=2;
+	CreateTimeEvent(__FullSecond+((3)*__TimeMultiplier),"e_TimeToStart",values,false);
+	CreateTimeEvent(__FullSecond+((15)*__TimeMultiplier*60),"e_ResetCommander",values,true);
+	
+} 
+
+uint e_ResetCommander(uint[]@values)
+{
+	Critter@cr=GetCritter(values[0]);
+	uint idPlayer=values[1];
+	if(!(@cr!=null)||uint(cr.Stat[(99)])!=idPlayer)
+	return 0;
+	SquadCommander@cmdr=SquadCommander(cr);
+	if((@cmdr!=null))
+	{
+		cmdr.Load();
+		cmdr.Erase();
+	}
+	ResetCommander(cr);
+	return 0;
+} 
+
+void ResetCommander(Critter&cr)
+{
+	cr.StatBase[(99)]=0;
+	GameVar@status=GetGlobalVar((8824));
+	if((@status!=null))
+	status=0;
+} 
+
+uint e_TimeToStart(uint[]@values)
+{
+	Critter@npc=GetCritter(values[0]);
+	Critter@player=GetCritter(values[1]);
+	if(!(@npc!=null)||!(@player!=null))
+	return 0;
+	if(player.HexX!=(65)||player.HexY!=(132))
+	{
+		if(values[2]>5)
+		{
+			ResetCommander(npc);
+			return 0;
+		}
+		values[2]++;
+		npc.SayMsg((4),(0),(5916));
+		return((5)*__TimeMultiplier);
+	}
+	GameVar@status=GetGlobalVar((8824));
+	if(!(@status!=null)||status!=0)
+	{
+		ResetCommander(npc);
+		return 0;
+	}
+	status=1;
+	Map@map=npc.GetMap();
+	Critter@[]critters;
+	uint num=map.GetNpcCount((91),(0x01)|(0x20));
+	uint[]values_new={0,npc.Id,player.Id};
+	SquadCommander@cmdr=SquadCommander(npc);
+	cmdr.Squad.insertLast(player.Id);
+	for(uint i=0;i<num;i++)
+	{
+		Critter@cr=map.GetNpc((91),(0x01)|(0x20),i);
+		if((@cr!=null))
+		{
+			MarchQueue@q=MarchQueue(cr);
+			q.Erase();
+			q.AddOrder(DefineDirection(5,0,0));
+			q.AddOrder(DefineMove(3,5,false,0,0));
+			q.AddOrder(DefineDirection(2,0,0));
+			q.AddOrder(DefineArmWeapon(true,0,0));
+			q.AddOrder(DefineArmWeapon(false,0,0));
+			q.AddOrder(DefineMove(5,2,true,0,0));
+			q.AddOrder(DefineDirection(5,0,0));
+			q.AddOrder(DefineMove(2,5,false,0,0));
+			q.Save();
+			cmdr.Squad.insertLast(cr.Id);
+		}
+	}
+	cmdr.Save();
+	MarchQueue@q=MarchQueue(player);
+	q.Erase();
+	q.AddOrder(DefineDirection(5,0,0));
+	q.AddOrder(DefineMove(3,5,false,0,0));
+	q.AddOrder(DefineDirection(2,0,0));
+	q.AddOrder(DefineArmWeapon(true,0,0));
+	q.AddOrder(DefineArmWeapon(false,0,0));
+	q.AddOrder(DefineMove(5,2,true,0,0));
+	q.AddOrder(DefineDirection(5,0,0));
+	q.AddOrder(DefineMove(2,5,false,0,0));
+	q.Save();
+	CreateTimeEvent(__FullSecond+((3)*__TimeMultiplier),"e_NextGuardOrder",values_new,false);
+	return 0;
+} 
+
+uint e_NextGuardOrder(uint[]@values)
+{
+	Critter@cr=GetCritter(values[1]);
+	if(!(@cr!=null))
+	return 0;
+	SquadCommander@cmdr=SquadCommander(cr);
+	cmdr.Load();
+	if(cmdr.CheckCommandExecuted())
+	{
+		cmdr.Command(values[0]);
+		values[0]++;
+	}
+	else
+	{
+		cr.SayMsg((1),(1),(1000000000+(cr.Stat[(104)])*100000+((9))));
+		ResetCommander(cr);
+		cmdr.Erase();
+		return 0;
+	}
+	if(values[0]==(7))
+	{
+		cr.SayMsg((1),(1),(1000000000+(cr.Stat[(104)])*100000+((10))));
+		ResetCommander(cr);
+		cmdr.Erase();
+		GameVar@qVar=GetLocalVar((8823),values[2]);
+		if((@qVar!=null)&&qVar.GetValue()==2)
+		qVar=3;
+		return 0;
+	}
+	return((6)*__TimeMultiplier);
+}              
+
+void r_SetGuardSalary(Critter&player,Critter@npc)
+{
+	player.AddTimeEvent("cte_GuardsmanSalary",(1*24*60*60),(224));
+}
+
+uint8 GetRank(Critter&cr)
+{
+	GameVar@rank=GetLocalVar((8825),cr.Id);
+	if(!(@rank!=null))
+	return(0);
+	return rank.GetValue();
+}
+
+uint cte_GuardsmanSalary(Critter&cr,int identifier,uint&rate)
+{
+	uint8 rank=GetRank(cr);
+	uint money=0;
+	switch(rank)
+	{
+		case(1):
+		money=(68);
+		break;
+		case(2):
+		money=(98);
+		break;
+		case(3):
+		money=(151);
+		break;
+		case(4):
+		money=(360);
+		break;
+		default:
+		break;
+	}
+	Map@map=cr.GetMap();
+	if((@map!=null)&&map.GetProtoId()>=(210)&&map.GetProtoId()<=(238))
+	{
+		return(5*24*60*60);
+	}
+	cr.StatBase[(82)]+=money;
+	return(1*24*60*60);
+} 
+
+void _MutantsCaveInit(Map&map,bool firstTime)
+{
+	map.SetEvent((6),"_CaveInCritter");
+}
+
+void _CaveInCritter(Map&map,Critter&cr)
+{
+	Location@loc=map.GetLocation();
+	if((@loc!=null))
+	loc.AutoGarbage=true;
+	Critter@[]mutants;
+	if(map.GetCritters(0,(0x03)|(0x20),mutants)>0)
+	{
+		for(uint i=0,l=mutants.length();i<l;i++)
+		{
+			Critter@npc=mutants[i];
+			if(!(@npc!=null))
+			continue;
+			if(!npc.CheckEnemyInStack(cr.Id))
+			npc.AddEnemyInStack(cr.Id);
+		}
+	}
+	GameVar@qVar=GetLocalVar((8829),cr.Id);
+	if((@qVar!=null)&&qVar.GetValue()==2)
+	qVar=3;
+}
+
+void _MutantsOutGroundInit(Map&map,bool firstTime)
+{
+	map.SetEvent((6),"_OutGroundInCritter");
+	Location@loc=map.GetLocation();
+	if((@loc!=null))
+	CreateTimeEvent(__FullSecond+((3)*__TimeMultiplier*86400),"e_DeleteQuestLocation",loc.Id,true);
+}
+
+uint e_DeleteQuestLocation(uint[]@values)
+{
+	Location@loc=GetLocation(values[0]);
+	if((@loc!=null))
+	loc.AutoGarbage=true;
+	return 0;
+}
+
+void _OutGroundInCritter(Map&map,Critter&cr)
+{
+	if(!cr.IsPlayer())
+	return;
+	GameVar@qVar=GetLocalVar((8829),cr.Id);
+	GameVar@idLoc=GetLocalVar((8830),cr.Id);
+	if(!(@qVar!=null)||!(@idLoc!=null)||qVar.GetValue()!=2)
+	return;
+	Location@loc=map.GetLocation();
+	if((@loc!=null)&&idLoc.GetValue()==0)
+	{
+		idLoc=loc.Id;
+		loc.AutoGarbage=false;
+		cr.SetKnownLoc(true,loc.Id);
+		
+	}
+}  
+
+import void r_ShowLocation(Critter&player,Critter@npc,int qVar,int counterVar,int locPid,int locX,int locY)from"hostile_location_quest";
+import void r_ShowLocation2(Critter&player,Critter@npc,int qVar,int counterVar,int locPid,int locX,int locY)from"hostile_location_quest";
+
+void r_ShowCave(Critter&player,Critter@npc)
+{
+	GameVar@locId=GetLocalVar((8830),player.Id);
+	if(!(@locId!=null)||locId.GetValue()==0)
+	return;
+	Location@loc=GetLocation(locId.GetValue());
+	uint16 x=1168;
+	uint16 y=418;
+	if((@loc!=null)&&loc.GetProtoId()==(214))
+	{
+		uint16 x=loc.WorldX;
+		uint16 y=loc.WorldY;
+		DeleteLocation(loc.Id);
+		r_ShowLocation(player,npc,(8832),(8833),(215),x,y);
+	}
+	else
+	{
+		r_ShowLocation2(player,npc,(8832),(8833),(215),x,y);
+	}
+}   
+
+void _CharleyInit(Critter&cr,bool firstTime)
+{
+	cr.StatBase[(7)]=600;
+	cr.StatBase[(72)]=cr.Stat[(7)];
+	cr.SkillBase[(215)]=1;
+	cr.StatBase[(8)]=12;
+	cr.SkillBase[(201)]=250;
+}

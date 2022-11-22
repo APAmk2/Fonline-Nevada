@@ -1,0 +1,259 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+int FindInArray(int[]&arr,int value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(int[]&arr,int id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+int FindInArray(uint[]&arr,uint value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(uint[]&arr,uint id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+int FindInArray(uint16[]&arr,uint16 value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}  
+
+int FindInArray(uint8[]&arr,uint8 value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(uint8[]&arr,uint8 id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+bool Present(int what,int[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+bool Present(uint what,uint[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+bool Present(uint16 what,uint16[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+void MergeArrays(uint16[]&arrayTo,uint16[]&arrayFrom)
+{
+	for(uint i=0,l=arrayFrom.length();i<l;i++)
+	{
+		arrayTo.insertLast(arrayFrom[i]);
+	}
+}
+
+void MergeArrays(int[]&arrayTo,int[]&arrayFrom)
+{
+	for(uint i=0,l=arrayFrom.length();i<l;i++)
+	{
+		arrayTo.insertLast(arrayFrom[i]);
+		arrayTo.insertLast(arrayFrom[i]);
+	}
+}      
+
+const uint[]noPvpMaps=
+{
+	(1),
+	(2),(3),(4),(5),
+	(6),(9),(10),
+	(15),(16),(18),(20),
+	(21),(22),(34),(42),
+	(43),(44),(45),(62),(63),
+	(64),(70),
+	(115),(116),
+	(135),(137),(138),(139),(142),(144),(145),(146),
+	(210),(211),(212),(213),(214),
+	(215),(216),(217),(218),(219),
+	(221),(222),(223),(224),(24)
+};   
+
+const int[]excludeDialogs=
+{
+	(323),(1678),(1679),(1680),(460),(1032),(1065),(1400),(454),(427),(437),(419),(1445),(1454),(1455),(1456),(1443),(1444),(1445),(1330),(1327),(1328),(1068),
+	(642),(1071),(454),(452),(110)
+};
+const int[]btInvul={(0),(1),(2),(3),(4)};     
+
+void OnCitterMapIn(Critter&cr,Map&map)
+{
+	cr.ModeBase[(514)]=0;
+	if(cr.IsPlayer()&&IsNoPvpMap(map))
+	{
+		cr.ModeBase[(514)]=1;
+		cr.SayMsg((11),(0),1);
+		if(cr.GetTimeEvents((42),null,null,null)==0)
+		{
+			cr.AddTimeEvent("cte_NoPvpOff",(((1)*__TimeMultiplier*60)),(42));
+		}
+	}
+}
+
+uint cte_NoPvpOff(Critter&cr,int identifier,uint&rate)
+{
+	if(cr.Mode[(514)]==0)
+	return 0;
+	Map@map=cr.GetMap();
+	if((@map!=null)&&IsNoPvpMap(map))
+	return(((1)*__TimeMultiplier*60));
+	cr.ModeBase[(514)]=0;
+	return 0;
+}
+
+void OnCritterMapOut(Critter&cr,Map&map)
+{
+	Map@mapCr=cr.GetMap();
+	if((@mapCr!=null)&&IsNoPvpMap(mapCr))
+	return;
+	if(__NoPvpMaps&&cr.IsPlayer()&&cr.Mode[(514)]>0)
+	{
+		cr.ModeBase[(514)]=0;
+		cr.SayMsg((11),(0),2);
+	}
+}
+
+bool IsNoPvpMap(Map&map)
+{
+	if(!__NoPvpMaps)
+	return false;
+	GameVar@nopvpOn=GetLocalVar(((1601)),map.Id);
+	return((@nopvpOn!=null)&&nopvpOn==1);
+}
+
+void SetNoPvp()
+{
+	if(!__NoPvpMaps)
+	return;
+	Map@map;
+	for(uint i=0,l=noPvpMaps.length();i<l;i++)
+	{
+		@map=GetMapByPid(noPvpMaps[i],0);
+		if((@map!=null))
+		SetNoPvp(map,true);
+	}
+}  
+
+void SetNoPvp(Map&map,bool firstTime)
+{
+	if(firstTime)
+	{
+		uint pidMap=map.GetProtoId();
+		if(Present(pidMap,noPvpMaps))
+		{
+			GameVar@nopvpOn=GetLocalVar(((1601)),map.Id);
+			if((@nopvpOn!=null)&&nopvpOn==0)
+			nopvpOn=1;
+			else
+			return;
+			Critter@[]critters;
+			Critter@cr;
+			int bt=0;
+			int dialog=0;
+			if(map.GetCritters(0,(0x0F)|(0x20),critters)>0)
+			{
+				for(uint i=0,l=critters.length();i<l;i++)
+				{
+					@cr=critters[i];
+					if(!(@cr!=null)||!cr.IsNpc())
+					continue;
+					dialog=cr.Stat[(104)];
+					if(Present(dialog,excludeDialogs))
+					continue;
+					bt=cr.Stat[(67)];
+					if(Present(bt,btInvul))
+					cr.ModeBase[(527)]=1;
+				}
+			}
+		}
+	}
+} 
+
+void unsafe_CritterToGlobal(Critter&player,int,int,int,string@,int[]@)
+{
+	player.Wait(1000);
+	if(player.Timeout[(238)]>0)
+	{
+		player.SayMsg((11),(3),(791));
+		return;
+	}
+	Map@map=player.GetMap();
+	if((@map!=null)&&IsNoPvpMap(map)&&player.Mode[(514)]==1&&player.IsLife())
+	player.TransitToGlobal(false);
+	else
+	player.SayMsg((11),(3),(10202));
+}

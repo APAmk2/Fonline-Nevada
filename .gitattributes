@@ -1,0 +1,4 @@
+# syntax highlighting for .fos files
+*.fos linguist-language=AngelScript
+*.avi filter=lfs diff=lfs merge=lfs -text
+*.dat filter=lfs diff=lfs merge=lfs -text

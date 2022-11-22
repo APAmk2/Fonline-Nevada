@@ -1,0 +1,206 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";
+import void _MobInit(Critter&npc,bool firstTime)from"mob";
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import void Explode(Map@map,uint16 hexX,uint16 hexY,Critter@cr,uint16 explodePid,uint ownerId,int bonusDamage,int bonusRadius)from"explode";
+
+void _RatGrenadeInit(Item&item,bool firstTime)
+{
+	;
+	if(firstTime)
+	{
+		
+		if(Random(1,4)<2)
+		{
+			;
+			item.Val1=CreateTimeEvent(__FullSecond+((Random(4,5))*__TimeMultiplier*60),"e_AwakeRat",item.Id,false);
+			;
+			
+		}
+	}
+	item.SetEvent((1),"_RatGrenadeAttack");
+	item.SetEvent((0),"_RatGrenadeFinish");
+	
+}
+
+bool _RatGrenadeUseOnMe(Item&item,Critter&cr,Item@usedItem)
+{
+	int pid=item.GetProtoId();
+	if((@usedItem!=null)&&pid==(650)&&usedItem.GetProtoId()==(647))
+	{
+		
+		Item@[]items;
+		Item@foundedItem;
+		if(cr.GetItems(-1,items)>0)
+		{
+			for(uint i=0,l=items.length();i<l;i++)
+			{
+				@foundedItem=items[i];
+				if((@foundedItem!=null)&&foundedItem.Id==item.Id)
+				{
+					DeleteItem(foundedItem);
+					cr.AddItem((651),1);
+					cr.SayMsg((11),(0),(32));
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+uint e_AwakeRat(uint[]@values)
+{
+	;
+	Item@item=GetItem(values[0]);
+	if((@item!=null))
+	{
+		item.Val1=0;
+		if(item.CritId>0)
+		{
+			Critter@cr=GetCritter(item.CritId);
+			if((@cr!=null))
+			{
+				Map@map=cr.GetMap();
+				if((@map!=null))
+				{
+					cr.SayMsg((11),(0),(31));
+					uint16 x=cr.HexX;
+					uint16 y=cr.HexY;
+					if(GetFreeHex(map,2,x,y))
+					{
+						uint8 dir=GetDirection(x,y,cr.HexX,cr.HexY);
+						int[]values={(93),item.GetProtoId(),(94),item.CritId};
+						Critter@rat=map.AddNpc((11),x,y,dir,values,null,"_RatInit");
+						if((@rat!=null))
+						{
+							AddAttackPlane(rat,0,cr);
+						}
+					}
+				}
+				else
+				{
+					cr.SayMsg((11),(0),(30));
+				}
+				DeleteItem(item);
+			}
+		}
+	}
+	return 0;
+}
+
+bool _RatGrenadeAttack(Item&item,Critter&cr,Critter&target)
+{
+	;
+	if(target.Mode[(514)]==0)
+	{
+		uint[]values={cr.Id,target.Id,item.Id,1};
+		CreateTimeEvent(__FullSecond+1,"e_RatAttack",values,true);
+	}
+	if(target.Stat[(67)]==(8))
+	{
+		GameVar@qVar=GetLocalVar((3320),cr.Id);
+		int value=qVar.GetValue();
+		switch(value)
+		{
+			case 1:
+			qVar=2;
+			break;
+			case 3:
+			qVar=4;
+			break;
+		}
+	}
+	return false;
+}
+
+uint e_RatAttack(uint[]@values)
+{
+	Critter@target=GetCritter(values[1]);
+	Item@item=GetItem(values[2]);
+	if((@item!=null)&&(@target!=null))
+	{
+		uint16 hX=target.HexX;
+		uint16 hY=target.HexY;
+		if(item.MapId>0)
+		{
+			Map@map=item.GetMapPosition(hX,hY);
+			if((@map!=null))
+			{
+				if(GetFreeHex(map,2,hX,hY))
+				{
+					uint8 dir=GetDirection(hX,hY,target.HexX,target.HexY);
+					int[]values={(93),item.GetProtoId(),(94),item.CritId};
+					Critter@rat=map.AddNpc((11),hX,hY,dir,values,null,"_RatInit");
+					if((@rat!=null))
+					{
+						AddAttackPlane(rat,0,target);
+						DeleteItem(item);
+					}
+				}
+			}
+		}
+		else
+		{
+			if(values[3]<2)
+			{
+				;
+				values[3]=2;
+				CreateTimeEvent(__FullSecond+2,"e_RatAttack",values,true);
+			}
+		}
+	}
+	return 0;
+}
+
+void _RatGrenadeFinish(Item&item,bool deleted)
+{
+	;
+	if(deleted)
+	if(item.Val1>0)
+	EraseTimeEvent(item.Val1);
+}  
+
+void _RatInit(Critter&cr,bool firstTime)
+{
+	_MobInit(cr,firstTime);
+	cr.StatBase[(106)]=(24);
+	cr.StatBase[(84)]=-1;
+	cr.SetEvent((2),"_RatDead");
+	;
+	switch(cr.Stat[(93)])
+	{
+		case(651):
+		cr.StatBase[(64)]=120;
+		break;
+		case(652):
+		cr.AddTimeEvent("cte_ExplodeRat",((Random(5,10))*__TimeMultiplier),0);
+		break;
+	}
+	cr.AddTimeEvent("cte_DeleteRat",((Random(5,10))*__TimeMultiplier*60),0);
+}
+uint cte_ExplodeRat(Critter&cr,int identifier,uint&rate)
+{
+	;
+	Map@map=cr.GetMap();
+	if((@map!=null))
+	Explode(cr.GetMap(),cr.HexX,cr.HexY,null,(206),cr.Stat[(94)],Random(0,50),Random(0,1));
+	else
+	DeleteNpc(cr);
+	return 0;
+}
+
+void _RatDead(Critter&cr,Critter@killer)
+{
+	;
+	cr.AddTimeEvent("cte_DeleteRat",((5)*__TimeMultiplier*60),0);
+}
+
+uint cte_DeleteRat(Critter&cr,int identifier,uint&rate)
+{
+	;
+	if(cr.IsNpc())
+	DeleteNpc(cr);
+	return 0;
+}

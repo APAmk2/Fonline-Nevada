@@ -1,0 +1,459 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+class Entire
+{
+	int Number;
+	uint16 HexX;
+	uint16 HexY;
+}
+
+Entire@GetEntire(Map&map,int entireNum,int skip)
+{
+	Entire ent;
+	if(map.GetEntireCoords(entireNum,skip,ent.HexX,ent.HexY)==false)
+	return null;
+	ent.Number=entireNum;
+	return ent;
+}
+
+uint ParseEntires(Map&map,Entire[]&entires,int number)
+{
+	uint oldCount=entires.length();
+	uint count=map.CountEntire(number);
+	entires.resize(oldCount+count);
+	
+	for(uint i=0;i<count;i++)
+	{
+		Entire@ent=entires[oldCount+i];
+		if(map.GetEntireCoords(number,i,ent.HexX,ent.HexY)==false)
+		return 0;
+		ent.Number=number;
+	}
+	
+	return count;
+}
+
+bool GetEntireFreeHex(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint count=map.CountEntire(number); 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy)&&map.IsHexPassed(hx,hy))
+		return true;
+	}
+	
+	if(hx==0||hy==0||hx>=map.GetWidth()-1||hy>=map.GetHeight()-1)
+	return false; 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy))
+		{
+			for(int x=-1;x<=1;x++)
+			{
+				for(int y=-1;y<=1;y++)
+				{
+					if(x==0&&y==0)
+					continue;
+					
+					if(__MapHexagonal)
+					{
+						if((hx%2)==1&&((x==-1&&y==1)||(x==1&&y==1)))
+						continue;
+						if((hx%2)==0&&((x==-1&&y==-1)||(x==1&&y==-1)))
+						continue;
+					}
+					
+					if(map.IsHexPassed(hx+x,hy+y))
+					{
+						hx+=x;
+						hy+=y;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint16 hxBase=hx;
+	uint16 hyBase=hy;
+	
+	Entire[]entires;
+	uint count=ParseEntires(map,entires,number);
+	if(count==0)
+	return false;
+	
+	hx=entires[0].HexX;
+	hy=entires[0].HexY;
+	for(uint i=1;i<count;i++)
+	{
+		Entire@ent=entires[i];
+		if(GetDistantion(hxBase,hyBase,ent.HexX,ent.HexY)<GetDistantion(hxBase,hyBase,hx,hy))
+		{
+			hx=ent.HexX;
+			hy=ent.HexY;
+		}
+	}
+	
+	return true;
+}                  
+
+bool IsCritterInDeadZone(Critter&cr,Map&map,uint8 dir,uint8 hexFirst,uint8 hexEnd)
+{
+	uint crossNum=0;
+	for(uint i=hexFirst;i<=hexEnd;i++)
+	{
+		if(BeamCrossing2Section(map,i,(i==hexEnd?hexFirst:i+1),cr.HexX,cr.HexY,dir))
+		{
+			crossNum++;
+			
+		}
+	}
+	bool inZone=false;
+	if(crossNum>0&&(crossNum%2==1))
+	inZone=true;
+	
+	return inZone;
+	
+}         
+
+bool BeamCrossing2Section(Map&map,uint8 hexNum1,uint8 hexNum2,uint16 beamX,uint16 beamY,uint8 dir)
+{
+	
+	uint16 hx0=beamX;
+	uint16 beamX2=hx0;
+	uint16 hy0=beamY;
+	uint16 beamY2=hy0;
+	uint steps=0;
+	
+	while(hx0!=beamX2||hy0!=beamY2||steps==0)
+	{
+		steps+=1;
+		hx0=beamX2;
+		hy0=beamY2;
+		map.MoveHexByDir(beamX2,beamY2,dir,steps);
+	} 
+	
+	uint16 hx1=0;
+	uint16 hx2=0;
+	uint16 hy1=0;
+	uint16 hy2=0;
+	
+	if(!map.GetEntireCoords(hexNum1,0,hx1,hy1))
+	return false;
+	if(!map.GetEntireCoords(hexNum2,0,hx2,hy2))
+	return false;                           
+	
+	float z=(int(hx1)-int(hx2))*(int(beamY2)-int(beamY))-(int(hy1)-int(hy2))*(int(beamX2)-int(beamX));
+	
+	float ch=(int(hx1)-int(beamX))*(int(beamY2)-int(beamY))-(int(hy1)-int(beamY))*(int(beamX2)-int(beamX));
+	
+	float cbeam=(int(hx1)-int(hx2))*(int(hy1)-int(beamY))-(int(hy1)-int(hy2))*(int(hx1)-int(beamX));
+	
+	if(z==0&&ch==0&&cbeam==0)
+	return false;
+	
+	if(z==0)
+	return false;
+	
+	float crossS=ch/z;
+	
+	float crossB=cbeam/z;
+	return(0<crossS&&crossS<1&&0<crossB&&crossB<1);
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+const uint16[]Pids_AllWeapon={(300),(122),(8),(22),(18),(404),(241),(313),(398),(388),(394),(10),(287),(299),(23),(405),(143),(351),(403),(500),(161),(162),(261),(353),(392),(94),(385),(242),(268),(354),(9),(296),(283),(352),(391),(332),(11),(400),(13),(12),(389),(395),(350),(355),(387),(16),(402),(390),(118),(401),(28),(120),(24),(406),(15),(233),(396),(397),(16),(402),(390),(118),(401),(28),(120),(24),(406),(15),(233),(396),(397),(159),(25),(26),(27),(79),(205),(365),(45),(19),(423),(426),(486),(4),(236),(517),(383),(319),(522),(7),(280),(320),(5),(20),(384),(6),(386),(115),(160),(399),(116),(292),(293),(496),(497),(235),(21),(234),(407)};
+const uint16[]Pids_WeaponSmallGuns={(300),(122),(8),(22),(18),(404),(241),(313),(398),(388),(394),(10),(287),(299),(23),(405),(143),(351),(403),(500),(161),(162),(261),(353),(392),(94),(385),(242),(268),(354),(9),(296),(283),(352),(391),(332)};
+const uint16[]Pids_WeaponPistols={(300),(122),(8),(22),(18),(404),(241),(313),(398),(388),(394)};
+const uint16[]Pids_WeaponRifles={(10),(287),(299),(23),(405),(143),(351),(403),(500),(161),(162),(261),(353),(392)};
+const uint16[]Pids_WeaponShotguns={(94),(385),(242),(268),(354)};
+const uint16[]Pids_WeaponPistolMachineGun={(9),(296),(283),(352),(391),(332)};
+const uint16[]Pids_WeaponBigGuns={(11),(400),(13),(12),(389),(395),(350),(355),(387)};
+const uint16[]Pids_WeaponEnergo={(16),(402),(118),(401),(28),(120),(24),(406),(15),(233),(396),(397)};
+const uint16[]Pids_WeaponLaser={(16),(402),(118),(401),(28),(120)};
+const uint16[]Pids_WeaponPlasma={(24),(406),(15),(233)};
+const uint16[]Pids_WeaponPulse={(396),(397)};
+const uint16[]Pids_WeaponThrowing={(159),(25),(26),(27),(79),(205),(365),(45),(19),(423),(426),(486)};
+const uint16[]Pids_WeaponGrenade={(159),(25),(26),(27)};
+const uint16[]Pids_WeaponThrowingOther={(79),(205),(365),(45),(19),(423),(426),(486)};
+const uint16[]Pids_WeaponMelee={(4),(236),(517),(383),(319),(522),(7),(280),(320),(5),(20),(384),(6),(386),(115),(160),(399),(116)};
+const uint16[]Pids_WeaponCutting={(4),(236),(517),(383),(319),(522)};
+const uint16[]Pids_WeaponPricking={(7),(280),(320)};
+const uint16[]Pids_WeaponShock={(5),(20),(384),(6),(386),(115)};
+const uint16[]Pids_WeaponElectric={(160),(399),(116)};
+const uint16[]Pids_WeaponUnarmed={(292),(293),(496),(497),(235),(21),(234),(407)};
+const uint16[]Pids_WeaponSpecial={(270),(393),(371),(372),(427),(489),(498),(290),(291),(518),(520),(530),(531),(421),(390)};
+
+const uint16[]Pids_AllArmor={(74),(1),(379),(265),(2),(380),(240),(17),(381),(239),(3),(232),(348),(349),(113),(524)};
+const uint16[]Pids_ArmorLight={(74),(1),(379),(265)};
+const uint16[]Pids_ArmorMedium={(2),(380),(240),(17),(381),(239)};
+const uint16[]Pids_ArmorHeavy={(3),(232),(348),(349)};
+const uint16[]Pids_ArmorRobes={(113)};
+const uint16[]Pids_ArmorSpecial={(524)};
+
+const uint16[]Pids_AllAmmo={(359),(35),(36),(363),(360),(121),(29),(30),(33),(31),(111),(357),(34),(95),(358),(14),(37),(32),(382),(38),(39),(163),(361),(362)};
+const uint16[]Pids_Ammo={(359),(35),(36),(363),(360),(121),(29),(30),(33),(31),(111),(357),(34),(95),(358)};
+const uint16[]Pids_AmmoOther={(14),(37),(32),(382),(38),(39),(163),(361),(362)};
+const uint16[]Pids_AmmoSpecial={(274)};
+
+const uint16[]Pids_AllDrugs={(40),(48),(49),(109),(144),(260),(273),(525),(106),(124),(125),(310),(311),(469),(53),(87),(110),(259),(71),(81),(103),(378),(424)};
+const uint16[]Pids_DrugsPreparations={(40),(48),(49),(109),(144),(260),(273),(525)};
+const uint16[]Pids_DrugsAlcohol={(106),(124),(125),(310),(311),(469)};
+const uint16[]Pids_Drugs={(53),(87),(110),(259)};
+const uint16[]Pids_DrugsOther={(71),(81),(103),(378)};
+const uint16[]Pids_DrugsSpecial={(334),(473),(480),(481),(482),(424)};
+
+const uint16[]Pids_MiscExplosions={(51),(85),(544)};
+const uint16[]Pids_MiscActiveExplosions={(206),(209),(545),(222)};
+const uint16[]Pids_MiscPartsBasic={(98),(92),(127),(271),(272),(276),(277),(278),(284),(285),(286),(318),(416),(542),(532),(534),(475),(535),(536),(537),(538),(50),(449),(539),(541)};
+const uint16[]Pids_MiscPartsSelfSpecial={(89),(222),(229),(307),(419),(454),(364),(422),(479),(488)};
+const uint16[]Pids_MiscPartsSpecial={(55),(253),(254),(258),(269),(356),(377)};
+const uint16[]Pids_MiscPartsBody={(114),(251),(281),(282),(321),(322),(323),(324),(429),(484),(485),(507)};
+const uint16[]Pids_MiscAllTools={(75),(77),(84),(308),(410),(411),(412),(47),(91),(408),(409),(428),(440),(289),(297),(543)};
+const uint16[]Pids_MiscToolsTech={(75),(77),(84),(308),(410),(411),(412)};
+const uint16[]Pids_MiscToolsMediacal={(47),(91),(408),(409),(428),(440)};
+const uint16[]Pids_MiscToolsOther={(289),(297),(543)};
+const uint16[]Pids_MiscToolsSpecial={(52),(54),(59)};
+const uint16[]Pids_MiscOther={(101),(117),(126),(226),(227),(262),(295),(314),(315),(316),(317),(325),(326),(436),(437)};              
+
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+
+const uint16[]CarMaps={(25),(49),(75)};
+const uint[]TerminalMaps={(30),(53),(79)};
+const uint[]GvarRule={(100),(101),(102)};
+const uint[]GvarOrg={(103),(104),(105)};
+const uint[]GvarTimeEvent={(108),(109),(110)};
+const int[]ScoreCur={(40),(41),(42)};
+const int[]ScoreBest={(43),(44),(45)};
+const int[]ScoreOrg={(46),(47),(48)}; 
+
+uint e_BaseRefresh(uint[]@values)
+{
+	RefreshBase(values[0]);
+	return 0;
+}
+
+void RefreshBase(int base)
+{
+	if(base>=(3))
+	return;
+	
+	GameVar@varTE=GetGlobalVar(GvarTimeEvent[base]);
+	varTE=0;
+	
+	GameVar@varRule=GetGlobalVar(GvarRule[base]);
+	if(varRule==0)
+	return;
+	
+	GameVar@varOrg=GetGlobalVar(GvarOrg[base]);
+	if(varOrg==0)
+	return;
+	
+	Map@map=GetMapByPid(CarMaps[base],0);
+	if(not(@map!=null))
+	return;
+	
+	CreateSupplyCar(map,base,varRule.GetValue(),varOrg.GetValue());
+	
+	Critter@player=GetCritter(varRule.GetValue());
+	if((@player!=null)&&player.IsPlayer())
+	player.AddScore(ScoreBest[base],1);
+	
+	GameVar@varEnclaveScore=GetGlobalVar((106));
+	GameVar@varBosScore=GetGlobalVar((107));
+	if(varOrg==(1))
+	varEnclaveScore+=1;
+	else if(varOrg==(2))
+	varBosScore+=1;
+	if(varEnclaveScore>varBosScore)
+	SetBestScore((49),null,"Enclave");
+	else if(varEnclaveScore<varBosScore)
+	SetBestScore((49),null,"Br. of Steel");
+	else
+	SetBestScore((49),null,"<draw>");
+}
+
+void CreateSupplyCar(Map@map,int base,uint playerId,int org)
+{
+	Entire[]entires;
+	ParseEntires(map,entires,(50));
+	
+	uint16 carPid=(org==(2)?(800):(805));
+	
+	uint16 hx,hy;
+	for(int i=0,j=entires.length();i<=j;i++)
+	{
+		if(i==j)
+		return;
+		
+		Entire@ent=entires[i];
+		if(map.CheckPlaceForItem(ent.HexX,ent.HexY,carPid))
+		{
+			hx=ent.HexX;
+			hy=ent.HexY;
+			break;
+		}
+	}
+	
+	Item@car=map.AddItem(hx,hy,carPid,1);
+	if(not(@car!=null))
+	return;
+	car.LockerId=1;
+	car.Charge=Random(0,car.Proto.Car_TankVolume);
+	car.Deterioration=Random(0,car.Proto.Car_MaxDeterioration);
+	
+	Item@bag=car.GetChild(0);
+	if((@bag!=null))
+	{
+		bag.LockerId=(org==(1)?(0x80000000|(playerId)):(0x40000000|(playerId)));
+		bag.LockerComplexity=Random(100,200);
+		
+		if(org==(1))
+		{
+			if(Random(1,200)==1)
+			bag.AddItem((348),1,0);
+			if(Random(1,250)==1)
+			bag.AddItem((349),1,0);
+		}
+		else
+		{
+			if(Random(1,60)==1)
+			bag.AddItem((3),1,0);
+			if(Random(1,80)==1)
+			bag.AddItem((232),1,0);
+		}
+		
+		bag.AddItem((41),Random(100,1000),0);
+		FillBag(bag,Pids_Ammo,40,80,80);
+		FillBag(bag,Pids_AmmoOther,1,5,40);
+		
+		FillBag(bag,Pids_WeaponPistols,1,2,40);
+		FillBag(bag,Pids_WeaponRifles,1,1,10);
+		FillBag(bag,Pids_WeaponShotguns,1,1,20);
+		FillBag(bag,Pids_WeaponPistolMachineGun,1,1,20);
+		FillBag(bag,Pids_WeaponBigGuns,1,1,10);
+		FillBag(bag,Pids_WeaponLaser,1,1,5);
+		FillBag(bag,Pids_WeaponPlasma,1,1,5);
+		FillBag(bag,Pids_WeaponPulse,1,1,5);
+		FillBag(bag,Pids_WeaponGrenade,2,5,80);
+		FillBag(bag,Pids_WeaponThrowingOther,10,30,100);
+		FillBag(bag,Pids_WeaponCutting,1,2,80);
+		FillBag(bag,Pids_WeaponShock,1,2,80);
+		FillBag(bag,Pids_WeaponElectric,1,2,80);
+		FillBag(bag,Pids_WeaponUnarmed,1,2,80);
+		
+		FillBag(bag,Pids_ArmorLight,1,2,40);
+		FillBag(bag,Pids_ArmorMedium,1,1,20);
+		
+		FillBag(bag,Pids_DrugsPreparations,1,5,60);
+		FillBag(bag,Pids_DrugsAlcohol,1,3,50);
+		FillBag(bag,Pids_Drugs,1,3,60);
+		FillBag(bag,Pids_DrugsOther,1,2,50);
+		
+		FillBag(bag,Pids_MiscExplosions,1,1,50);
+		
+		FillBag(bag,Pids_MiscPartsBasic,1,5,70);
+		FillBag(bag,Pids_MiscPartsSelfSpecial,1,1,20);
+		FillBag(bag,Pids_MiscPartsSpecial,1,1,10);
+		FillBag(bag,Pids_MiscPartsBody,1,1,5);
+		
+		FillBag(bag,Pids_MiscToolsTech,1,1,30);
+		FillBag(bag,Pids_MiscToolsMediacal,1,1,80);
+		FillBag(bag,Pids_MiscToolsOther,1,1,80);
+		FillBag(bag,Pids_MiscToolsSpecial,1,1,50);
+		FillBag(bag,Pids_MiscOther,1,1,70); 
+		
+		if(base==(2))
+		{
+			Critter@[]npcs,players;
+			if(map.GetCritters(0,(0x03)|(0x10),players)>0&&map.GetCritters(0,(0x03)|(0x20),npcs)>0)
+			{
+				for(uint i=0,ii=npcs.length();i<ii;i++)
+				{
+					Critter@npc=npcs[i];
+					for(uint j=0,jj=players.length();j<jj;j++)
+					AddAttackPlane(npc,0,players[j]);
+				}
+			}
+		}
+	}
+	
+	CreateTimeEvent(__FullSecond+(60*60),"e_DeleteCar",car.Id,true);
+}
+
+void FillBag(Item@bag,uint16[]&pids,uint min,uint max,int chance)
+{
+	if(chance>=Random(1,100))
+	bag.AddItem(pids[Random(0,pids.length()-1)],Random(min,max),0);
+}
+
+uint e_DeleteCar(uint[]@values)
+{
+	Item@car=GetItem(values[0]);
+	if((@car!=null))
+	DeleteItem(car);
+	return 0;
+}
+
+bool s_Terminal(Critter&player,Scenery&terminal,int skill,Item@item)
+{
+	if(player.IsPlayer()&&skill==-1&&not(@item!=null))
+	RunDialog(player,(70),terminal.HexX,terminal.HexY,false);
+	return true;
+}
+
+void r_BaseToEnclave(Critter&player,Critter@terminal,int val)
+{
+	BaseTo(player,(1));
+}
+
+void r_BaseToBos(Critter&player,Critter@terminal,int val)
+{
+	BaseTo(player,(2));
+}
+
+void BaseTo(Critter@player,int org)
+{
+	int base=GetBaseByMap(player.GetMap());
+	if(base==-1)
+	return;
+	
+	GameVar@varRule=GetGlobalVar(GvarRule[base]);
+	varRule=player.Id;
+	
+	GameVar@varOrg=GetGlobalVar(GvarOrg[base]);
+	varOrg=org;
+	
+	SetBestScore(ScoreCur[base],player,"");
+	SetBestScore(ScoreOrg[base],null,org==(1)?"Enclave":"Br. of Steel"); 
+	
+	GameVar@varTE=GetGlobalVar(GvarTimeEvent[base]);
+	if(varTE!=0)
+	{
+		EraseTimeEvent(varTE.GetValue());
+		varTE=0;
+	} 
+	
+	varTE=CreateTimeEvent(__FullSecond+(((Random(25,35))*__TimeMultiplier*60)),"e_BaseRefresh",base,true);
+}
+
+int GetBaseByMap(Map@map)
+{
+	if(not(@map!=null))
+	return-1;
+	uint16 mapPid=map.GetProtoId();
+	for(int i=0,j=TerminalMaps.length();i<j;i++)
+	if(TerminalMaps[i]==mapPid)
+	return i;
+	return-1;
+}
+
+bool d_CheckTerminalLock(Critter&player,Critter@terminal,int val)
+{
+	return true;
+}

@@ -1,0 +1,57 @@
+Logging with time.
+(43)Starting FOMapper...
+(43)
+Mapper Initialization...
+(59)Sprite manager initialization...
+(119)Sprite manager initialization complete.
+(131)DInput init...
+(143)DInput init OK
+(143)Resource manager initialization...
+(146)Resource manager initialization complete.
+(146)Sound manager initialization...
+(167)Sound manager initialization success.
+(168)Init iface
+(169)Load data
+(181)Init iface success
+(241)Loaded<133> critter types.
+(242)Items manager init...
+(243)Items manager init success.
+(263)Critter manager init...
+(280)Critter manager init success.
+(281)Loading critters prototypes...
+(304)Loaded<486> critter protos, errors<0>.
+(305)Hex field initialization...
+(305)Hex field initialization success.
+(307)FEngine Initialization complete.
+(43379)CProtoMap::ReadObjects - Proto not found, pid<3893>.
+(43382)CProtoMap::Refresh - Map<pid<65535>, name<VAULT8_out>>, Can't read Objects.
+(43382)Proto map init fail
+(66754)CProtoMap::ReadObjects - Proto not found, pid<3893>.
+(66758)CProtoMap::Refresh - Map<pid<65535>, name<VAULT8_out>>, Can't read Objects.
+(66758)Proto map init fail
+(67054)CProtoMap::ReadObjects - Proto not found, pid<3893>.
+(67058)CProtoMap::Refresh - Map<pid<65535>, name<VAULT8_out>>, Can't read Objects.
+(67058)Proto map init fail
+(67471)CProtoMap::ReadObjects - Proto not found, pid<3893>.
+(67474)CProtoMap::Refresh - Map<pid<65535>, name<VAULT8_out>>, Can't read Objects.
+(67475)Proto map init fail
+(68675)CProtoMap::ReadObjects - Proto not found, pid<3893>.
+(68677)CProtoMap::Refresh - Map<pid<65535>, name<VAULT8_out>>, Can't read Objects.
+(68677)Proto map init fail
+(69026)CProtoMap::ReadObjects - Proto not found, pid<3893>.
+(69029)CProtoMap::Refresh - Map<pid<65535>, name<VAULT8_out>>, Can't read Objects.
+(69029)Proto map init fail
+(107296)Mapper finish...
+(107299)Resource manager finish...
+(107299)Resource manager finish complete.
+(107300)Hex field finish...
+(107300)Hex field finish complete.
+(107300)Sprite manager finish...
+(107301)Sprite manager finish complete.
+(107301)Sound manager finish.
+(107302)Sound manager finish complete.
+(107303)Critter manager finish...
+(107303)Critter manager finish success.
+(107306)Mapper finish complete.
+(107306)
+FOMapper Closed

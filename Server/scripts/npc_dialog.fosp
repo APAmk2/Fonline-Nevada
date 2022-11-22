@@ -1,0 +1,202 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";                    
+
+const int[]DialogData=
+{ 
+	
+	1,(0),(1),(0),101,(1),
+	1,(0),(1),101,102,(1),
+	1,(0),(1),102,103,(2),
+	1,(0),(1),103,104,(1),
+	1,(0),(1),104,(0),(-1),
+	
+	2,(0),(1),(0),8000,(2),
+	2,(0),(1),8000,8001,(2),
+	2,(0),(1),8001,8002,(2),
+	2,(0),(1),8002,8003,(2),
+	2,(0),(1),8003,(0),(-1),
+	
+	3,(0),(1),(0),8010,(1),
+	3,(0),(1),8010,8011,(2),
+	3,(0),(1),8011,8012,(2),
+	3,(0),(1),8012,8013,(2),
+	3,(0),(1),8013,8014,(2),
+	3,(0),(1),8014,8015,(2),
+	3,(0),(1),8015,8016,(2),
+	3,(0),(1),8016,8017,(1),
+	3,(0),(1),8017,8018,(2),
+	3,(0),(1),8018,8019,(2),
+	3,(0),(1),8019,8020,(2),
+	3,(0),(1),8020,8021,(2),
+	3,(0),(1),8021,8022,(2),
+	3,(0),(1),8022,8023,(2),
+	3,(0),(1),8023,8024,(2),
+	3,(0),(1),8024,8025,(2),
+	3,(0),(1),8025,8026,(2),
+	3,(0),(1),8026,8027,(2),
+	3,(0),(1),8027,8028,(2),
+	3,(0),(1),8028,(0),(-1),
+	
+	4,(0),(1),(0),8029,(1),
+	4,(0),(1),8029,(0),(1),
+	
+	5,(0),(1),(0),8032,(1),
+	5,(0),(1),8032,8033,(2),
+	5,(0),(1),8033,8034,(2),
+	5,(0),(1),8034,8035,(2),
+	5,(0),(1),8035,8036,(2),
+	5,(0),(1),8036,8037,(2),
+	5,(0),(1),8037,(0),(-1),
+};          
+
+void BeginDialog(Critter&cr,int dialog)
+{
+	SayPhrase(cr,dialog,(0));
+} 
+
+int GetPhrase(int dialog,int phrase)
+{
+	uint[]phrases;
+	for(uint i=0,l=DialogData.length();i<l;i+=(6))
+	if(DialogData[i]==dialog&&DialogData[i+(3)]==phrase)
+	phrases.insertLast(i/(6));
+	if(phrases.length()==0)
+	return-1;
+	return phrases[Random(0,phrases.length()-1)];
+}    
+
+void SayPhrase(Critter&cr,int dialog,int num)
+{
+	;
+	int r=GetPhrase(dialog,num);
+	;
+	cr.SayMsg((DialogData[r*(6)+(2)]),(DialogData[r*(6)+(1)]),num);
+	cr.StatBase[(98)]=r;
+	uint wait=(10*__TimeMultiplier);
+	if(cr.Stat[(99)]>0)
+	wait=(((uint(cr.Stat[(99)])*__TimeMultiplier)>((10*__TimeMultiplier)))?((10*__TimeMultiplier)):(((uint(cr.Stat[(99)])*__TimeMultiplier)<(1))?(1):(uint(cr.Stat[(99)])*__TimeMultiplier)));
+	AddMiscPlane(cr,0,__FullSecond+wait,"npc_dialog@plane_NextPhrase");
+}
+
+bool DialogEnded(Critter&cr)
+{
+	return(DialogData[cr.Stat[(98)]*(6)+(5)])==(-1);
+}
+
+void plane_NextPhrase(Critter&cr)
+{
+	;
+	if((DialogData[cr.Stat[(98)]*(6)+(5)])==(-1))
+	{
+		cr.SendMessage((4023),(DialogData[cr.Stat[(98)]*(6)]),(2));
+		return;
+	}
+	if((DialogData[cr.Stat[(98)]*(6)+(5)])==(1))
+	SayPhrase(cr,(DialogData[cr.Stat[(98)]*(6)]),(DialogData[cr.Stat[(98)]*(6)+(4)]));
+	else if((DialogData[cr.Stat[(98)]*(6)+(5)])==(2))
+	cr.SendMessage((4022),(DialogData[cr.Stat[(98)]*(6)]),(0));
+}
+
+void _NpcMessage(Critter&cr,Critter&fromCr,int message,int value)
+{
+	;
+	if(message==(4022)&&fromCr.Id!=cr.Id)
+	{
+		;
+		SayPhrase(cr,value,(DialogData[fromCr.Stat[(98)]*(6)+(4)]));
+	}
+}          
+
+void t_NpcDialog(Critter&player,Scenery&trigger,bool entered,uint8 dir,int npcRole,int firstStr,int lastStr,int waitSeconds,int radius)
+{
+	if(radius==0)
+	radius=20;
+	Critter@[]critters;
+	Map@map=player.GetMap();
+	if((@map!=null)&&entered&&player.IsPlayer())
+	{
+		if(map.GetCrittersHex(trigger.HexX,trigger.HexY,radius,(0x01)|(0x20),critters)>1)
+		{
+			Critter@npc1;
+			Critter@npc2;
+			for(uint i=0,l=critters.length();i<l;i++)
+			{
+				Critter@cr=critters[i];
+				if((@cr!=null)&&cr.Stat[(89)]==npcRole&&cr.IsNoPlanes())
+				{
+					if((@npc1!=null))
+					@npc2=cr;
+					else
+					@npc1=cr;
+				}
+				if((@npc1!=null)&&(@npc2!=null))
+				break;
+			}
+			if((@npc1!=null)&&(@npc2!=null))
+			{
+				GameVar@lastDialog1=GetLocalVar((1002),npc1.Id);
+				GameVar@lastDialog2=GetLocalVar((1002),npc2.Id);
+				if((@lastDialog1!=null)&&(@lastDialog2!=null)&&
+				lastDialog1.GetValue()+(((5)*__TimeMultiplier*60))<int(__FullSecond)&&
+				lastDialog2.GetValue()+(((5)*__TimeMultiplier*60))<int(__FullSecond))
+				{
+					lastDialog1=__FullSecond;
+					lastDialog2=__FullSecond; 
+					
+					uint[]values={firstStr,lastStr,waitSeconds,npc1.Id,npc2.Id};
+					CreateTimeEvent(__FullSecond+((waitSeconds)*__TimeMultiplier),"e_NpcTimerDialog",values,false);
+				}
+			}
+			if((@npc1!=null)&&!(@npc2!=null))
+			{
+				GameVar@lastD=GetLocalVar((1002),npc1.Id);
+				if((@lastD!=null)&&
+				lastD.GetValue()+(((5)*__TimeMultiplier*60))<int(__FullSecond))
+				{
+					lastD=__FullSecond;
+					uint[]values={firstStr,lastStr,waitSeconds,npc1.Id,0};
+					CreateTimeEvent(__FullSecond+((waitSeconds)*__TimeMultiplier),"e_NpcTimerDialog",values,false);
+				}
+			}
+		}
+	}
+}
+
+uint e_NpcTimerDialog(uint[]@values)
+{
+	if((@values!=null)&&values.length()==5)
+	{
+		uint firstStr=values[0];
+		uint lastStr=values[1];
+		uint waitSec=values[2];
+		Critter@npc1=GetCritter(values[3]);
+		Critter@npc2;
+		if(values[4]>0)
+		@npc2=GetCritter(values[4]);
+		if((@npc1!=null)&&npc1.IsLife()&&npc1.IsNoPlanes()&&npc1.GetTalkedPlayers(null)==0&&
+		(@npc2!=null)&&npc2.IsLife()&&npc2.IsNoPlanes()&&npc2.GetTalkedPlayers(null)==0)
+		{
+			npc1.SayMsg((2),(0),firstStr);
+			firstStr++;
+			if(firstStr>lastStr)
+			return 0;
+			values[0]=firstStr;
+			values[3]=npc2.Id;
+			values[4]=npc1.Id;
+			return((waitSec)*__TimeMultiplier);
+		}
+		if((@npc1!=null)&&!(@npc2!=null)&&npc1.IsNoPlanes()&&npc1.GetTalkedPlayers(null)==0)
+		{
+			npc1.SayMsg((2),(0),firstStr);
+			firstStr++;
+			if(firstStr>lastStr)
+			return 0;
+			values[0]=firstStr;
+			values[3]=npc1.Id;
+			values[4]=0;
+			return((waitSec)*__TimeMultiplier);
+		}
+	}
+	return 0;
+}

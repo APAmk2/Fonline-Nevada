@@ -1,0 +1,707 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+class Entire
+{
+	int Number;
+	uint16 HexX;
+	uint16 HexY;
+}
+
+Entire@GetEntire(Map&map,int entireNum,int skip)
+{
+	Entire ent;
+	if(map.GetEntireCoords(entireNum,skip,ent.HexX,ent.HexY)==false)
+	return null;
+	ent.Number=entireNum;
+	return ent;
+}
+
+uint ParseEntires(Map&map,Entire[]&entires,int number)
+{
+	uint oldCount=entires.length();
+	uint count=map.CountEntire(number);
+	entires.resize(oldCount+count);
+	
+	for(uint i=0;i<count;i++)
+	{
+		Entire@ent=entires[oldCount+i];
+		if(map.GetEntireCoords(number,i,ent.HexX,ent.HexY)==false)
+		return 0;
+		ent.Number=number;
+	}
+	
+	return count;
+}
+
+bool GetEntireFreeHex(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint count=map.CountEntire(number); 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy)&&map.IsHexPassed(hx,hy))
+		return true;
+	}
+	
+	if(hx==0||hy==0||hx>=map.GetWidth()-1||hy>=map.GetHeight()-1)
+	return false; 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy))
+		{
+			for(int x=-1;x<=1;x++)
+			{
+				for(int y=-1;y<=1;y++)
+				{
+					if(x==0&&y==0)
+					continue;
+					
+					if(__MapHexagonal)
+					{
+						if((hx%2)==1&&((x==-1&&y==1)||(x==1&&y==1)))
+						continue;
+						if((hx%2)==0&&((x==-1&&y==-1)||(x==1&&y==-1)))
+						continue;
+					}
+					
+					if(map.IsHexPassed(hx+x,hy+y))
+					{
+						hx+=x;
+						hy+=y;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint16 hxBase=hx;
+	uint16 hyBase=hy;
+	
+	Entire[]entires;
+	uint count=ParseEntires(map,entires,number);
+	if(count==0)
+	return false;
+	
+	hx=entires[0].HexX;
+	hy=entires[0].HexY;
+	for(uint i=1;i<count;i++)
+	{
+		Entire@ent=entires[i];
+		if(GetDistantion(hxBase,hyBase,ent.HexX,ent.HexY)<GetDistantion(hxBase,hyBase,hx,hy))
+		{
+			hx=ent.HexX;
+			hy=ent.HexY;
+		}
+	}
+	
+	return true;
+}                  
+
+bool IsCritterInDeadZone(Critter&cr,Map&map,uint8 dir,uint8 hexFirst,uint8 hexEnd)
+{
+	uint crossNum=0;
+	for(uint i=hexFirst;i<=hexEnd;i++)
+	{
+		if(BeamCrossing2Section(map,i,(i==hexEnd?hexFirst:i+1),cr.HexX,cr.HexY,dir))
+		{
+			crossNum++;
+			
+		}
+	}
+	bool inZone=false;
+	if(crossNum>0&&(crossNum%2==1))
+	inZone=true;
+	
+	return inZone;
+	
+}         
+
+bool BeamCrossing2Section(Map&map,uint8 hexNum1,uint8 hexNum2,uint16 beamX,uint16 beamY,uint8 dir)
+{
+	
+	uint16 hx0=beamX;
+	uint16 beamX2=hx0;
+	uint16 hy0=beamY;
+	uint16 beamY2=hy0;
+	uint steps=0;
+	
+	while(hx0!=beamX2||hy0!=beamY2||steps==0)
+	{
+		steps+=1;
+		hx0=beamX2;
+		hy0=beamY2;
+		map.MoveHexByDir(beamX2,beamY2,dir,steps);
+	} 
+	
+	uint16 hx1=0;
+	uint16 hx2=0;
+	uint16 hy1=0;
+	uint16 hy2=0;
+	
+	if(!map.GetEntireCoords(hexNum1,0,hx1,hy1))
+	return false;
+	if(!map.GetEntireCoords(hexNum2,0,hx2,hy2))
+	return false;                           
+	
+	float z=(int(hx1)-int(hx2))*(int(beamY2)-int(beamY))-(int(hy1)-int(hy2))*(int(beamX2)-int(beamX));
+	
+	float ch=(int(hx1)-int(beamX))*(int(beamY2)-int(beamY))-(int(hy1)-int(beamY))*(int(beamX2)-int(beamX));
+	
+	float cbeam=(int(hx1)-int(hx2))*(int(hy1)-int(beamY))-(int(hy1)-int(hy2))*(int(hx1)-int(beamX));
+	
+	if(z==0&&ch==0&&cbeam==0)
+	return false;
+	
+	if(z==0)
+	return false;
+	
+	float crossS=ch/z;
+	
+	float crossB=cbeam/z;
+	return(0<crossS&&crossS<1&&0<crossB&&crossB<1);
+}                                                    
+
+import bool AddWalkPlane(Critter&npc,uint priority,int identifier,uint identifierExt,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+
+uint16[]restrictedLocations={(40),(41),(42),(43),(44)};
+
+string[]commands={"МАРШРУТ","ROUTE","КАМЕРА","CAMERA","СООБЩЕНИЕ","MESSAGE","ХОД","MOVE","ПАТРУЛЬ","PATROL","СМЕНАКАНАЛА","CHANGECHANNEL","АТАКА","ATTACK"};
+
+int[]behemoths;
+int[]listenedChannels;
+
+void RememberBehemoth(Critter&cr)
+{
+	if(behemoths.find(cr.Id)<0)
+	behemoths.insertLast(cr.Id);
+	int channel=(GetLocalVar((201),cr.Id).GetValue());
+	if(listenedChannels.find(channel)<0)
+	{
+		(Log("adding channel "+channel));
+		listenedChannels.insertLast(channel);
+		AddTextListener((10),"КОМАНДА",channel,"behemoth@listen_Behemoth");
+		
+	}
+}
+
+void ChangeChannel(Critter&cr,uint newChannel)
+{
+	(Log("change channel"));
+	GameVar@channel=GetLocalVar((201),cr.Id);
+	if((@channel!=null))
+	channel=newChannel;
+	RememberBehemoth(cr);
+	bool usedChannel=true;
+	for(int i=0,l=listenedChannels.length();i<l;i++)
+	{
+		(Log("channel "+i));
+		usedChannel=false;
+		for(int j=0,k=behemoths.length();j<k;j++)
+		{
+			(Log("_Get "+(GetLocalVar((201),behemoths[j]).GetValue())+"; LIST"+int(listenedChannels[i])));
+			if((GetLocalVar((201),behemoths[j]).GetValue())==int(listenedChannels[i]))
+			usedChannel=true;
+		}
+		if(!usedChannel)
+		{
+			(Log("erasing channel"));
+			EraseTextListener((10),"КОМАНДА",listenedChannels[i]);
+			
+			listenedChannels.removeAt(i);
+			l--;
+			i--;
+		}
+	}
+}
+
+void listen_Behemoth(Critter&player,string&text)
+{
+	Critter@cr;
+	Item@[]items;
+	Item@item;
+	for(uint i=0,l=behemoths.length();i<l;i++)
+	{
+		if((GetLocalVar((200),behemoths[i]).GetValue())==int(player.Id))
+		{
+			items.resize(0);
+			player.GetItems(-1,items);
+			for(uint j=0,k=items.length();j<k;j++)
+			{
+				@item=items[j];
+				if((@item!=null)&&item.GetProtoId()==(100)&&
+				item.RadioChannel==(GetLocalVar((201),behemoths[i]).GetValue())&&
+				(int(__FullSecond)>(GetLocalVar((201),behemoths[i]).GetValue())+((5)*__TimeMultiplier)))
+				
+				BehemothCommand(behemoths[i],text);
+			}
+		}
+	}
+} 
+
+void BehemothCommand(uint behemothId,string cmd)
+{
+	if(!(@GetCritter(behemothId)!=null))
+	{
+		Log("invalid Behemoth");
+		return;
+	}
+	int16 globalX=0;
+	int16 globalY=0;
+	string@[]@valuesStr=splitEx(cmd," ");
+	if(valuesStr.length()>1)
+	{
+		string firstKeyWord=strupr(valuesStr[1]);
+		if((firstKeyWord==commands[0]||firstKeyWord==commands[1]))
+		{
+			globalX=GetIntValue(valuesStr,2,-1);
+			globalY=GetIntValue(valuesStr,3,-1);
+			Location@[]locations;
+			
+			if(globalX>0&&globalY>0&&GetLocations(globalX,globalY,__GlobalMapZoneLength,locations)>0)
+			{
+				for(uint i=0,l=locations.length();i<l;i++)
+				{
+					Location@loc=locations[i];
+					if((@loc!=null)&&loc.Visible==true&&restrictedLocations.find(loc.GetProtoId())==-1)
+					{
+						Map@map=loc.GetMapByIndex(0);
+						if((@map!=null)&&map.CountEntire((0))>0)
+						{
+							SetOrder(behemothId,(1),loc.Id,0);
+							RadioMessageMsg((GetLocalVar((201),behemothId).GetValue()),(0),600,"$where@msg GM "+(((loc.GetProtoId())+100)*1000+0)+"@");
+							RunOrder(behemothId,(1));
+							return;
+						}
+					}
+				}
+			}
+			RadioMessageMsg((GetLocalVar((201),behemothId).GetValue()),(0),601);
+		}
+		else if((firstKeyWord==commands[2]||firstKeyWord==commands[3]))
+		{
+			RunOrder(behemothId,(2));
+		}
+		else if((firstKeyWord==commands[4]||firstKeyWord==commands[5]))
+		{
+			string message="";
+			for(uint i=2,l=valuesStr.length();i<l;i++)
+			{
+				message+=valuesStr[i]+" ";
+			}
+			RunOrder(behemothId,(3),message);
+		}
+		else if((firstKeyWord==commands[6]||firstKeyWord==commands[7]))
+		{  
+			
+			int steps=GetIntValue(valuesStr,2,0);
+			int dir=GetIntValue(valuesStr,3,6);
+			SetOrder(behemothId,(4),steps,dir);
+			RunOrder(behemothId,(4));
+			return;
+		}
+		else if((firstKeyWord==commands[8]||firstKeyWord==commands[9]))
+		{
+			
+			int radius=(((GetIntValue(valuesStr,2,0))>(30))?(30):(((GetIntValue(valuesStr,2,0))<(0))?(0):(GetIntValue(valuesStr,2,0))));
+			SetOrder(behemothId,(5),radius,0);
+			RunOrder(behemothId,(5));
+		}
+		else if((firstKeyWord==commands[10]||firstKeyWord==commands[11]))
+		{
+			int channel=GetIntValue(valuesStr,2,(GetLocalVar((201),behemothId).GetValue()));
+			ChangeChannel(GetCritter(behemothId),channel);
+			RadioMessageMsg((GetLocalVar((201),behemothId).GetValue()),(0),612);
+		}
+		else if((firstKeyWord==commands[12]||firstKeyWord==commands[13]))
+		{
+			RunOrder(behemothId,(6));
+		}
+	}
+}  
+
+void SetOrder(uint crId,uint orderType,int orderParam,int orderParam2)
+{
+	GameVar@oWhen=GetLocalVar((204),crId);
+	if((@oWhen!=null))
+	oWhen=__FullSecond;
+	GameVar@oType=GetLocalVar((203),crId);
+	if((@oType!=null))
+	oType=orderType;
+	GameVar@oParam1=GetLocalVar((205),crId);
+	if((@oParam1!=null))
+	oParam1=orderParam;
+	GameVar@oParam2=GetLocalVar((206),crId);
+	if((@oParam2!=null))
+	oParam2=orderParam2;
+}
+
+void CancelOrder(uint crId,bool noMessage)
+{
+	GameVar@oWhen=GetLocalVar((204),crId);
+	if((@oWhen!=null))
+	oWhen=0;
+	GameVar@oType=GetLocalVar((203),crId);
+	if((@oType!=null))
+	oType=0;
+	GameVar@oParam1=GetLocalVar((205),crId);
+	if((@oParam1!=null))
+	oParam1=0;
+	GameVar@oParam2=GetLocalVar((206),crId);
+	if((@oParam2!=null))
+	oParam2=0;
+	if(!noMessage)
+	RadioMessageMsg((GetLocalVar((201),crId).GetValue()),(0),602);
+}
+
+void RunOrder(uint crId,uint orderType,string param)
+{
+	Critter@cr=GetCritter(crId);
+	if(!(@cr!=null))
+	return;
+	switch(orderType)
+	{
+		case(3):
+		RunOrderMessage(cr,param);
+		break;
+	}
+	
+}
+
+void RunOrder(uint crId,uint orderType)
+{
+	(Log("RunOrder "+orderType+"; beh "+crId));
+	Critter@cr=GetCritter(crId);
+	if(!(@cr!=null))
+	return;
+	switch(orderType)
+	{
+		case(1):
+		RunOrderRoute(cr);
+		break;
+		case(2):
+		RunOrderCamera(cr);
+		break;
+		case(4):
+		RunOrderMove(cr);
+		break;
+		case(5):
+		RunOrderPatrol(cr);
+		break;
+		case(6):
+		RunOrderAttack(cr);
+		default:
+		return;
+	}
+}  
+
+void _BehemothInit(Critter&cr,bool firstTime)
+{
+	RememberBehemoth(cr);
+	cr.SetEvent((40),"_BehemothOnGlobal");
+	cr.SetEvent((0),"_BehemothIdle");
+	cr.SetEvent((36),"_BehemothPlaneEnd");
+	cr.SetEvent((26),"_BehemothSmthDead");
+	cr.SetEvent((16),"_BehemothAttacked");
+	cr.SetEvent((5),"_BehemothShowCritter1");
+	cr.SetEvent((20),"_BehemothUseItemOnMe");
+	cr.SetEvent((22),"_BehemothUseSkillOnMe");
+}
+
+bool _BehemothOnGlobal(Critter&cr,int type,Item@car,float&x,float&y,float&toX,float&toY,float&speed,uint&encounterDescriptor,bool&waitForAnswer)
+{
+	if(encounterDescriptor!=0)
+	{
+		return false;
+	}
+	if((GetLocalVar((203),cr.Id).GetValue())==(1))
+	{
+		Location@locTo=((GetLocalVar((203),cr.Id).GetValue())==(1)?GetLocation((GetLocalVar((205),cr.Id).GetValue())):null);
+		if((@locTo!=null))
+		{
+			if(x==locTo.WorldX&&y==locTo.WorldY)
+			{
+				if(cr.TransitToMap(locTo.GetMapByIndex(0).Id,(0),false))
+				{
+					cr.SetHomePos(cr.HexX,cr.HexY,cr.Dir);
+					RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),603,"$where@msg GM "+(((locTo.GetProtoId())+100)*1000+0)+"@$x"+cr.HexX+"$y"+cr.HexY);
+				}
+				CancelOrder(cr.Id,true);
+				return true;
+			}
+			speed=(2.4f);
+			if(toX!=locTo.WorldX||toY!=locTo.WorldY)
+			{
+				toX=locTo.WorldX;
+				toY=locTo.WorldY;
+				return true;
+			}
+		}
+		else
+		{
+			CancelOrder(cr.Id,false);
+			return true;
+		}
+	}
+	else
+	{
+		if(toX!=x||toY!=y)
+		{
+			toX=x;
+			toY=y;
+			return true;
+		}
+	}
+	return false;
+}
+
+void _BehemothIdle(Critter&cr)
+{
+	int orderCurrent=(GetLocalVar((203),cr.Id).GetValue());
+	Map@map=cr.GetMap();
+	Location@loc;
+	Location@locTo;
+	
+	switch(orderCurrent)
+	{
+		case(1):
+		if((@map!=null))
+		@loc=map.GetLocation();
+		@locTo=((GetLocalVar((203),cr.Id).GetValue())==(1)?GetLocation((GetLocalVar((205),cr.Id).GetValue())):null);
+		if((@locTo!=null)&&(@loc!=null)&&locTo.Id!=loc.Id)
+		{
+			RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),604);
+			RunOrderRoute(cr);
+		}
+		else
+		CancelOrder(cr.Id,false);
+		break;
+		default:
+		break;
+	}
+}
+
+int _BehemothPlaneEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(plane.Identifier==(18)&&(@cr.GetMap()!=null)&&cr.IsLife())
+	{
+		cr.SetHomePos(cr.HexX,cr.HexY,cr.Dir);
+		CancelOrder(cr.Id,false);
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),(607));
+	}
+	return(0);
+}
+
+void _BehemothShowCritter1(Critter&cr,Critter&showCrit)
+{
+	if((GetLocalVar((203),cr.Id).GetValue())==(5))
+	{
+		if(showCrit.IsPlayer()&&showCrit.IsLife())
+		{
+			cr.SayMsg((1),(0),608,"$pname"+GetPlayerName(showCrit.Id));
+			RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),608,"$pname"+GetPlayerName(showCrit.Id));
+		}
+	}
+}
+
+void _BehemothSmthDead(Critter&cr,Critter&fromCr,Critter@killer)
+{
+	if((@killer!=null)&&fromCr.IsPlayer()&&killer.Id==cr.Id)
+	RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),609,"$pname"+GetPlayerName(fromCr.Id));
+}
+
+bool _BehemothAttacked(Critter&cr,Critter&attacker)
+{
+	GameVar@rpt=GetLocalVar((207),cr.Id);
+	string attackerName="некто";
+	if((@rpt!=null)&&rpt<(__FullSecond-((1)*__TimeMultiplier*60)))
+	{
+		if(attacker.IsPlayer())
+		attackerName=GetPlayerName(attacker.Id);
+		else
+		attackerName="@msg DLG "+((attacker.Stat[(104)])!=0?100000+(attacker.Stat[(104)])*1000+100:((attacker.GetProtoId())*10))+"@";
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),610,"$pname"+attackerName);
+	}
+	return false;
+}
+
+bool _BehemothUseItemOnMe(Critter&cr,Critter&whoUse,Item&item)
+{
+	if(item.GetProtoId()==(308))
+	{
+		if(cr.Stat[(72)]>=cr.Stat[(7)])
+		{
+			whoUse.SayMsg((11),(0),613);
+			
+		}
+		else
+		{
+			int hp=int(500*whoUse.Skill[(213)]/300)+Random(300,500);
+			hp=(((hp)>(cr.Stat[(7)]-cr.Stat[(72)]))?(cr.Stat[(7)]-cr.Stat[(72)]):(((hp)<(0))?(0):(hp)));
+			whoUse.StatBase[(76)]+=hp*((((whoUse.Stat[(77)])>(10))?(10):(((whoUse.Stat[(77)])<(0))?(0):(whoUse.Stat[(77)])))/10);
+			cr.StatBase[(72)]+=hp;
+			do{if(item.GetCount()>(1)) item.SetCount(item.GetCount()-(1));else DeleteItem(item);}while(false);
+			whoUse.SayMsg((11),(0),614);
+		}
+	}
+	else
+	{
+		whoUse.SayMsg((11),(3),(10202));
+	}
+	return true;
+}
+
+bool _BehemothUseSkillOnMe(Critter&cr,Critter&whoUse,int skill)
+{
+	whoUse.SayMsg((11),(3),(10202));
+	return true;
+} 
+
+void RunOrderRoute(Critter&cr)
+{
+	Map@map=cr.GetMap();
+	if((@map!=null))
+	{
+		uint16 hx=cr.HexX;
+		uint16 hy=cr.HexY;
+		GetNearEntire(map,(0),hx,hy);
+		if(GetNearEntire(map,(0),hx,hy))
+		{
+			AddWalkPlane(cr,(20),(17),__FullSecond,hx,hy,0,false,3);
+		}
+		AddMiscPlane(cr,(10),__FullSecond+((5)*__TimeMultiplier),"behemoth@plane_ToGlobal");
+	}
+} 
+
+void plane_ToGlobal(Critter&cr)
+{
+	cr.TransitToGlobal(false);
+} 
+
+void RunOrderCamera(Critter&cr)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	{
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),(605));
+		return;
+	}
+	else
+	{
+		uint[]values={(GetLocalVar((200),cr.Id).GetValue()),map.Id,cr.HexX,cr.HexY,cr.Dir};
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),(606));
+		CreateTimeEvent(__FullSecond+((2)*__TimeMultiplier),"e_ShowCamera",values,false);
+	}
+}
+
+uint e_ShowCamera(uint[]@values)
+{
+	Critter@player=GetCritter(values[0]);
+	if((@player!=null)&&player.IsPlayer())
+	{
+		Map@map=GetMap(values[1]);
+		if((@map!=null))
+		player.ViewMap(map,50,values[2],values[3],values[4]);
+	}
+	return 0;
+} 
+
+void RunOrderMessage(Critter&cr,string message)
+{
+	cr.Say((1),message);
+} 
+
+void RunOrderMove(Critter&cr)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	{
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),(605));
+		return;
+	}
+	uint16 hx=cr.HexX;
+	uint16 hy=cr.HexY;
+	uint8 dir=(GetLocalVar((206),cr.Id).GetValue());
+	if(dir>5)
+	dir=cr.Dir;
+	uint steps=((((GetLocalVar((205),cr.Id).GetValue()))>(30))?(30):((((GetLocalVar((205),cr.Id).GetValue()))<(0))?(0):((GetLocalVar((205),cr.Id).GetValue()))));
+	map.MoveHexByDir(hx,hy,dir,steps);
+	cr.SetDir(dir);
+	AddWalkPlane(cr,(20),(18),__FullSecond,hx,hy,dir,false,0);
+} 
+
+void RunOrderAttack(Critter&cr)
+{
+	Map@map=cr.GetMap();
+	Critter@[]critters;
+	if((@map!=null)&&map.GetCritters(528,(0x01)|(0x20),critters)>0)
+	{
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			AddAttackPlane(cr,0,critters[i]);
+		}
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),616,"$targets"+critters.length());
+	}
+	else
+	{
+		RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),615);
+	}
+} 
+
+void RunOrderPatrol(Critter&cr)
+{
+	(Log("patrol, radius ="+cr.ShowCritterDist1));
+	cr.ShowCritterDist1=(GetLocalVar((205),cr.Id).GetValue());
+	RadioMessageMsg((GetLocalVar((201),cr.Id).GetValue()),(0),611);
+}  
+
+int GetIntValue(string@[]@values,uint idx,int defaultValue)
+{
+	int value=defaultValue;
+	if((@values!=null)&&values.length()>idx)
+	{
+		StrToInt(values[idx],value);
+	}
+	return value;
+}
+
+void RadioMessageMsgtmp(uint16 channel,uint16 textMsg,uint strNum,string&lexems)
+{
+	switch(textMsg)
+	{
+		case(0):
+		RadioMessage(channel,"@msg TEXT "+strNum+"@"+lexems);
+		break;
+		default:
+		RadioMessageMsg(channel,textMsg,strNum);
+	}
+} 
+
+void Addbehemoth(Critter&cr,int crId,int,int)
+{
+	Critter@npc=cr.GetMap().AddNpc(528,cr.HexX+3,cr.HexY+3,6,null,null,"_BehemothInit");
+	npc.AddItem(546,1);
+	GameVar@owner=GetLocalVar((200),npc.Id);
+	owner=crId;
+	Critter@player=GetCritter(crId);
+	if((@player!=null))
+	{
+		Item@item=player.AddItem((58),1);
+		item.HolodiskNumber=110;
+		item.Update();
+	}
+}
+
+void WhereNpc(Critter&cr,int id,int,int)
+{
+	Critter@npc=GetCritter(id);
+	if((@npc!=null))
+	cr.Say((11),"Global X = "+npc.WorldX+"; Y = "+npc.WorldY);
+}

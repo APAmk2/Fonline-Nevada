@@ -1,0 +1,69 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+void _DeadInit(Critter&cr,bool firstTime)
+{
+	if(!cr.IsDead())
+	cr.ToDead((115),null);
+	cr.StatBase[(84)]=-1;
+	if(firstTime)
+	{
+		Item@holo=cr.AddItem((58),1);
+		if((@holo!=null))
+		{
+			holo.HolodiskNumber=(63);
+			holo.Update();
+		}
+	}
+}
+
+void _DungeonInit(Map&map,bool firstTime)
+{
+	if(!firstTime)
+	return;
+	
+	Item@[]chests;
+	if(map.GetItems((245),chests)>0)
+	{
+		for(uint i=0,l=chests.length();i<l;i++)
+		{
+			for(uint j=0;j<(20)-1;j++)
+			chests[i].AddItem((588),1,j);
+		}
+	}
+	uint num=Random(0,chests.length()-1);
+	Item@grail=chests[num].AddItem((589),1,1);
+	grail.SetScript("_GrailInit");
+	for(uint i=0,l=chests.length();i<l;i++)
+	{
+		if(i==num)
+		continue;
+		chests[i].AddItem((588),1,(20));
+	}
+}
+
+void _GrailInit(Item&item,bool firstTime)
+{
+	item.SetEvent((2),"_GrailUse");
+}
+
+bool _GrailUse(Item&item,Critter&cr,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	
+	if(!(@onCritter!=null)&&!(@onItem!=null)&&!(@onScenery!=null))
+	{
+		cr.StatBase[(72)]=cr.Stat[(7)];
+		cr.DamageBase[(502)]=0;
+		cr.DamageBase[(503)]=0;
+		cr.DamageBase[(504)]=0;
+		cr.DamageBase[(505)]=0;
+		cr.DamageBase[(506)]=0;
+		DeleteItem(item);
+		return true;
+	}
+	return false;
+}
+
+void r_InfoMessage(Critter&player,Critter@none,int num)
+{
+	player.SayMsg((11),(1),(1000000000+((10134))*100000+(num)));
+}

@@ -1,0 +1,948 @@
+                              
+
+shared interface IGUIScreenCallbackShow
+{
+	void OnShow(int p0,int p1,int p2);
+}
+shared interface IGUIScreenCallbackHide
+{
+	void OnHide(int p0,int p1,int p2);
+}
+shared interface IGUIScreenCallbackMove
+{
+	void OnMove(int posX,int posY);
+}
+
+shared interface IGUIScreenOpt
+{
+	IGUIScreenOpt@CallbackShow(IGUIScreenCallbackShow@callback);
+	IGUIScreenOpt@CallbackHide(IGUIScreenCallbackHide@callback);
+	IGUIScreenOpt@CallbackMove(IGUIScreenCallbackMove@callback);
+	IGUIScreenOpt@Position(int x,int y);
+	IGUIScreenOpt@CanMove(bool enabled);
+	IGUIScreenOpt@Modal(bool enabled);
+	IGUIScreenOpt@Multiinstance(bool enabled);
+	IGUIScreenOpt@IgnoreBorders(bool enabled);
+	IGUIScreenOpt@CloseOnMiss(bool enabled);
+	IGUIScreenOpt@AutoCursor(bool enabled,int cursorType); 
+	
+	int GetPosX();
+	int GetPosY();
+	
+}    
+
+shared interface IGUIElementCallbackInit
+{
+	void OnInit();
+}
+shared interface IGUIElementCallbackDraw
+{
+	void OnDraw();
+}
+shared interface IGUIElementCallbackMouseClick
+{
+	void OnMouseClick(int click);
+}
+shared interface IGUIElementCallbackKeyPress
+{
+	void OnKeyPress(uint8 key,string&keyText);
+}
+
+shared interface IGUIElementOpt
+{
+	IGUIElementOpt@CallbackInit(IGUIElementCallbackInit@callback);
+	IGUIElementOpt@CallbackDraw(IGUIElementCallbackDraw@callback);
+	IGUIElementOpt@CallbackMouseClick(IGUIElementCallbackMouseClick@callback);
+	IGUIElementOpt@CallbackKeyPress(IGUIElementCallbackKeyPress@callback);
+	IGUIElementOpt@Position(int x,int y);
+	IGUIElementOpt@Position(int x,int y,int w,int h);
+	IGUIElementOpt@Position(string&iniKey);
+	IGUIElementOpt@DownPic(string@sprName);
+	IGUIElementOpt@Text(string@text,int font,uint color,uint downColor,int flags);
+	IGUIElementOpt@TextInput(bool enabled,uint maxLen,uint colorFocused);
+	IGUIElementOpt@Switch(bool enabled); 
+	
+	int GetPosX();
+	int GetPosY();
+	string@GetText();
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+class Sprite
+{
+	Sprite()
+	{
+		Id=0;
+		Width=0;
+		Height=0;
+		FrmCount=0;
+	}
+	
+	void Load(string&name,int path)
+	{
+		if(name.length()>0)
+		Id=LoadSprite(name,path);
+		else
+		Id=0;
+		RefreshData();
+	}
+	
+	void Load(uint nameHash,uint8 dir)
+	{
+		Id=LoadSprite(nameHash,dir);
+		RefreshData();
+	}
+	
+	void LoadByIni(string&iniKey,int path)
+	{
+		string@name=GetIfaceIniStr(iniKey);
+		if(@name!=null&&name.length()>0)
+		Id=LoadSprite(name,path);
+		else
+		Id=0;
+		RefreshData();
+	}
+	
+	void Draw(int x,int y)
+	{
+		if(Id!=0)
+		DrawSprite(Id,-1,x,y,0);
+	}
+	
+	private void RefreshData()
+	{
+		if(Id!=0)
+		{
+			Width=GetSpriteWidth(Id,0);
+			Height=GetSpriteHeight(Id,0);
+			FrmCount=GetSpriteCount(Id);
+		}
+		else
+		{
+			Width=0;
+			Height=0;
+			FrmCount=0;
+		}
+	}
+	
+	uint Id;
+	int Width;
+	int Height;
+	uint FrmCount;
+}             
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                           
+
+GUIScreen@[]AllScreens;
+GUIScreen@[]ActiveScreens;
+bool[]KeyPressed;
+IGUIScreenOpt@LastScreenOpt=null;
+IGUIElementOpt@LastElementOpt=null;
+
+class GUIElement:IGUIElementOpt
+{
+	GUIElement(string@sprName,int path)
+	{
+		if(@sprName!=null)
+		Surface.Load(sprName,path);
+		DefaultPath=path;
+		PosX=0;
+		PosY=0;
+		IsTextInput=false;
+		InputMaxLen=0;
+		TextColorFocused=0;
+		TextColorDown=0;
+		IsFocused=false;
+		MousePressed.resize((9)+1);
+		for(uint i=0,j=MousePressed.length();i<j;i++)
+		MousePressed[i]=false;
+		SwitchEnabled=false;
+		@InitCallback=null;
+		@DrawCallback=null;
+		@MouseClickCallback=null;
+		@KeyPressCallback=null;
+	}
+	
+	void Draw(int screenX,int screenY)
+	{
+		if(Surface.Id!=0)
+		DrawSprite(Surface.Id,-1,screenX+PosX,screenY+PosY,0);
+		bool isDown=((MousePressed[(0)]||SwitchEnabled)&&DownSpr.Id!=0);
+		if(isDown)
+		DrawSprite(DownSpr.Id,-1,screenX+PosX,screenY+PosY,0);
+		if(Label!="")
+		DrawText(Label,screenX+PosX,screenY+PosY,
+		Surface.Width!=0?Surface.Width:__ScreenWidth,(Surface.Height!=0?Surface.Height:__ScreenHeight)-(isDown?2:0),
+		IsTextInput&&IsFocused?TextColorFocused:(isDown&&TextColorDown!=0?TextColorDown:TextColor),Font,TextFlags);
+		if(not(DrawCallback is null))
+		DrawCallback.OnDraw();
+	}
+	
+	bool MouseDown(int click)
+	{
+		if(DownSpr.Id!=0||not(MouseClickCallback is null)||IsTextInput)
+		{
+			MousePressed[click]=true;
+			return true;
+		}
+		return false;
+	}
+	
+	void MouseUp(int click,bool isCollision)
+	{
+		if(not(MouseClickCallback is null)&&MousePressed[click]&&isCollision)
+		MouseClickCallback.OnMouseClick(click);
+		MousePressed[click]=false;
+	}
+	
+	void MouseMove(int x,int y)
+	{}
+	
+	bool KeyPress(uint8 key,string&keyText)
+	{
+		bool result=ProcessKey(key,keyText,Label);
+		while(Label.length()>InputMaxLen)
+		Label[-1]="";
+		if(not(KeyPressCallback is null))
+		KeyPressCallback.OnKeyPress(key,keyText);
+		return result;
+	}
+	
+	void InputLost()
+	{
+		for(uint i=0,j=MousePressed.length();i<j;i++)
+		MousePressed[i]=false;
+	}
+	
+	GUIElement@GetNewInstance()
+	{
+		GUIElement newElement=this;
+		return@newElement;
+	} 
+	
+	IGUIElementOpt@CallbackInit(IGUIElementCallbackInit@callback)
+	{
+		@InitCallback=callback;
+		return this;
+	}
+	IGUIElementOpt@CallbackDraw(IGUIElementCallbackDraw@callback)
+	{
+		@DrawCallback=callback;
+		return this;
+	}
+	IGUIElementOpt@CallbackMouseClick(IGUIElementCallbackMouseClick@callback)
+	{
+		@MouseClickCallback=callback;
+		return this;
+	}
+	IGUIElementOpt@CallbackKeyPress(IGUIElementCallbackKeyPress@callback)
+	{
+		@KeyPressCallback=callback;
+		return this;
+	}
+	
+	IGUIElementOpt@Position(int x,int y)
+	{
+		PosX=x;
+		PosY=y;
+		return this;
+	}
+	
+	IGUIElementOpt@Position(int x,int y,int w,int h)
+	{
+		PosX=x;
+		PosY=y;
+		Surface.Width=w;
+		Surface.Height=h;
+		return this;
+	}
+	
+	IGUIElementOpt@Position(string&iniKey)
+	{
+		PosX=0;
+		PosY=0;
+		Surface.Width=0;
+		Surface.Height=0; 
+		
+		string@str=GetIfaceIniStr(iniKey);
+		if(@str==null||str=="")
+		return this;
+		
+		string@[]@valuesStr=splitEx(str," ");
+		if(valuesStr.length()!=4)
+		return this;
+		
+		int[]values(4);
+		for(int i=0;i<4;i++)
+		if(not StrToInt(valuesStr[i],values[i]))
+		return this;
+		
+		PosX=values[0];
+		PosY=values[1];
+		Surface.Width=values[2]-values[0]+1;
+		Surface.Height=values[3]-values[1]+1;
+		return this;
+	}
+	
+	IGUIElementOpt@DownPic(string@sprName)
+	{
+		if(@sprName!=null)
+		DownSpr.Load(sprName,DefaultPath);
+		else
+		DownSpr.Id=0;
+		
+		if(DownSpr.Id!=0&&Surface.Width==0&&Surface.Height==0)
+		{
+			Surface.Width=DownSpr.Width;
+			Surface.Height=DownSpr.Height;
+		}
+		return this;
+	}
+	
+	IGUIElementOpt@Text(string@text,int font,uint color,uint downColor,int flags)
+	{
+		if(text is null)
+		Label="";
+		else
+		Label=text;
+		Font=font;
+		TextColor=color;
+		TextColorDown=downColor;
+		TextFlags=flags;
+		return this;
+	}
+	
+	IGUIElementOpt@TextInput(bool enabled,uint maxLen,uint colorFocused)
+	{
+		IsTextInput=enabled;
+		InputMaxLen=maxLen;
+		TextColorFocused=colorFocused;
+		return this;
+	}
+	
+	IGUIElementOpt@Switch(bool enabled)
+	{
+		SwitchEnabled=enabled;
+		return this;
+	} 
+	
+	int GetPosX(){return PosX;}
+	int GetPosY(){return PosY;}
+	string@GetText(){return Label;} 
+	
+	int PosX;
+	int PosY;
+	Sprite Surface;
+	Sprite DownSpr;
+	int DefaultPath;
+	string Label;
+	int Font;
+	uint TextColor;
+	uint TextColorFocused;
+	uint TextColorDown;
+	int TextFlags;
+	bool IsTextInput;
+	uint InputMaxLen;
+	bool IsFocused;
+	bool[]MousePressed;
+	bool SwitchEnabled;
+	IGUIElementCallbackInit@InitCallback;
+	IGUIElementCallbackDraw@DrawCallback;
+	IGUIElementCallbackMouseClick@MouseClickCallback;
+	IGUIElementCallbackKeyPress@KeyPressCallback;
+}
+
+class GUIScreen:IGUIScreenOpt
+{
+	GUIScreen(string@sprName,int path)
+	{
+		if(@sprName!=null)
+		Surface.Load(sprName,path);
+		Index=0;
+		
+		IsCanMove=true;
+		IsModal=true;
+		IsMultiinstance=false;
+		IsIgnoreBorders=false;
+		IsCloseOnMiss=false;
+		IsAutoCursor=false;
+		
+		AutoCursorType=(0);
+		AutoCursorPrev=(0);
+		
+		IsHardcoded=false;
+		IsLMouseDown=false;
+		
+		PosX=__ScreenWidth/2-Surface.Width/2;
+		PosY=__ScreenHeight/2-Surface.Height/2;
+		LastX=0;
+		LastY=0;
+		@ShowCallback=null;
+		@HideCallback=null;
+		@MoveCallback=null;
+	}
+	
+	void Draw()
+	{
+		if(Surface.Id!=0)
+		DrawSprite(Surface.Id,-1,PosX,PosY,0);
+		for(uint i=0,j=Elements.length();i<j;i++)
+		Elements[i].Draw(PosX,PosY);
+	}
+	
+	bool MouseDown(int click,int x,int y)
+	{
+		for(uint i=0,j=Elements.length();i<j;i++)
+		Elements[i].IsFocused=false;
+		for(uint i=Elements.length();i>0;)
+		{
+			i--;
+			GUIElement@e=Elements[i];
+			if(((x)>=(PosX+e.PosX)&&(x)<=(PosX+e.PosX)+(e.Surface.Width)&&(y)>=(PosY+e.PosY)&&(y)<=(PosY+e.PosY)+(e.Surface.Height))&&e.MouseDown(click))
+			{
+				e.IsFocused=true;
+				return true;
+			}
+		}
+		
+		if(not IsHardcoded&&click==(0))
+		{
+			if(((x)>=(PosX)&&(x)<=(PosX)+(Surface.Width)&&(y)>=(PosY)&&(y)<=(PosY)+(Surface.Height)))
+			{
+				IsLMouseDown=true;
+				LastX=x;
+				LastY=y;
+				return true;
+			}
+			else if(IsCloseOnMiss)
+			{
+				HideScreen(0,0,0,0);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	bool MouseUp(int click,int x,int y)
+	{
+		IsLMouseDown=false;
+		bool result=false;
+		for(uint i=Elements.length();i>0;)
+		{
+			i--;
+			GUIElement@e=Elements[i];
+			if(((x)>=(PosX+e.PosX)&&(x)<=(PosX+e.PosX)+(e.Surface.Width)&&(y)>=(PosY+e.PosY)&&(y)<=(PosY+e.PosY)+(e.Surface.Height)))
+			{
+				e.MouseUp(click,true);
+				result=true;
+			}
+			else
+			{
+				e.MouseUp(click,false);
+			}
+		}
+		return result;
+	}
+	
+	void MouseMove(int x,int y)
+	{
+		if(IsCanMove&&IsLMouseDown)
+		{
+			int lastPosX=PosX;
+			int lastPosY=PosY;
+			int offsX=x-LastX;
+			int offsY=y-LastY;
+			LastX=x;
+			LastY=y;
+			PosX+=offsX;
+			PosY+=offsY; 
+			
+			if(not IsIgnoreBorders)
+			{
+				int px=PosX;
+				int py=PosY;
+				if(PosX<0)
+				PosX=0;
+				if(PosY<0)
+				PosY=0;
+				if(PosX+Surface.Width>__ScreenWidth)
+				PosX=__ScreenWidth-Surface.Width;
+				if(PosY+Surface.Height>__ScreenHeight)
+				PosY=__ScreenHeight-Surface.Height;
+				LastX+=PosX-px;
+				LastY+=PosY-py;
+			}
+			if(not(MoveCallback is null)&&(lastPosX!=PosX||lastPosY!=PosY))
+			MoveCallback.OnMove(PosX,PosY);
+		}
+		
+		for(uint i=0,j=Elements.length();i<j;i++)
+		Elements[i].MouseMove(x,y);
+	}
+	
+	bool KeyPress(uint8 key,string&keyText)
+	{
+		for(uint i=0,j=Elements.length();i<j;i++)
+		{
+			GUIElement@e=Elements[i];
+			if(e.IsFocused&&e.IsTextInput)
+			return e.KeyPress(key,keyText);
+		}
+		return false;
+	}
+	
+	void InputLost()
+	{
+		IsLMouseDown=false;
+		for(uint i=0,j=Elements.length();i<j;i++)
+		Elements[i].InputLost();
+	}
+	
+	GUIScreen@GetNewInstance()
+	{
+		GUIScreen screen=this;
+		IGUIScreenCallbackShow@newCallback=ShowCallback;
+		for(uint i=0,j=Elements.length();i<j;i++)
+		@screen.Elements[i]=Elements[i].GetNewInstance();
+		return@screen;
+	} 
+	
+	IGUIScreenOpt@CallbackShow(IGUIScreenCallbackShow@callback)
+	{
+		@ShowCallback=callback;
+		return this;
+	}
+	IGUIScreenOpt@CallbackHide(IGUIScreenCallbackHide@callback)
+	{
+		@HideCallback=callback;
+		return this;
+	}
+	IGUIScreenOpt@CallbackMove(IGUIScreenCallbackMove@callback)
+	{
+		@MoveCallback=callback;
+		return this;
+	}
+	IGUIScreenOpt@Position(int x,int y)
+	{
+		PosX=x;
+		PosY=y;
+		return this;
+	}
+	IGUIScreenOpt@CanMove(bool enabled)
+	{
+		IsCanMove=enabled;
+		return this;
+	}
+	IGUIScreenOpt@Modal(bool enabled)
+	{
+		IsModal=enabled;
+		return this;
+	}
+	IGUIScreenOpt@Multiinstance(bool enabled)
+	{
+		IsMultiinstance=enabled;
+		return this;
+	}
+	IGUIScreenOpt@IgnoreBorders(bool enabled)
+	{
+		IsIgnoreBorders=enabled;
+		return this;
+	}
+	IGUIScreenOpt@CloseOnMiss(bool enabled)
+	{
+		IsCloseOnMiss=enabled;
+		return this;
+	}
+	IGUIScreenOpt@AutoCursor(bool enabled,int cursorType)
+	{
+		IsAutoCursor=enabled;
+		AutoCursorType=cursorType;
+		return this;
+	} 
+	
+	int GetPosX(){return PosX;}
+	int GetPosY(){return PosY;}        
+	
+	int Index;
+	int PosX;
+	int PosY;
+	int LastX;
+	int LastY;
+	Sprite Surface;
+	
+	bool IsCanMove;
+	bool IsModal;
+	bool IsMultiinstance;
+	bool IsIgnoreBorders;
+	bool IsCloseOnMiss;
+	bool IsAutoCursor;
+	
+	int AutoCursorType;
+	int AutoCursorPrev;
+	
+	bool IsHardcoded;
+	bool IsLMouseDown;
+	IGUIScreenCallbackShow@ShowCallback;
+	IGUIScreenCallbackHide@HideCallback;
+	IGUIScreenCallbackMove@MoveCallback;
+	GUIElement@[]Elements;
+}     
+
+IGUIScreenOpt@GUI_CreateScreen(int screenIndex,string@sprName)
+{
+	if(screenIndex==0)
+	return null;
+	DeleteScreen(screenIndex);
+	return CreateScreen(screenIndex,sprName);
+} 
+
+void GUI_DeleteScreen(int screenIndex)
+{
+	if(screenIndex==0)
+	return;
+	DeleteScreen(screenIndex);
+} 
+
+IGUIElementOpt@GUI_AddScreenElement(int screenIndex,string@sprName,int x,int y)
+{
+	if(screenIndex==0)
+	return null;
+	if(GetScreen(screenIndex)is null)
+	CreateScreen(screenIndex,null);
+	
+	GUIScreen@screen=GetScreen(screenIndex);
+	GUIElement element(sprName,(4));
+	element.Position(x,y);
+	
+	screen.Elements.insertLast(@element);
+	return@element;
+} 
+
+IGUIScreenOpt@GUI_GetScreenOptions(int screenIndex)
+{
+	return GetScreen(screenIndex);
+} 
+
+IGUIScreenOpt@GUI_GetScreenOptions()
+{
+	return LastScreenOpt;
+} 
+
+IGUIElementOpt@GUI_GetElementOptions()
+{
+	return LastElementOpt;
+}    
+
+void GUI_Init()
+{
+	AllScreens.resize(0);
+	ActiveScreens.resize(0);
+	KeyPressed.resize(0x100);
+	for(uint i=0,j=KeyPressed.length();i<j;i++)
+	KeyPressed[i]=false; 
+	
+	CreateScreen((1),null);
+	CreateScreen((2),null);
+	CreateScreen((3),null);
+	CreateScreen((4),null);
+	CreateScreen((5),null);
+	CreateScreen((6),null);
+	CreateScreen((7),null);
+	CreateScreen((10),null);
+	CreateScreen((11),null);
+	CreateScreen((12),null);
+	CreateScreen((13),null);
+	CreateScreen((14),null);
+	CreateScreen((15),null);
+	CreateScreen((16),null);
+	CreateScreen((17),null);
+	CreateScreen((18),null);
+	CreateScreen((19),null);
+	CreateScreen((40),null);
+	CreateScreen((20),null);
+	CreateScreen((21),null);
+	CreateScreen((22),null);
+	CreateScreen((23),null);
+	CreateScreen((24),null);
+	CreateScreen((25),null);
+	CreateScreen((26),null);
+	CreateScreen((27),null);
+	CreateScreen((28),null);
+	CreateScreen((29),null);
+	CreateScreen((30),null);
+	CreateScreen((31),null);
+	CreateScreen((32),null);
+	CreateScreen((33),null);
+	CreateScreen((34),null);
+	for(uint i=0,j=AllScreens.length();i<j;i++)
+	AllScreens[i].IsHardcoded=true;
+}
+
+int GUI_GetActiveMainScreen()
+{
+	return ActiveScreens.length()>0?ActiveScreens.first().Index:(0);
+}
+
+int GUI_GetActiveScreen()
+{
+	return ActiveScreens.length()>0?ActiveScreens.last().Index:(0);
+}
+
+void GUI_GetActiveScreens(int[]&result)
+{
+	result.resize(ActiveScreens.length());
+	for(uint i=0,j=result.length();i<j;i++)
+	result[i]=ActiveScreens[i].Index;
+}
+
+void GUI_ShowScreen(int screenIndex,int p0,int p1,int p2)
+{
+	GUIScreen@screen=GetScreen(screenIndex);
+	if(not(screen is null))
+	{
+		if(not screen.IsMultiinstance)
+		{
+			
+			for(uint i=ActiveScreens.length();i>0;)
+			{
+				i--;
+				if(ActiveScreens[i].Index==screenIndex)
+				{
+					ActiveScreens.removeAt(i);
+					if(not(screen.HideCallback is null))
+					screen.HideCallback.OnHide(p0,p1,p2);
+				}
+			}
+		} 
+		
+		@screen=screen.GetNewInstance();
+		ActiveScreens.insertLast(@screen); 
+		
+		if(screen.IsAutoCursor)
+		{
+			screen.AutoCursorPrev=GetCurrentCursor();
+			ChangeCursor(screen.AutoCursorType);
+		} 
+		
+		@LastScreenOpt=screen;
+		
+		for(uint i=0,j=screen.Elements.length();i<j;i++)
+		{
+			GUIElement@e=screen.Elements[i];
+			if(not(e.InitCallback is null))
+			{
+				@LastElementOpt=e;
+				e.InitCallback.OnInit();
+				@LastElementOpt=null;
+			}
+		}
+		
+		if(not(screen.ShowCallback is null))
+		{
+			screen.ShowCallback.OnShow(p0,p1,p2);
+		}
+		@LastScreenOpt=null;
+	}
+}
+
+void GUI_HideScreen(int screenIndex,int p0,int p1,int p2)
+{
+	for(uint i=ActiveScreens.length();i>0;)
+	{
+		i--;
+		GUIScreen@screen=ActiveScreens[i];
+		if(screen.Index==screenIndex)
+		{
+			
+			ActiveScreens.removeAt(i); 
+			
+			if(not(screen.HideCallback is null))
+			{
+				screen.HideCallback.OnHide(p0,p1,p2);
+			} 
+			
+			if(screen.IsAutoCursor)
+			{
+				ChangeCursor(screen.AutoCursorPrev);
+			} 
+			
+			if(not screen.IsMultiinstance)
+			{
+				GUIScreen@instance=GetScreen(screenIndex);
+				instance.PosX=screen.PosX;
+				instance.PosY=screen.PosY;
+			}
+			break;
+		}
+	}
+}
+
+void GUI_Render(bool mainScreen)
+{
+	if(mainScreen)
+	{
+		if(ActiveScreens.length()>0)
+		{
+			GUIScreen@screen=ActiveScreens[0];
+			DrawHardcodedScreen(screen.Index);
+			GetHardcodedScreenPos(screen.Index,screen.PosX,screen.PosY);
+			screen.Draw();
+		}
+	}
+	else
+	{
+		for(uint i=1,j=ActiveScreens.length();i<j;i++)
+		{
+			GUIScreen@screen=ActiveScreens[i];
+			if(screen.IsHardcoded)
+			{
+				DrawHardcodedScreen(screen.Index);
+				GetHardcodedScreenPos(screen.Index,screen.PosX,screen.PosY);
+			}
+			screen.Draw();
+		}
+	}
+}
+
+bool GUI_MouseDown(int click,int x,int y)
+{
+	uint len=ActiveScreens.length();
+	if(len!=0)
+	{
+		GUIScreen@screen=ActiveScreens[len-1];
+		bool result=screen.MouseDown(click,x,y);
+		if(result)
+		{
+			if(click==(3)||click==(4))
+			return GUI_MouseUp(click,x,y);
+			return true;
+		}
+		
+		if(len>1&&not screen.IsHardcoded&&not screen.IsModal&&click==(0)&&
+		not((x)>=(screen.PosX)&&(x)<=(screen.PosX)+(screen.Surface.Width)&&(y)>=(screen.PosY)&&(y)<=(screen.PosY)+(screen.Surface.Height)))
+		{
+			for(uint i=ActiveScreens.length()-1;i>0;)
+			{
+				i--;
+				GUIScreen@nextScreen=ActiveScreens[i];
+				if(((x)>=(nextScreen.PosX)&&(x)<=(nextScreen.PosX)+(nextScreen.Surface.Width)&&(y)>=(nextScreen.PosY)&&(y)<=(nextScreen.PosY)+(nextScreen.Surface.Height)))
+				{
+					
+					GUIScreen@tmpScreen=ActiveScreens[i];
+					@ActiveScreens[i]=ActiveScreens[len-1];
+					@ActiveScreens[len-1]=tmpScreen;
+					return GUI_MouseDown(click,x,y);
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool GUI_MouseUp(int click,int x,int y)
+{
+	uint len=ActiveScreens.length();
+	if(len!=0)
+	return ActiveScreens[len-1].MouseUp(click,x,y);
+	return false;
+}
+
+void GUI_MouseMove(int x,int y)
+{
+	uint len=ActiveScreens.length();
+	if(len!=0)
+	ActiveScreens[len-1].MouseMove(x,y);
+}
+
+bool GUI_KeyDown(uint8 key,string&keyText)
+{
+	if(KeyPressed.length()!=0)
+	KeyPressed[key]=true;
+	uint len=ActiveScreens.length();
+	if(len!=0)
+	return ActiveScreens[len-1].KeyPress(key,keyText);
+	return false;
+}
+
+bool GUI_KeyUp(uint8 key,string&keyText)
+{
+	if(KeyPressed.length()!=0)
+	KeyPressed[key]=false;
+	return false;
+}
+
+void GUI_InputLost()
+{
+	for(uint i=0,j=KeyPressed.length();i<j;i++)
+	KeyPressed[i]=false;
+	uint len=ActiveScreens.length();
+	if(len!=0)
+	ActiveScreens[len-1].InputLost();
+}    
+
+IGUIScreenOpt@CreateScreen(int screenIndex,string@sprName)
+{
+	GUIScreen screen(sprName,(4));
+	screen.CanMove(true);
+	screen.Position(__ScreenWidth/2-screen.Surface.Width/2,__ScreenHeight/2-screen.Surface.Height/2);
+	screen.Index=screenIndex;
+	AllScreens.insertLast(@screen);
+	return@screen;
+}
+
+void DeleteScreen(int screenIndex)
+{
+	for(uint i=0;i<ActiveScreens.length();)
+	{
+		if(ActiveScreens[i].Index==screenIndex)
+		{
+			ActiveScreens.removeAt(i);
+			i=0;
+		}
+		else
+		{
+			i++;
+		}
+	}
+	
+	for(uint i=0,j=AllScreens.length();i<j;i++)
+	{
+		if(AllScreens[i].Index==screenIndex)
+		{
+			AllScreens.removeAt(i);
+			break;
+		}
+	}
+}
+
+GUIScreen@GetScreen(int screenIndex)
+{
+	if(screenIndex==0)
+	return null;
+	for(uint i=0,j=AllScreens.length();i<j;i++)
+	if(AllScreens[i].Index==screenIndex)
+	return@AllScreens[i];
+	return null;
+}
+
+bool ProcessKey(uint8 key,string&keyText,string&text)
+{
+	if(key==0x0E)
+	{
+		if(text.length()>0)
+		text[-1]="";
+		return true;
+	}
+	
+	if(keyText!="")
+	{
+		text+=keyText;
+		return true;
+	}
+	return false;
+}

@@ -1,0 +1,770 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+uint GetNearFullSecond(uint16 year,uint16 month,uint16 day,uint16 hour,uint16 minute,uint16 second)
+{
+	int jump=0;
+	if(year==0)
+	{
+		year=__Year;
+		jump=1;
+	}
+	if(month==0)
+	{
+		month=__Month;
+		jump=2;
+	}
+	if(day==0)
+	{
+		day=__Day;
+		jump=3;
+	}
+	
+	uint fullSecond=::GetFullSecond(year,month,day,hour,minute,second);
+	while(fullSecond<=__FullSecond)
+	{
+		switch(jump)
+		{
+			case 0:
+			return __FullSecond+1;
+			case 1:
+			year++;
+			break;
+			case 2:
+			month++;
+			if(month>12)
+			{
+				month=1;
+				year++;
+			}
+			break;
+			case 3:
+			day++;
+			if(day>28&&day>GetDaysInMonth(year,month))
+			{
+				day=1;
+				month++;
+				if(month>12)
+				{
+					month=1;
+					year++;
+				}
+			}
+			break;
+			default:
+			break;
+		}
+		
+		fullSecond=::GetFullSecond(year,month,day,hour,minute,second);
+	}
+	return fullSecond;
+}
+
+uint GetDaysInMonth(uint16 year,uint16 month)
+{
+	switch(month)
+	{
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12:
+		return 31;
+		case 2:
+		if(year%400==0||(year%4==0&&year%100!=0))
+		return 29;
+		return 28;
+		default:
+		return 30;
+	}
+	return 0;
+}                                      
+
+string DateTimeToString(uint gameTime)
+{
+	uint16 year=0;
+	uint16 month=0;
+	uint16 dayOfWeek=0;
+	uint16 day=0;
+	uint16 hour=0;
+	uint16 minute=0;
+	uint16 second=0;
+	GetGameTime(gameTime,year,month,day,dayOfWeek,hour,minute,second);
+	return""+(day>9?(""+day):("0"+day))+"."+(month>9?(""+month):("0"+month))+"."+year+" "+(hour>9?(""+hour):("0"+hour))+":"+(minute>9?(""+minute):("0"+minute));
+} 
+
+void _BosEvaInit(Critter&eva,bool firstTime)
+{
+	
+	eva.SetEvent((1),"_EvaFinish");
+	if(firstTime)
+	{
+		eva.StatBase[(90)]=CreateTimeEvent(__FullSecond+7*24*60*60,"e_OneWeek",true);
+	}
+}
+
+void _EvaFinish(Critter&eva,bool deleted)
+{
+	if(deleted)
+	{
+		EraseTimeEvent(eva.StatBase[(90)]);
+	}
+}
+
+uint e_OneWeek(uint[]@values)
+{
+	GameVar@status=GetGlobalVar((4401));
+	if(!(@status!=null))
+	return 0;
+	status=0;
+	return 7*24*60*60;
+}       
+
+void r_ShowBlackmailSum(Critter&player,Critter@npc)
+{
+	if(!(@npc!=null))
+	return;
+	GameVar@sum=GetLocalVar((4412),player.Id);
+	if(!(@sum!=null))
+	return;
+	string lexems="$money "+sum.GetValue();
+	player.SayMsg((11),(1),(1000000000+(npc.Stat[(104)])*100000+((5))),lexems);
+}  
+
+void r_BeginFight(Critter&player,Critter@npc)
+{
+	if(!(@npc!=null))
+	return;
+	npc.StatBase[(90)]=player.Id;
+	npc.SetEvent((2),"_citizenDead");
+}
+
+void _citizenDead(Critter&npc,Critter@killer)
+{
+	if((@killer!=null))
+	{
+		
+		if(killer.IsPlayer()&&uint(npc.Stat[(90)])==killer.Id)
+		{
+			npc.AddItem((41),(200));
+			
+			killer.SayMsg((11),(1),(1000000000+(npc.Stat[(104)])*100000+((4))));
+			GameVar@sum=GetLocalVar((4412),killer.Id);
+			if((@sum!=null))
+			{
+				sum=sum.GetValue()+(200);
+			}
+			
+			r_ShowBlackmailSum(killer,npc);
+		}
+	}
+	
+	npc.StatBase[(90)]=0;
+	npc.SetEvent((2),"");
+}                             
+
+import void _MercInit(Critter&merc,bool firstTime)from"merc";
+import void e_MercDead(Critter&merc,Critter@killer)from"merc";
+import bool Merc2Player(Critter&player,Critter&merc,bool alwaysRun,bool cancelOnAttack,uint loseDist,uint16 mercMasterDist,uint16 type,bool defendMaster,bool assistMaster,uint fireTime)from"merc";
+import bool IsMerc(Critter&merc)from"merc";
+import void CancelMerc(Critter&merc)from"merc";
+
+void _SFMercInit(Critter&merc,bool firstTime)
+{
+	_MercInit(merc,firstTime);
+	merc.SetEvent((3),"_SFMercRespawn");
+	merc.SetEvent((2),"_SFMercDead");
+}
+
+void _SFMercDead(Critter&merc,Critter@killer)
+{
+	e_MercDead(merc,killer);
+	merc.StatBase[(84)]=0;
+	merc.ModeBase[(518)]=1;
+	CancelContract(merc);
+} 
+
+void SFMercToHome(Critter&merc)
+{
+	uint16 hX=0;
+	uint16 hY=0;
+	uint8 dir=0;
+	uint mapId=0;
+	
+	merc.GetHomePos(mapId,hX,hY,dir);
+	
+	merc.TransitToMap(mapId,hX,hY,dir);
+	
+	merc.ModeBase[(518)]=0;
+	merc.SetEvent((3),"");
+	merc.SetEvent((2),"");
+}
+
+void _SFMercRespawn(Critter&cr)
+{
+	SFMercToHome(cr);
+}
+
+void r_SFMerc2Player(Critter&player,Critter@npc)
+{
+	if(!(@npc!=null))
+	return;
+	if(IsMerc(npc))
+	return;
+	
+	GameVar@masterId=GetLocalVar((4414),npc.Id);
+	if(!(@masterId!=null))
+	return;
+	uint mId=player.Id;
+	uint[]values={npc.Id,mId};
+	CreateTimeEvent(__FullSecond+(6*30*24*60*60),"e_CancelContract",values,true);
+	
+	Merc2Player(player,npc,true,false,0,(8),(4),true,false,(6*30*24*60*60));
+	npc.SetScript("sf_common@_SFMercInit");
+	
+}
+
+uint e_CancelContract(uint[]@values)
+{
+	Critter@merc=GetCritter(values[0]);
+	uint masterId=0;
+	if(values.length()>0)
+	masterId=values[1];
+	if((@merc!=null))
+	{
+		if(masterId==0)
+		{
+			CancelContract(merc);
+		}
+		else
+		{
+			if(masterId==uint(merc.Merc[(800)]))
+			CancelContract(merc);
+		}
+		
+	}
+	return 0;
+}
+
+void CancelContract(Critter&merc)
+{
+	GameVar@masterId=GetLocalVar((4414),merc.Id);
+	if(!(@masterId!=null))
+	return;
+	
+	GameVar@status=GetLocalVar((4414),masterId.GetValue());
+	if((@status!=null))
+	{
+		if(status.GetValue()==1)
+		{
+			status=2;
+		}
+	}
+	masterId=0;
+} 
+
+bool s_UseImperor(Critter&player,Scenery&scenery,int skill,Item@item)
+{
+	if(skill==(212))
+	{
+		RunDialog(player,(1446),scenery.HexX,scenery.HexY,false);
+	}
+	return true;
+}            
+
+const string[]WhoAreYouKeywords={"кто ты?","ты кто?","who are you?","кто вы?","вы кто?","это кто"};
+const string[]WhereAreYouKeywords={"где Сид","где ты?","где вы?","вы где?","ты где?","where are you?","Нэнси, где ты?","Нэнси, где вы?","Нэнси, вы где?","Нэнси, ты где?"};
+uint radio_channel;
+uint message_counter;
+bool name_asked;
+bool where_asked;
+uint who_asked_id;
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import void SheduleSFInvasion()from"sf_invasion";
+
+void _TankerMapInit(Map&map,bool firstTime)
+{
+	uint time=GetNearFullSecond(0,0,0,1,0,0);
+	CreateTimeEvent(time,"e_BeginNancyBroadcast",false);
+	if(firstTime)
+	{
+		SheduleSFInvasion();
+	}
+} 
+
+bool d_CheckNowHourLess(Critter&player,Critter@npc,int hour)
+{
+	return __Hour<hour;
+}
+
+bool d_CheckNowHourMore(Critter&player,Critter@npc,int hour)
+{
+	return __Hour>hour;
+}  
+
+uint e_BeginNancyBroadcast(uint[]@values)
+{
+	radio_channel=(Random((15),(20)));
+	message_counter=0;
+	name_asked=false;
+	where_asked=false;
+	who_asked_id=0;
+	
+	CreateTimeEvent(__FullSecond+(5*60),"e_TimeToBroadcast",false);
+	
+	for(uint i=0;i<WhoAreYouKeywords.length();i++)
+	{
+		AddTextListener((10),WhoAreYouKeywords[i],radio_channel,"sf_common@listen_BroadcastWho");
+	}
+	for(uint i=0;i<WhereAreYouKeywords.length();i++)
+	{
+		AddTextListener((10),WhereAreYouKeywords[i],radio_channel,"sf_common@listen_BroadcastWhere");
+	}
+	return 24*60*60;
+}  
+
+uint e_TimeToBroadcast(uint[]@values)
+{
+	if(where_asked)
+	{
+		RadioMessageMsg(radio_channel,(0),(5112));
+		Critter@player=GetCritter(who_asked_id);
+		if((@player!=null))
+		{
+			GameVar@qVar=GetLocalVar((4424),player.Id);
+			if((@qVar!=null))
+			{
+				if(qVar.GetValue()==1)
+				{
+					qVar=2;
+					message_counter=(60);
+				}
+			}
+		}
+		who_asked_id=0;
+		where_asked=false;
+	}
+	else if(name_asked)
+	{
+		RadioMessageMsg(radio_channel,(0),(5111));
+		name_asked=false;
+	}
+	else
+	{
+		who_asked_id=0;
+		RadioMessageMsg(radio_channel,(0),(5110));
+	}
+	message_counter++;
+	if(message_counter>(60))
+	{
+		for(uint i=0;i<WhoAreYouKeywords.length();i++)
+		{
+			EraseTextListener((10),WhoAreYouKeywords[i],radio_channel);
+		}
+		for(uint i=0;i<WhereAreYouKeywords.length();i++)
+		{
+			EraseTextListener((10),WhereAreYouKeywords[i],radio_channel);
+		}
+		return 0;
+	}
+	return(5*60);
+} 
+
+void listen_BroadcastWho(Critter&player,string&text)
+{
+	if(!name_asked)
+	{
+		who_asked_id=player.Id;
+		name_asked=true;
+	}
+}
+
+void listen_BroadcastWhere(Critter&player,string&text)
+{
+	if(!where_asked&&who_asked_id==player.Id)
+	{
+		where_asked=true;
+	}
+} 
+
+void BeginRadio(Critter&cr,int,int,int)
+{
+	uint[]values;
+	e_BeginNancyBroadcast(values);
+} 
+
+void _NancyInit(Critter&nancy,bool firstTime)
+{
+	nancy.SetEvent((31),"_NancySkill");
+}
+
+void _NancySkill(Critter&cr,Critter&fromCr,int skill,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	if(fromCr.IsNpc())
+	return;
+	Map@map=cr.GetMap();
+	if(!(@onCritter!=null)||!(@map!=null))
+	return;
+	if(onCritter.Id==cr.Id)
+	{
+		Critter@[]critters;
+		if(map.GetCritters(0,(0x01)|(0x20),critters)>0)
+		{
+			for(uint i=0,l=critters.length();i<l;i++)
+			{
+				Critter@npc=critters[i];
+				if((@npc!=null))
+				{
+					if(npc.Stat[(106)]==(21)&&npc.IsNpc())
+					{
+						
+						AddWalkPlane(npc,0,Random(83,85),Random(83,85),0,true,1);
+						AddAttackPlane(npc,0,fromCr);
+						npc.ModeBase[(517)]=1;
+					}
+				}
+			}
+		}
+	}
+}
+
+void _NancyMapInit(Map&mapNancy,bool firstTime)
+{
+	Location@loc=mapNancy.GetLocation();
+	Location@[]locations;
+	Map@map;
+	if((@loc!=null)&&GetAllLocations((212),locations)>0)
+	{
+		for(uint i=0,l=locations.length();i<l;i++)
+		{
+			if(locations[i].Id==loc.Id)
+			continue;
+			@map=locations[i].GetMapByIndex(0);
+			if((@map!=null)&&map.GetCritters(0,(0x0F)|(0x10),null)==0)
+			DeleteLocation(locations[i].Id);
+		}
+	}
+} 
+
+void _LockerInit(Item&locker,bool firstTime)
+{
+	if(!firstTime)
+	return;
+	Map@map=GetMap(locker.MapId);
+	if(!(@map!=null))
+	return;
+	uint keyId=Random(10000,50000);
+	locker.LockerId=keyId;
+	locker.LockerComplexity=Random(120,180);
+	Critter@[]critters;
+	if(map.GetCritters((34),(0x0F)|(0x20),critters)>0)
+	{
+		Critter@npc=critters[0];
+		if(!(@npc!=null))
+		return;
+		Item@key=npc.AddItem((82),1);
+		if((@key!=null))
+		{
+			key.LockerId=keyId;
+			key.Update();
+		}
+	}
+	locker.Update();
+} 
+
+void _BoatInit(Item&boat,bool firstTime)
+{
+	if(!firstTime)
+	return;
+	Map@map=GetMap(boat.MapId);
+	if(!(@map!=null))
+	return;
+	uint keyId=Random(10000,50000);
+	boat.Charge=boat.Proto.Car_TankVolume;
+	boat.Deterioration=0;
+	boat.LockerId=keyId;
+	boat.LockerComplexity=Random(100,150);
+	Item@bag=boat.GetChild(0);
+	if((@bag!=null))
+	{
+		bag.LockerId=keyId;
+		bag.LockerComplexity=Random(100,150);
+		bag.Update();
+	}
+	Critter@[]critters;
+	if(map.GetCritters((34),(0x0F)|(0x20),critters)>0)
+	{
+		Critter@npc=critters[0];
+		if(!(@npc!=null))
+		return;
+		Item@key=npc.AddItem((82),1);
+		if((@key!=null))
+		{
+			key.LockerId=keyId;
+			key.Update();
+		}
+	}
+	boat.SetScript(null);
+	boat.Update();
+}             
+
+import void SetTraveller(uint crId,bool isTransit,uint entireNum,uint timeWaitLoc,uint timeWaitEnc,uint16[]locPids,bool visibleEncounters)from"traveller";
+import void CancelTraveller(uint crId)from"traveller";
+import void _TraderInit(Critter&trader,bool firstTime)from"trader";
+
+void _DevinInit(Critter&cr,bool firstTime)
+{
+	GameVar@isHired=GetGlobalVar((4427));
+	if((@isHired!=null)&&isHired==0)
+	{
+		cr.SetEvent((3),"_DevinRespawn");
+		uint16[]locPids={(45),(14),(4),(10),(7),(13)};
+		SetTraveller(cr.Id,true,(23),(24*60*60*20),(60*60*2),locPids,false);
+	}
+	else
+	{
+		CancelTraveller(cr.Id);
+		cr.SetEvent((3),"");
+	}
+	cr.ModeBase[(535)]=1;
+	cr.SkillBase[(215)]=180;
+	_TraderInit(cr,firstTime);
+}
+
+void _DevinRespawn(Critter&cr)
+{
+	CreateTimeEvent(__FullSecond+__TimeMultiplier*3,"e_DevinSay",cr.Id,false);
+}
+
+uint e_DevinSay(uint[]@values)
+{
+	Critter@cr=GetCritter(values[0]);
+	if((@cr!=null))
+	{
+		GameVar@isHired=GetGlobalVar((4427));
+		if((@isHired!=null)&&isHired!=0)
+		{
+			cr.SayMsg((1),(1),(1000000000+(cr.Stat[(104)])*100000+(2)));
+			if(cr.GetTimeEvents((12),null,null,null)!=0)
+			{
+				cr.EraseTimeEvents((12));
+			}
+			cr.AddTimeEvent("traveller@cte_Travel",__TimeMultiplier*2,(12));
+		}
+	}
+	return 0;
+}
+
+void r_HireDevin(Critter&player,Critter@npc)
+{
+	if(!(@npc!=null))
+	return;
+	CancelTraveller(npc.Id);
+	npc.ModeBase[(535)]=1;
+	npc.SkillBase[(215)]=180;
+	npc.SetScript("trader@_TraderInit");
+}   
+
+void r_SetCanHire(Critter&player,Critter@npc)
+{
+	if(!(@npc!=null))
+	return;
+	GameVar@status=GetUnicumVar((2030),player.Id,npc.Id);
+	if(!(@status!=null))
+	return;
+	int roll=Random(250,350);
+	if(roll>player.Skill[(211)])
+	status=2;
+	else
+	status=1;
+}     
+
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";                                                                                                                             
+
+void SetLocationDeleteTime(Location&loc,uint time)
+{
+	GameVar@locDelete=GetLocalVar((3313),loc.Id);
+	if((@locDelete!=null))
+	locDelete=__FullSecond+time;
+}  
+
+void _DeletableMapInit(Map&map,bool firstTime)
+{
+	Location@loc=map.GetLocation();
+	if(!(@loc!=null))
+	return;
+	GameVar@locDelete=GetLocalVar((3313),loc.Id);
+	if(!(@locDelete!=null)||locDelete==0)
+	return;
+	map.SetEvent((2),"_DeletableMapLoop1");
+}
+
+void _DeletableMapLoop1(Map&map)
+{
+	Location@loc=map.GetLocation();
+	if(!(@loc!=null))
+	return;
+	GameVar@locDelete=GetLocalVar((3313),loc.Id);
+	if(!(@locDelete!=null)||locDelete>__FullSecond)
+	return;
+	
+	loc.AutoGarbage=true;
+}      
+
+Location@CreateLocationForCritter(Critter&player,int locPid,int worldX,int worldY,int delta,int varNum)
+{
+	uint locId=CreateLocation(locPid,worldX+Random(-1*delta,delta),worldY+Random(-1*delta,delta),null);
+	if(locId==0)
+	return null;
+	Location@loc=GetLocation(locId);
+	if(!(@loc!=null))
+	return null;
+	loc.AutoGarbage=false;
+	player.SetKnownLoc(true,loc.Id);
+	if(varNum>0)
+	{
+		GameVar@var=GetLocalVar(varNum,player.Id);
+		if((@var!=null))
+		var=loc.Id;
+	}
+	return loc;
+}   
+
+bool d_VictimsExists(Critter&player,Critter@npc)
+{
+	GameVar@locId=GetLocalVar((4432),player.Id);
+	return(@locId!=null)&&(@GetLocation(locId.GetValue())!=null);
+}
+
+bool d_VictimsNotExists(Critter&player,Critter@npc)
+{
+	return!d_VictimsExists(player,npc);
+} 
+
+void r_AddVictimsLocation(Critter&player,Critter@npc)
+{
+	Location@loc=CreateLocationForCritter(player,(218),(640),(1150),__GlobalMapZoneLength*2,(4432));
+	if((@loc!=null))
+	{
+		SetLocationDeleteTime(loc,60*60*24*4);
+		Map@map=loc.GetMapByIndex(0);
+		if((@map!=null))
+		{
+			map.SetScript("_DeletableMapInit");
+		}
+	}
+} 
+
+void _HubVictimInit(Critter&cr,bool firstTime)
+{
+	cr.SetEvent((16),"_HubVictimAttacked");
+	cr.SetEvent((2),"_HubVictimDead");
+}
+
+void _HubVictimDead(Critter&cr,Critter@killer)
+{
+	if(!(@killer!=null)||killer.IsNpc())
+	return;
+	GameVar@qVar=GetLocalVar((4430),killer.Id);
+	GameVar@counter=GetLocalVar((4431),killer.Id);
+	if(!(@qVar!=null)||!(@counter!=null))
+	return;
+	if(qVar>0&&qVar<4)
+	qVar=4;
+	counter=counter+1;
+	if(counter>3)
+	qVar=5;
+} 
+
+bool _HubVictimAttacked(Critter&cr,Critter&attacker)
+{
+	r_MapAutoGarbage(attacker,cr);
+	Critter@[]family;
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return false;
+	uint num=map.GetNpcCount((17),(0x0F)|(0x20));
+	if(num>0)
+	{
+		for(uint i=0;i<num;i++)
+		{
+			Critter@npc=map.GetNpc((17),(0x0F)|(0x20),i);
+			if((@npc!=null)&&npc.IsNpc()&&attacker.IsPlayer())
+			{
+				if(!npc.CheckEnemyInStack(attacker.Id))
+				npc.AddEnemyInStack(attacker.Id);
+				if(npc.Id==cr.Id||npc.IsSee(cr))
+				{
+					uint16 hx=npc.HexX;
+					uint16 hy=npc.HexY;
+					if(GetFreeHex(map,Random(6,20),hx,hy))
+					AddWalkPlane(npc,100,hx,hy,Random(0,5),true,1);
+					if(Random(1,3)<2)
+					npc.SayMsg((3),(0),(3510));
+				}
+			}
+		}
+	}
+	return false;
+}
+
+void r_MapAutoGarbage(Critter&player,Critter@npc)
+{
+	Map@map=player.GetMap();
+	if((@map!=null))
+	{
+		Location@loc=map.GetLocation();
+		if((@loc!=null))
+		loc.AutoGarbage=true;
+	}
+}
+
+void r_ChangeStatus(Critter&player,Critter@npc)
+{
+	Map@map=player.GetMap();
+	if((@map!=null))
+	map.SetEvent((7),"_VictimsOutCritter");
+} 
+
+void _VictimsOutCritter(Map&map,Critter&cr)
+{
+	GameVar@qVar=GetLocalVar((4430),cr.Id);
+	if((@qVar!=null)&&qVar==2&&map.GetNpcCount(17,(0x01)|(0x20))==4)
+	qVar=3;
+}   
+
+void r_GetChitinArmor(Critter&player,Critter@npc)
+{
+	Item@item=player.AddItem((597),1);
+	if((@item!=null))
+	{
+		item.SetScript("_RecipeInit");
+	}
+}
+
+void _RecipeInit(Item&item,bool firstTime)
+{
+	item.SetEvent((4),"_RecipeSkill");
+}
+
+bool _RecipeSkill(Item&item,Critter&cr,int skill)
+{
+	if(skill==(212))
+	{
+		GameVar@recipeKnown=GetLocalVar((4439),cr.Id);
+		if(recipeKnown==0)
+		{
+			if(cr.Stat[(4)]<6||cr.Skill[(212)]<90||cr.Skill[(217)]<100)
+			{
+				cr.SayMsg((11),(0),(3515));
+				return true;
+			}
+			cr.SayMsg((11),(0),(3516));
+			recipeKnown=1;
+			return true;
+		}
+	}
+	return false;
+}

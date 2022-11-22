@@ -1,0 +1,1016 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+class Entire
+{
+	int Number;
+	uint16 HexX;
+	uint16 HexY;
+}
+
+Entire@GetEntire(Map&map,int entireNum,int skip)
+{
+	Entire ent;
+	if(map.GetEntireCoords(entireNum,skip,ent.HexX,ent.HexY)==false)
+	return null;
+	ent.Number=entireNum;
+	return ent;
+}
+
+uint ParseEntires(Map&map,Entire[]&entires,int number)
+{
+	uint oldCount=entires.length();
+	uint count=map.CountEntire(number);
+	entires.resize(oldCount+count);
+	
+	for(uint i=0;i<count;i++)
+	{
+		Entire@ent=entires[oldCount+i];
+		if(map.GetEntireCoords(number,i,ent.HexX,ent.HexY)==false)
+		return 0;
+		ent.Number=number;
+	}
+	
+	return count;
+}
+
+bool GetEntireFreeHex(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint count=map.CountEntire(number); 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy)&&map.IsHexPassed(hx,hy))
+		return true;
+	}
+	
+	if(hx==0||hy==0||hx>=map.GetWidth()-1||hy>=map.GetHeight()-1)
+	return false; 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy))
+		{
+			for(int x=-1;x<=1;x++)
+			{
+				for(int y=-1;y<=1;y++)
+				{
+					if(x==0&&y==0)
+					continue;
+					
+					if(__MapHexagonal)
+					{
+						if((hx%2)==1&&((x==-1&&y==1)||(x==1&&y==1)))
+						continue;
+						if((hx%2)==0&&((x==-1&&y==-1)||(x==1&&y==-1)))
+						continue;
+					}
+					
+					if(map.IsHexPassed(hx+x,hy+y))
+					{
+						hx+=x;
+						hy+=y;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint16 hxBase=hx;
+	uint16 hyBase=hy;
+	
+	Entire[]entires;
+	uint count=ParseEntires(map,entires,number);
+	if(count==0)
+	return false;
+	
+	hx=entires[0].HexX;
+	hy=entires[0].HexY;
+	for(uint i=1;i<count;i++)
+	{
+		Entire@ent=entires[i];
+		if(GetDistantion(hxBase,hyBase,ent.HexX,ent.HexY)<GetDistantion(hxBase,hyBase,hx,hy))
+		{
+			hx=ent.HexX;
+			hy=ent.HexY;
+		}
+	}
+	
+	return true;
+}                  
+
+bool IsCritterInDeadZone(Critter&cr,Map&map,uint8 dir,uint8 hexFirst,uint8 hexEnd)
+{
+	uint crossNum=0;
+	for(uint i=hexFirst;i<=hexEnd;i++)
+	{
+		if(BeamCrossing2Section(map,i,(i==hexEnd?hexFirst:i+1),cr.HexX,cr.HexY,dir))
+		{
+			crossNum++;
+			
+		}
+	}
+	bool inZone=false;
+	if(crossNum>0&&(crossNum%2==1))
+	inZone=true;
+	
+	return inZone;
+	
+}         
+
+bool BeamCrossing2Section(Map&map,uint8 hexNum1,uint8 hexNum2,uint16 beamX,uint16 beamY,uint8 dir)
+{
+	
+	uint16 hx0=beamX;
+	uint16 beamX2=hx0;
+	uint16 hy0=beamY;
+	uint16 beamY2=hy0;
+	uint steps=0;
+	
+	while(hx0!=beamX2||hy0!=beamY2||steps==0)
+	{
+		steps+=1;
+		hx0=beamX2;
+		hy0=beamY2;
+		map.MoveHexByDir(beamX2,beamY2,dir,steps);
+	} 
+	
+	uint16 hx1=0;
+	uint16 hx2=0;
+	uint16 hy1=0;
+	uint16 hy2=0;
+	
+	if(!map.GetEntireCoords(hexNum1,0,hx1,hy1))
+	return false;
+	if(!map.GetEntireCoords(hexNum2,0,hx2,hy2))
+	return false;                           
+	
+	float z=(int(hx1)-int(hx2))*(int(beamY2)-int(beamY))-(int(hy1)-int(hy2))*(int(beamX2)-int(beamX));
+	
+	float ch=(int(hx1)-int(beamX))*(int(beamY2)-int(beamY))-(int(hy1)-int(beamY))*(int(beamX2)-int(beamX));
+	
+	float cbeam=(int(hx1)-int(hx2))*(int(hy1)-int(beamY))-(int(hy1)-int(hy2))*(int(hx1)-int(beamX));
+	
+	if(z==0&&ch==0&&cbeam==0)
+	return false;
+	
+	if(z==0)
+	return false;
+	
+	float crossS=ch/z;
+	
+	float crossB=cbeam/z;
+	return(0<crossS&&crossS<1&&0<crossB&&crossB<1);
+}               
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                                                                          
+
+import bool CheckEventStatus(uint idx,uint status)from"game_event";
+import uint GetEventOccurenceTime(uint idx)from"game_event";
+import void RunGameEvent(uint idx)from"game_event";
+import void StopGameEvent(uint idx)from"game_event";
+import string DateTimeToString(uint gameTime)from"time";
+import void _GuardInit(Critter&cr,bool firstTime)from"map_barter_ground";
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";   
+
+uint e_RunPreparePhase(uint[]@values)
+{
+	PrepareRacing();
+	return 0;
+}
+
+void PrepareRacing()
+{
+	Map@map=GetMapByPid((7),0);
+	GameVar@status=GetGlobalVar((3154));
+	status=0;
+	GameVar@winners=GetGlobalVar((3155));
+	winners=0;
+	GameVar@winnerId=GetGlobalVar((3156));
+	winnerId=0;
+	if(!(@map!=null))
+	return;
+	int[]paramsBill=
+	{
+		(3),10,(89),(222),(527),1,(105),(24),
+		(107),28,(106),(13),(104),(192)
+	};
+	int[]paramsBodyGuard=
+	{
+		(532),1,(531),1,(89),(224),(527),1,(105),(22),
+		(107),93,(106),(13),(104),(191),(322),1,(325),1,(511),
+		1,(324),1,(2),10,(3),10,(0),10,(7),500,(8),30,(10),50,(101),1000
+	};
+	
+	uint16 hX=0,hY=0;
+	
+	Entire[]entires;
+	if(GetNearEntire(map,(222),hX,hY))
+	{
+		map.AddNpc((469),hX,hY,2,paramsBill,null,null);
+	}
+	else
+	return;
+	if(ParseEntires(map,entires,(223))>0)
+	{
+		for(uint i=0,l=entires.length();i<l;i++)
+		{
+			map.AddNpc((171),entires[i].HexX,entires[i].HexY,2,paramsBodyGuard,null,null);
+		}
+	}
+	CreateTimeEvent(__FullSecond+((20)*__TimeMultiplier*60),"e_AnnounceRadio",true);
+}
+
+uint e_AnnounceRadio(uint[]@values)
+{
+	;
+	if(CheckEventStatus((2),(1)))
+	{
+		RadioMessageMsg(0,(0),(3853));
+		uint time=GetEventOccurenceTime((2));
+		if(time>0&&time>__FullSecond)
+		{
+			RadioMessage(0,DateTimeToString(time));
+		}
+		return((25)*__TimeMultiplier*60);
+	}
+	return 0;
+} 
+
+uint e_RunBeginPhase(uint[]@values)
+{
+	;
+	BeginRacing();
+	return 0;
+}
+
+void dlg_RacingWhen(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$whenНикогда";
+	uint time=GetEventOccurenceTime((2));
+	if(time==0)
+	time=GetEventOccurenceTime((3));
+	lexems="$when"+DateTimeToString(time);
+}
+
+void BeginRacing()
+{
+	Map@map=GetMapByPid((7),0);
+	if(!(@map!=null))
+	return;
+	Critter@cr;
+	uint16 hX=0,hY=0;
+	@cr=map.GetNpc((222),(0x0F)|(0x20),0);
+	if((@cr!=null)&&GetNearEntire(map,(225),hX,hY))
+	{
+		cr.SetHomePos(hX,hY,2);
+		cr.StatBase[(90)]=hX;
+		cr.StatBase[(91)]=hY;
+		cr.AddTimeEvent("cte_RunStartEvent",((5)*__TimeMultiplier*60),(223));
+		Critter@[]bodyguards;
+		Entire[]entires;
+		uint enCount=ParseEntires(map,entires,(226));
+		uint bgCount=map.GetNpcCount((224),(0x0F)|(0x20));
+		for(uint i=0;i<bgCount&&i<enCount;i++)
+		{
+			@cr=map.GetNpc((224),(0x0F)|(0x20),i);
+			if((@cr!=null))
+			cr.SetHomePos(entires[i].HexX,entires[i].HexY,2);
+		}
+		entires.resize(0);
+		if(ParseEntires(map,entires,(224))>0)
+		{
+			int[]params=
+			{
+				(532),1,(531),1,(89),(224),(527),1,(105),(22),
+				(107),93,(106),(13),(104),(190),(322),1,(325),1,(511),
+				1,(324),1,(2),10,(3),10,(0),10,(7),500,(8),30,(10),50,(101),1000
+			};
+			for(uint i=0,l=entires.length();i<l;i++)
+			{
+				map.AddNpc((402),entires[i].HexX,entires[i].HexY,6,params,null,"_DenGuardInit");
+			}
+		}
+		Critter@[]npc;
+		entires.resize(0);
+		uint16 hXlook=0,hYlook=0,homeX=0,homeY=0;
+		uint mapId=0;
+		uint8 dir=2;
+		Entire@entire;
+		map.GetEntireCoords((228),0,hXlook,hYlook);
+		if(map.GetCritters(0,(0x01)|(0x20),npc)>0&&ParseEntires(map,entires,(227))>0)
+		{
+			uint countNpc=0;
+			for(uint i=0,l=npc.length();i<l&&countNpc<25;i++)
+			{
+				@cr=npc[i];
+				if((@cr!=null)&&cr.Stat[(90)]==0&&cr.Stat[(91)]==0&&cr.Stat[(92)]==0)
+				{
+					if((cr.Stat[(89)]==0&&cr.Stat[(67)]!=(5)&&cr.Stat[(67)]!=(11))||
+					(cr.Stat[(67)]!=(5)&&cr.Stat[(89)]==(221)))
+					{
+						@entire=entires[Random(0,entires.length()-1)];
+						hX=entire.HexX;
+						hY=entire.HexY;
+						if((@entire!=null)&&GetFreeHex(map,4,hX,hY)&&map.GetPathLength(cr,hX,hY,0)>0)
+						{
+							cr.GetHomePos(mapId,homeX,homeY,dir);
+							cr.StatBase[(90)]=homeX;
+							cr.StatBase[(91)]=homeY;
+							cr.StatBase[(92)]=dir;
+							cr.StatBase[(93)]=cr.Stat[(89)];
+							cr.StatBase[(89)]=(225);
+							dir=GetDirection(hX,hY,hXlook,hYlook);
+							cr.SetHomePos(hX,hY,dir);
+							cr.AddTimeEvent("cte_Npc2HomePos",(3*30*24*60*60),(223));
+							cr.SetEvent((39),"_SpectatorTalk");
+							countNpc++;
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		return;
+	}
+	
+}
+
+bool _SpectatorTalk(Critter&cr,Critter&player,bool attach,uint talkCount)
+{
+	if(!CheckEventStatus((2),(1))&&
+	!CheckEventStatus((4),(1))&&
+	!CheckEventStatus((3),(1)))
+	return true;
+	GameVar@f=GetUnicumVar((2026),player.Id,cr.Id);
+	if(!(@f!=null))
+	return true;
+	if(attach)
+	{
+		if(f==0)
+		f=1;
+		else
+		return true;
+		RunDialog(player,cr,189,false);
+		return false;
+	}
+	else
+	{
+		if(f==1)
+		f=0;
+	}
+	return true;
+}
+
+uint cte_Npc2HomePos(Critter&cr,int identifier,uint&stage)
+{
+	if(CheckEventStatus((2),(1))||CheckEventStatus((4),(1)))
+	{
+		return((5)*__TimeMultiplier*60);
+	}
+	if(cr.Stat[(90)]==0||cr.Stat[(91)]==0)
+	return 0;
+	uint16 hexX=0,hexY=0;
+	uint8 dir;
+	hexX=cr.Stat[(90)];
+	hexY=cr.Stat[(91)];
+	dir=uint8(cr.Stat[(92)]);
+	cr.SetHomePos(hexX,hexY,dir);
+	cr.StatBase[(90)]=0;
+	cr.StatBase[(91)]=0;
+	cr.StatBase[(92)]=0;
+	cr.StatBase[(99)]=0;
+	cr.StatBase[(89)]=cr.Stat[(93)];
+	cr.SetEvent((39),"");
+	return 0;
+}
+
+void _DenGuardInit(Critter&cr,bool firstTime)
+{
+	_GuardInit(cr,firstTime);
+	cr.SetEvent((31),"_GuardSmthSkill");
+}
+
+void _GuardSmthSkill(Critter&cr,Critter&fromCr,int skill,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	if((@onItem!=null)&&skill==(209))
+	{
+		fromCr.Wait(0);
+		AddAttackPlane(cr,0,fromCr);
+	}
+} 
+
+uint cte_RunStartEvent(Critter&cr,int identifier,uint&stage)
+{
+	if(cr.HexX==cr.Stat[(90)]&&cr.HexY==cr.Stat[(91)]&&cr.IsLife())
+	{
+		RunGameEvent((3));
+		cr.AddTimeEvent("cte_Comment",((30)*__TimeMultiplier),(224));
+		return 0;
+	}
+	return((1)*__TimeMultiplier*60);
+}
+
+uint cte_Comment(Critter&cr,int identifier,uint&stage)
+{
+	if(!CheckEventStatus((3),(1)))
+	return 0;
+	Critter@[]critters;
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return 0;
+	uint spectators=map.GetNpcCount((225),(0x01)|(0x20));
+	if(spectators>0)
+	{
+		Critter@cr1;
+		Critter@cr2;
+		int str1=0;
+		int str2=0;
+		int counter=10;
+		while(counter>0&&(str1==str2||(str1==0||str2==0)||!(@cr1!=null)||!(@cr2!=null)||cr1.Id==cr2.Id))
+		{
+			@cr1=map.GetNpc((225),(0x01)|(0x20),Random(0,spectators-1));
+			if((@cr1!=null)&&cr1.Stat[(67)]!=(5))
+			str1=(cr1.Stat[(67)]==(1)?Random((3804),(3808)):Random((3800),(3806)));
+			@cr2=map.GetNpc((225),(0x01)|(0x20),Random(0,spectators-1));
+			if((@cr2!=null)&&cr2.Stat[(67)]!=(5))
+			str2=(cr1.Stat[(67)]==(1)?Random((3804),(3808)):Random((3800),(3806)));
+		}
+		if((@cr1!=null)&&str1>0)
+		cr1.AddTimeEvent("cte_Talk",((5)*__TimeMultiplier),(224),str1);
+		if((@cr2!=null)&&str2>0)
+		cr2.AddTimeEvent("cte_Talk",((Random(2,20))*__TimeMultiplier),(224),str2);
+	}
+	return((20)*__TimeMultiplier);
+}
+
+uint cte_Talk(Critter&cr,int identifier,uint&rate)
+{
+	cr.SayMsg((1),(0),rate);
+	return 0;
+}   
+
+uint e_RunRacingPhase(uint[]@values)
+{
+	RunRacing();
+	;
+	return 0;
+}
+
+void RunRacing()
+{
+	Map@map=GetMapByPid((7),0);
+	if(!(@map!=null))
+	return;
+	Critter@cr;
+	@cr=map.GetNpc((222),(0x0F)|(0x20),0);
+	cr.AddTimeEvent("cte_Opening",((5)*__TimeMultiplier),(225),0);
+}
+
+uint cte_Opening(Critter&cr,int identifier,uint&rate)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return 0;
+	if(rate==12)
+	{
+		Start();
+	}
+	if(rate>=OpeningPhrases.length())
+	{
+		return 0;
+	}
+	cr.SayMsg((3),(0),OpeningPhrases[rate][0][0]);
+	Critter@npc;
+	bool talkAlready=true;
+	int tries=0;
+	uint spectators=map.GetNpcCount((225),(0x01)|(0x20));
+	for(uint i=0,l=OpeningPhrases[rate][2].length();i<l&&i<spectators;i++)
+	{
+		talkAlready=true;
+		tries=10;
+		while(tries>0&&talkAlready)
+		{
+			tries--;
+			@npc=map.GetNpc((225),(0x01)|(0x20),Random(0,spectators-1));
+			if((@npc!=null)&&OpeningPhrases[rate][2].find(npc.Stat[(99)])==-1)
+			{
+				npc.StatBase[(99)]=OpeningPhrases[rate][2][i];
+				talkAlready=false;
+			}
+		}
+		if((@npc!=null)&&npc.Stat[(99)]>0&&!talkAlready)
+		{
+			npc.AddTimeEvent("cte_Shout",((i)*__TimeMultiplier)+((1)*__TimeMultiplier)/2,(224),npc.Stat[(99)]);
+		}
+	}
+	for(uint i=0,l=OpeningPhrases[rate][3].length();i<l&&i<spectators;i++)
+	{
+		talkAlready=true;
+		tries=10;
+		while(tries>0&&talkAlready)
+		{
+			tries--;
+			@npc=map.GetNpc((225),(0x01)|(0x20),Random(0,spectators-1));
+			if((@npc!=null)&&OpeningPhrases[rate][2].find(npc.Stat[(99)])==-1&&npc.Stat[(67)]==(1)&&OpeningPhrases[rate][3].find(npc.Stat[(99)])==-1)
+			{
+				npc.StatBase[(99)]=OpeningPhrases[rate][3][i];
+				talkAlready=false;
+			}
+		}
+		if((@npc!=null)&&npc.Stat[(99)]>0&&!talkAlready)
+		{
+			npc.AddTimeEvent("cte_Shout",((i)*__TimeMultiplier)+((1)*__TimeMultiplier)/2,(224),npc.Stat[(99)]);
+		}
+	}
+	if(OpeningPhrases[rate][4][0]>0)
+	{
+		for(uint i=0;i<2;i++)
+		{
+			@npc=map.GetNpc((224),(0x01)|(0x20),i);
+			if((@npc!=null))
+			npc.AddTimeEvent("cte_Talk",((1)*__TimeMultiplier)+i*5,(224),3854);
+		}
+	}
+	rate++;
+	return((OpeningPhrases[rate-1][1][0]/10)*__TimeMultiplier);
+}
+
+uint cte_Shout(Critter&cr,int identifier,uint&rate)
+{
+	cr.SayMsg((2),(0),rate);
+	return 0;
+}
+
+void Start()
+{
+	Critter@[]players;
+	Map@map=GetMapByPid((7),0);
+	if(!(@map!=null))
+	return;
+	if(map.GetCritters(0,(0x0F)|(0x10),players)>0)
+	{
+		GameVar@racing_event=GetGlobalVar((3154));
+		if((@racing_event!=null))
+		racing_event=1;
+		GameVar@winner=GetGlobalVar((3155));
+		winner=0;
+		GameVar@winnersFound=GetGlobalVar((3156));
+		winnersFound=0;
+		uint countPlayers=0;
+		for(uint i=0,l=players.length();i<l;i++)
+		{
+			Critter@player=players[i];
+			if((@player!=null))
+			{
+				GameVar@qStatus=GetLocalVar((3152),player.Id);
+				if((@qStatus!=null)&&qStatus==1)
+				{
+					qStatus=2;
+					CreateCheckPoint(player);
+					countPlayers+=1;
+				}
+			}
+		}
+		if(countPlayers>0)
+		{
+			RadioMessageMsg(0,(0),3857);
+			RadioMessage(0,""+countPlayers);
+			RadioMessageMsg(0,(0),3858);
+		}
+	}
+} 
+
+uint CreateCheckPoint(Critter&player)
+{
+	GameVar@racing_event=GetGlobalVar((3154));
+	if(!(@racing_event!=null)||racing_event!=1)
+	return 0;
+	GameVar@counter=GetLocalVar((3153),player.Id);
+	if(!(@counter!=null))
+	return 0;
+	int number=counter.GetValue();
+	counter=counter.GetValue()+1;
+	player.SayMsg((11),(0),3856,"$num"+counter.GetValue());
+	uint locId=CreateLocation(
+	(228),
+	Coords[number][0]+Random(-1*__GlobalMapZoneLength/2,__GlobalMapZoneLength/2),
+	Coords[number][1]+Random(-1*__GlobalMapZoneLength/2,__GlobalMapZoneLength/2),null);
+	if(locId>0)
+	{
+		Location@loc=GetLocation(locId);
+		if((@loc!=null))
+		loc.Color=(number%2==0?((uint((0xFF<<24)|(((0xC8)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF)))):((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((0)&0xFF)<<8)|((0xC8)&0xFF)))));
+		player.SetKnownLoc(true,locId);
+		if(number>0)
+		{
+			RadioMessageMsg(8,(0),3860+number);
+			RadioMessage(8,GetPlayerName(player.Id));
+		}
+		GameVar@num=GetLocalVar((3157),locId);
+		GameVar@idPrev=GetLocalVar((3158),player.Id);
+		if((@idPrev!=null))
+		{
+			if(idPrev>0)
+			{
+				Location@prev=GetLocation(idPrev.GetValue());
+				if((@prev!=null))
+				{ 
+					
+					prev.Visible=true;
+					prev.AutoGarbage=true;
+				}
+			}
+			idPrev=locId;
+		}
+		if((@num!=null))
+		num=counter.GetValue();
+	}
+	return locId;
+}
+
+bool d_CanCheckThisPoint(Critter&player,Critter@npc)
+{
+	GameVar@pointPlayer=GetLocalVar((3153),player.Id);
+	GameVar@pointLocation=GetLocalVar((3157),player.GetMap().GetLocation().Id);
+	;
+	return((@pointPlayer!=null)&&(@pointLocation!=null)&&pointLocation.GetValue()==pointPlayer.GetValue());
+}
+
+void r_NextCheckPoint(Critter&player,Critter@npc)
+{
+	CreateCheckPoint(player);
+}  
+
+void t_Win(Critter&player,Scenery&trigger,bool entered,uint8 dir)
+{
+	GameVar@racing_event=GetGlobalVar((3154));
+	if(!player.IsPlayer()||!(@racing_event!=null)||racing_event==0)
+	return;
+	
+	GameVar@qStatus=GetLocalVar((3152),player.Id);
+	GameVar@winners=GetGlobalVar((3156));
+	GameVar@winnerId=GetGlobalVar((3155));
+	GameVar@counter=GetLocalVar((3153),player.Id);
+	if(!(@qStatus!=null)||qStatus!=2||!(@winners!=null)||!(@winnerId!=null)||!(@counter!=null)||counter<14)
+	return;
+	player.Wait(500);
+	counter=0;
+	if(racing_event==1&&winners==0)
+	{
+		
+		winners=1;
+		qStatus=5;
+		winnerId=player.Id;
+		Map@map=GetMapByPid((7),0);
+		if(!(@map!=null))
+		return;
+		Critter@cr=map.GetNpc((222),(0x0F)|(0x20),0);
+		if((@cr!=null))
+		{
+			cr.AddTimeEvent("cte_Winner",0,(225),0);
+		}
+		
+		return;
+	}
+	if(racing_event==1&&winners==1)
+	{
+		
+		winners=2;
+		racing_event=2;
+		qStatus=4;
+		RadioMessageMsg(0,(0),3957);
+		RadioMessage(0,GetPlayerName(winnerId.GetValue()));
+		StopRacing();
+		return;
+	}
+	qStatus=3;
+	
+} 
+
+uint cte_Winner(Critter&cr,int identifier,uint&rate)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return 0;
+	GameVar@winner=GetGlobalVar((3155));
+	if(rate>=FirstWinnerPhrases.length()||!(@winner!=null)||winner==0)
+	{
+		RadioMessageMsg(8,(0),3953);
+		RadioMessage(8,GetPlayerName(winner.GetValue()));
+		RadioMessageMsg(0,(0),3953);
+		RadioMessage(0,GetPlayerName(winner.GetValue()));
+		RadioMessageMsg(0,(0),3954);
+		return 0;
+	}
+	cr.SayMsg((3),(0),FirstWinnerPhrases[rate][0][0],"$winner"+GetPlayerName(winner.GetValue()));
+	Critter@npc;
+	bool talkAlready=true;
+	int tries=0;
+	uint spectators=map.GetNpcCount((225),(0x01)|(0x20));
+	for(uint i=0,l=FirstWinnerPhrases[rate][2].length();i<l&&i<spectators;i++)
+	{
+		talkAlready=true;
+		tries=10;
+		while(tries>0&&talkAlready)
+		{
+			tries--;
+			@npc=map.GetNpc((225),(0x01)|(0x20),Random(0,spectators-1));
+			if((@npc!=null)&&FirstWinnerPhrases[rate][2].find(npc.Stat[(99)])==-1)
+			{
+				npc.StatBase[(99)]=FirstWinnerPhrases[rate][2][i];
+				talkAlready=false;
+			}
+		}
+		if((@npc!=null)&&npc.Stat[(99)]>0&&!talkAlready)
+		{
+			npc.AddTimeEvent("cte_Shout",((i)*__TimeMultiplier)+((1)*__TimeMultiplier)/2,(224),npc.Stat[(99)]);
+		}
+	}
+	for(uint i=0,l=OpeningPhrases[rate][3].length();i<l&&i<spectators;i++)
+	{
+		talkAlready=true;
+		tries=10;
+		while(tries>0&&talkAlready)
+		{
+			tries--;
+			@npc=map.GetNpc((225),(0x01)|(0x20),Random(0,spectators-1));
+			if((@npc!=null)&&OpeningPhrases[rate][2].find(npc.Stat[(99)])==-1&&npc.Stat[(67)]==(1)&&OpeningPhrases[rate][3].find(npc.Stat[(99)])==-1)
+			{
+				npc.StatBase[(99)]=OpeningPhrases[rate][3][i];
+				talkAlready=false;
+			}
+		}
+		if((@npc!=null)&&npc.Stat[(99)]>0&&!talkAlready)
+		{
+			npc.AddTimeEvent("cte_Shout",((i)*__TimeMultiplier)+((1)*__TimeMultiplier)/2,(224),npc.Stat[(99)]);
+		}
+	}
+	if(OpeningPhrases[rate][4][0]>0)
+	{
+		for(uint i=0;i<2;i++)
+		{
+			@npc=map.GetNpc((224),(0x01)|(0x20),i);
+			if((@npc!=null))
+			npc.AddTimeEvent("cte_Talk",((1)*__TimeMultiplier)+i*5,(224),3854);
+		}
+	}
+	rate++;
+	return((OpeningPhrases[rate-1][1][0]/10)*__TimeMultiplier);
+} 
+
+int16[][]Coords=
+{
+	{275,511},
+	{372,696},
+	{758,890},
+	{744,1107},
+	{559,1216},
+	{735,1387},
+	{1212,1394},
+	{1286,1156},
+	{1059,952},
+	{1172,733},
+	{1057,562},
+	{1172,245},
+	{851,113}
+};
+
+int16[][][]OpeningPhrases=
+{
+	{
+		{3809},
+		{30},
+		{0},
+		{0},
+		{0},
+	},
+	{
+		{3810},
+		{60},
+		{0},
+		{0},
+		{0},
+	},
+	{
+		{3811},
+		{50},
+		{3822},
+		{0},
+		{0},
+	},
+	{
+		{3812},
+		{55},
+		{3824},
+		{0},
+		{0},
+	},
+	{
+		{3813},
+		{30},
+		{0},
+		{0},
+		{0},
+	},
+	{
+		{3814},
+		{150},
+		{3822,3823,3824,3825,3826,3827},
+		{0},
+		{0},
+	},
+	{
+		{3815},
+		{160},
+		{3828,3829,3830,3831,3832,3833},
+		{0},
+		{3854},
+	},
+	{
+		{3816},
+		{180},
+		{3834,3835,3836,3837,3838,3839},
+		{3855},
+		{0},
+	},
+	{
+		{3817},
+		{120},
+		{3840,3841,3842,3843,3844,3845},
+		{0},
+		{3854},
+	},
+	{
+		{3818},
+		{50},
+		{3824},
+		{0},
+		{0},
+	},
+	{
+		{3819},
+		{45},
+		{3840},
+		{0},
+		{0},
+	},
+	{
+		{3820},
+		{45},
+		{0},
+		{0},
+		{0},
+	},
+	{
+		{3821},
+		{150},
+		{3846,3847,3848,3849,3851,3852},
+		{3850},
+		{0}
+	},
+	{
+		{3874},
+		{90},
+		{3876,3877},
+		{0},
+		{0}
+	},
+	{
+		{3875},
+		{120},
+		{3878,3879,3880,3881},
+		{0},
+		{0}
+	}
+};
+int16[][][]FirstWinnerPhrases=
+{
+	{
+		{3883},
+		{110},
+		{3887,3887,3888,3889,3890,3891,3892,3893,3894},
+		{0},
+		{0},
+	},
+	{
+		{3884},
+		{50},
+		{3887},
+		{0},
+		{0},
+	},
+	{
+		{3885},
+		{120},
+		{3887,3887,3895,3896,3887,3889,3891,3897},
+		{0},
+		{3847},
+	},
+	{
+		{3886},
+		{50},
+		{3887,3898,3950,3951,3952,3889},
+		{0},
+		{3847},
+	}
+}; 
+
+uint e_RunStopPhase(uint[]@values)
+{
+	;
+	StopRacing();
+	return 0;
+}
+
+void StopRacing()
+{
+	StopGameEvent((4));
+	Location@[]checkPoints;
+	GetAllLocations((228),checkPoints);
+	for(uint i=0,l=checkPoints.length();i<l;i++)
+	{
+		Location@loc=checkPoints[i];
+		if((@loc!=null))
+		{
+			loc.AutoGarbage=true;
+		}
+	}
+	GameVar@winners=GetGlobalVar((3156));
+	if((@winners!=null))
+	{
+		if(winners==2)
+		{
+			RadioMessageMsg(8,(0),3955);
+			RadioMessageMsg(0,(0),3955);
+		}
+		else
+		{
+			RadioMessageMsg(8,(0),3956);
+			RadioMessageMsg(0,(0),3956);
+		}
+	}
+	Map@map=GetMapByPid((7),0);
+	if(!(@map!=null))
+	return;
+	Critter@[]critters;
+	int npcRole=0;
+	if(map.GetCritters(0,(0x0F)|(0x20),critters)>0)
+	{
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			Critter@cr=critters[i];
+			if((@cr!=null))
+			{
+				npcRole=cr.Stat[(89)];
+				if(npcRole==(223)||npcRole==(224)||npcRole==(222))
+				{
+					cr.AddTimeEvent("cte_DelNpc",Random(((2)*__TimeMultiplier*60),((5)*__TimeMultiplier*60)),(224),0);
+				}
+				if(npcRole==(225))
+				{
+					cr.AddTimeEvent("cte_Npc2HomePos",((1)*__TimeMultiplier*60),(223));
+				}
+			}
+		}
+	}
+}
+
+void r_StopEvent(Critter&cr,Critter@npc)
+{
+	StopRacing();
+}
+
+uint cte_DelNpc(Critter&cr,int identifier,uint&rate)
+{
+	if(cr.IsNpc())
+	DeleteNpc(cr);
+	return 0;
+}
+
+void dlg_Winner(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$winnerИзбранный";
+	GameVar@winnerId=GetGlobalVar((3155));
+	if((@winnerId!=null)&&winnerId>0)
+	{
+		lexems="$winner"+GetPlayerName(winnerId.GetValue());
+	}
+}

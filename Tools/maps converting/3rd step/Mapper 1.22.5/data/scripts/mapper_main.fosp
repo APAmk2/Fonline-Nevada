@@ -1,0 +1,81 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+bool new_instance(string commandLine)
+{
+	return false;
+}  
+
+void start()
+{
+	
+	if(!LoadDat("fonline001.dat"))Message("File fonline001.dat not found.");
+	if(!LoadDat("fonline002.dat"))Message("File fonline002.dat not found.");
+	if(!LoadDat("fonline003.dat"))Message("File fonline003.dat not found.");
+	if(!LoadDat("fonline004.dat"))Message("File fonline004.dat not found.");
+}  
+
+uint loop()
+{
+	return 60000;
+}  
+
+bool console_message(string&message)
+{     
+	
+	return false;
+}              
+
+void render_iface(uint layer)
+{
+}  
+
+void render_map()
+{
+}   
+
+bool mouse_down(int click)
+{
+	return false;
+}
+
+bool mouse_up(int click)
+{
+	return false;
+}
+
+void mouse_move(int x,int y)
+{
+}   
+
+bool key_down(uint8 key)
+{
+	return false;
+}
+
+bool key_up(uint8 key)
+{
+	return false;
+}  
+
+void input_lost()
+{
+}      
+
+string SetTerrain(string str)
+{
+	string@[]@arr=split(str," ");
+	if(arr.length()==0)return"Type terrain name.";
+	
+	MapperMap@[]maps;
+	int cur=::GetLoadedMaps(maps);
+	if(cur==-1)return"Map not loaded.";
+	
+	int x=0,y=0;
+	if(arr.length()>1)StrToInt(arr[1],x);
+	if(arr.length()>2)StrToInt(arr[2],y);
+	
+	if(arr[0]=="-")maps[cur].SetTerrainName(x/2,y/2,null);
+	else maps[cur].SetTerrainName(x/2,y/2,"terrain\\"+arr[0]+".ter");
+	return"Done.";
+}     
+

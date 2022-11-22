@@ -1,0 +1,1381 @@
+                   
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+int FindInArray(int[]&arr,int value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(int[]&arr,int id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+int FindInArray(uint[]&arr,uint value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(uint[]&arr,uint id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+int FindInArray(uint16[]&arr,uint16 value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}  
+
+int FindInArray(uint8[]&arr,uint8 value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(uint8[]&arr,uint8 id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+bool Present(int what,int[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+bool Present(uint what,uint[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+bool Present(uint16 what,uint16[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+void MergeArrays(uint16[]&arrayTo,uint16[]&arrayFrom)
+{
+	for(uint i=0,l=arrayFrom.length();i<l;i++)
+	{
+		arrayTo.insertLast(arrayFrom[i]);
+	}
+}
+
+void MergeArrays(int[]&arrayTo,int[]&arrayFrom)
+{
+	for(uint i=0,l=arrayFrom.length();i<l;i++)
+	{
+		arrayTo.insertLast(arrayFrom[i]);
+		arrayTo.insertLast(arrayFrom[i]);
+	}
+}  
+
+import bool AddWalkPlane(Critter&npc,uint entire,uint cut,bool run)from"npc_planes";
+import bool AddAttackPlane(Critter&npc,uint priority,uint critId)from"npc_planes";                  
+
+interface IBattleTeamInviteCallback{
+	void OnInvite(Critter@cr,bool&transit,BattleTeam@team);
+	void OnTransit(Critter@cr);
+}
+interface IBattleInfoStageChangedHandler{
+	void OnStageChanged(uint8 stage);
+}
+interface IBattleInfoCallBack{
+	void OnCritterDead(Critter&dead,Critter@killer);
+}
+
+class BattleTeam
+{
+	uint8 Index;
+	uint StartEntire;
+	uint StartMapIndex;
+	uint[]Requests;
+	uint[]Players;
+	uint TeamKills;
+	uint LastPeekedRequestId;
+	bool LastRequestAccepted;
+	int BattlePoints;
+	bool Winner;
+	uint Color;
+	
+	BattleTeam()
+	{
+		Color=((uint((0xFF<<24)|(((0xAB)&0xFF)<<16)|(((0xAB)&0xFF)<<8)|((0xAB)&0xFF))));
+	}
+	
+	IBattleTeamInviteCallback@CallBackInvite;
+	
+	void SetInviteCallback(IBattleTeamInviteCallback@callback)
+	{
+		@CallBackInvite=callback;
+	}
+	
+	bool HasRequest(uint crId)
+	{
+		return(this.LastPeekedRequestId==crId||FindInArray(this.Requests,crId)>=0);
+	}
+	
+	bool HasPlayer(uint crId)
+	{
+		return(FindInArray(this.Players,crId)>=0);
+	}
+	
+	uint CountAlive()
+	{
+		uint alive=0;
+		Critter@player;
+		for(uint i=0,l=this.Players.length();i<l;i++)
+		{
+			@player=GetCritter(this.Players[i]);
+			if((@player!=null)&&player.IsLife())
+			alive++;
+		}
+		return alive;
+	}  
+	
+	int PeekRequest()
+	{
+		;
+		int crId=0;
+		while(crId==0)
+		{
+			if(this.Requests.length()==0)
+			{
+				crId=-1;
+				break;
+			}
+			crId=this.Requests[0];
+			this.Requests.removeFirst();
+			if(!(@GetCritter(crId)!=null))
+			crId=0;
+		}
+		this.LastPeekedRequestId=crId;
+		;
+		return crId;
+	}
+	
+	bool SendTeamInvite()
+	{
+		this.LastRequestAccepted=false;
+		int crId=this.PeekRequest();
+		if(crId>-1)
+		{
+			Critter@cr=GetCritter(crId);
+			if((@cr!=null))
+			{
+				if(cr.IsPlayer())
+				{
+					uint[]data={this.Index,cr.Id};
+					CreateTimeEvent(__FullSecond+__TimeMultiplier*10,"e_CheckInvite",data,false);
+					cr.ShowScreen((2),2,"answer_BattleInvite");
+					cr.Say((18),"Внимание. Начинается поединок. Вы готовы принять участие?");
+					cr.Say((19+((0))),"Да");
+					cr.Say((19+((1))),"Нет, отказываюсь");
+				}
+				else
+				{
+					this.LastRequestAccepted=true;
+					bInfo.TeamInviteConfirmed();
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	void ConfirmInvite()
+	{
+		this.LastRequestAccepted=true;
+		bInfo.TeamInviteConfirmed();
+	}
+	
+	void RequestToPlayer(Location@loc)
+	{
+		;
+		if(!(@loc!=null))
+		return;
+		Map@map=GetMap(this.StartMapIndex);
+		bool transit=true;
+		if((@map!=null))
+		{
+			Critter@cr=GetCritter(this.LastPeekedRequestId);
+			if((@cr!=null))
+			{
+				if(!this.HasPlayer(this.LastPeekedRequestId))
+				this.Players.insertLast(this.LastPeekedRequestId);
+				if((@this.CallBackInvite!=null))
+				this.CallBackInvite.OnInvite(cr,transit,this);
+				if(transit)
+				{
+					;
+					cr.TransitToMap(map.Id,this.StartEntire);
+					if((@this.CallBackInvite!=null))
+					this.CallBackInvite.OnTransit(cr);
+				}
+			}
+		}
+	}
+	
+}
+
+class BattleInfo
+{
+	uint LocId;
+	uint8 Stage;
+	uint8 MaxPlayers;
+	BattleTeam[]Teams;
+	
+	IBattleInfoStageChangedHandler@StageChangedHandler;
+	IBattleInfoCallBack@Callback;
+	
+	void SetStageHandler(IBattleInfoStageChangedHandler@handler)
+	{
+		@StageChangedHandler=handler;
+	}
+	
+	void SetCallBack(IBattleInfoCallBack@callback)
+	{
+		@Callback=callback;
+	}
+	
+	void AddTeam(uint entire,uint mapId,uint color,IBattleTeamInviteCallback@callback)
+	{
+		BattleTeam@t=BattleTeam();
+		t.StartMapIndex=mapId;
+		t.StartEntire=entire;
+		t.Index=this.Teams.length();
+		t.SetInviteCallback(callback);
+		t.Color=color;
+		this.Teams.insertLast(t);
+	}
+	
+	bool HasRequest(uint crId)
+	{
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			if(this.Teams[i].HasRequest(crId))
+			return true;
+		}
+		return false;
+	}
+	
+	void AddRequest(uint8 team,uint crId)
+	{
+		if(!this.HasRequest(crId)&&this.Teams.length()>0&&(team+1<=this.Teams.length()))
+		{
+			;
+			if(!this.Teams[team].HasRequest(crId))
+			this.Teams[team].Requests.insertLast(crId);
+			;
+			crId=1;
+			;
+		}
+	}
+	
+	BattleTeam@GetCritterTeam(uint crId)
+	{
+		;
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			if(this.Stage<(3)&&this.Teams[i].HasRequest(crId))
+			return this.Teams[i];
+			if(this.Teams[i].HasPlayer(crId))
+			return this.Teams[i];
+		}
+		;
+		return null;
+	}  
+	
+	bool SendTeamsInvite()
+	{     
+		
+		int crId;
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			if(!this.Teams[i].SendTeamInvite())
+			return false;
+		}
+		return true;
+	}
+	
+	void TeamInviteConfirmed()
+	{
+		
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			if(!this.Teams[i].LastRequestAccepted)
+			return;
+			if(this.Teams[i].LastPeekedRequestId<0)
+			return;
+		}
+		
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			this.Teams[i].RequestToPlayer(GetLocation(this.LocId));
+			this.Teams[i].LastRequestAccepted=false;
+		}
+		
+		this.SendTeamsInvite();
+	}
+	
+	void Notify()
+	{
+		if((@this.StageChangedHandler!=null))
+		StageChangedHandler.OnStageChanged(this.Stage);
+	}
+	
+	void PrepareBattle()
+	{
+		this.Stage=(1);
+		this.Notify();
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			this.Teams[i].Winner=false;
+			this.Teams[i].Requests.resize(0);
+			this.Teams[i].Players.resize(0);
+			this.Teams[i].TeamKills=0;
+			this.Teams[i].LastPeekedRequestId=0;
+			this.Teams[i].LastRequestAccepted=false;
+			this.Teams[i].BattlePoints=0;
+		}
+	}
+	
+	void BeginBattle()
+	{
+		this.Stage=(2);
+		Location@loc=GetLocation(this.LocId);
+		if((@loc!=null))
+		{
+			Map@[]maps;
+			if(loc.GetMaps(maps)>0)
+			{
+				for(uint i=0,l=maps.length();i<l;i++)
+				{
+					maps[i].SetEvent((6),"_BattleMapCritterIn");
+				}
+			}
+		}
+		this.SendTeamsInvite();
+		this.Notify();
+	}
+	
+	void Fight()
+	{
+		this.Stage=(3);
+		this.Notify();
+		Location@loc=GetLocation(this.LocId);
+		if((@loc!=null))
+		{
+			Map@[]maps;
+			if(loc.GetMaps(maps)>0)
+			{
+				for(uint i=0,l=maps.length();i<l;i++)
+				{
+					maps[i].SetEvent((8),"_BattleMapCritterDead");
+				}
+			}
+		}
+		
+		Critter@cr;
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			for(uint j=0,k=this.Teams[i].Players.length();j<k;j++)
+			{
+				@cr=GetCritter(this.Teams[i].Players[j]);
+				if((@cr!=null)&&cr.IsNpc())
+				{
+					for(uint m=0,n=this.Teams.length();m<n;m++)
+					{
+						if(i!=m)
+						{
+							for(uint x=0,z=this.Teams[m].Players.length();x<z;x++)
+							{
+								cr.AddEnemyInStack(this.Teams[m].Players[x]);
+								AddAttackPlane(cr,0,this.Teams[m].Players[x]);
+							}
+						}
+						AddWalkPlane(cr,this.Teams[m].StartEntire,5,true);
+					}
+					cr.AddTimeEvent("cte_BattleNpcSearchForTarget",((5)*__TimeMultiplier*60),0);
+				}
+			}
+		}
+	}
+	
+	void CheckWinner()
+	{
+		
+		uint activeTeams=0;
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			if(this.Teams[i].CountAlive()>0)
+			activeTeams++;
+		}
+		if(activeTeams==1)
+		{
+			for(uint i=0,l=this.Teams.length();i<l;i++)
+			{
+				if(this.Teams[i].CountAlive()>0)
+				{
+					this.Teams[i].Winner=true;
+					this.Teams[i].BattlePoints+=this.Teams[i].CountAlive();
+				}
+			}
+		}
+		if(activeTeams<2)
+		{
+			this.Finish();
+		}
+		
+	}
+	
+	void Finish()
+	{
+		Critter@cr;
+		this.Stage=(4);
+		this.Notify();
+		Location@loc=GetLocation(this.LocId);
+		if((@loc!=null))
+		{
+			Map@[]maps;
+			if(loc.GetMaps(maps)>0)
+			{
+				for(uint i=0,l=maps.length();i<l;i++)
+				{
+					maps[i].SetEvent((8),"");
+				}
+			}
+		}
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			for(uint j=0,k=this.Teams[i].Players.length();j<k;j++)
+			{
+				@cr=GetCritter(this.Teams[i].Players[j]);
+				if((@cr!=null)&&cr.IsNpc())
+				{
+					
+					cr.AddTimeEvent("cte_RemoveNpc",((Random(1,2))*__TimeMultiplier*60),0);
+				}
+			}
+		}
+	}
+	
+	BattleTeam@GetWinnerTeam()
+	{
+		for(uint i=0,l=this.Teams.length();i<l;i++)
+		{
+			if(this.Teams[i].Winner)
+			return this.Teams[i];
+		}
+		return null;
+	}
+}    
+
+void answer_BattleInvite(Critter&player,uint answerI,string&answerS)
+{
+	;
+	BattleTeam@bt=bInfo.GetCritterTeam(player.Id);
+	if((@bt!=null)&&bt.LastPeekedRequestId==player.Id)
+	{
+		;
+		if(answerI==(0))
+		{
+			;
+			bt.ConfirmInvite();
+			return;
+		}
+		bt.SendTeamInvite();
+	}
+} 
+
+uint e_CheckInvite(uint[]@values)
+{
+	BattleTeam@bt=bInfo.Teams[values[0]];
+	uint crId=values[1];
+	if(crId==bt.LastPeekedRequestId)
+	{
+		bt.SendTeamInvite();
+	}
+	return 0;
+}  
+
+bool d_IsStage(Critter&player,Critter@npc,int stage)
+{
+	return bInfo.Stage==uint8(stage);
+} 
+
+bool d_CanRequestBattle(Critter&player,Critter@npc)
+{
+	return d_IsStage(player,npc,(1));
+} 
+
+bool d_PlayerRequested(Critter&player,Critter@npc)
+{
+	return bInfo.HasRequest(player.Id);
+} 
+
+bool d_PlayerNotRequested(Critter&player,Critter@npc)
+{
+	return!bInfo.HasRequest(player.Id);
+}
+
+bool d_IsEnemy(Critter&player,Critter@npc)
+{
+	BattleTeam@tPlayer=bInfo.GetCritterTeam(player.Id);
+	BattleTeam@tNpc=bInfo.GetCritterTeam(npc.Id);
+	
+	return(bInfo.Stage>=(2)&&bInfo.Stage<=(3)&&(@tPlayer!=null)&&(@tNpc!=null)&&tPlayer.StartMapIndex==tNpc.StartMapIndex&&tPlayer.Index!=tNpc.Index);
+}
+
+bool d_IsFriend(Critter&player,Critter@npc)
+{
+	BattleTeam@tPlayer=bInfo.GetCritterTeam(player.Id);
+	BattleTeam@tNpc=bInfo.GetCritterTeam(npc.Id);
+	
+	return(bInfo.Stage>=(2)&&bInfo.Stage<=(3)&&(@tPlayer!=null)&&(@tNpc!=null)&&tPlayer.StartMapIndex==tNpc.StartMapIndex&&tPlayer.Index==tNpc.Index);
+}   
+
+void r_SaveRequest(Critter&player,Critter@npc,int team)
+{
+	bInfo.AddRequest(uint8(team),player.Id);
+}   
+
+void dlg_TeamCount(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="";
+	uint total=0;
+	for(uint i=0,l=bInfo.Teams.length();i<l;i++)
+	{
+		lexems=lexems+"$team"+i+bInfo.Teams[i].Requests.length();
+		total+=bInfo.Teams[i].Requests.length();
+	}
+	lexems=lexems+"$total"+total;
+}
+
+uint cte_RemoveNpc(Critter&cr,int identifier,uint&rate)
+{
+	if(cr.IsNpc())
+	{
+		uint16 hexX=0,hexY=0;
+		uint mapId=0;
+		uint8 dir=0;
+		cr.GetHomePos(mapId,hexX,hexY,dir);
+		if(mapId>0)
+		{
+			Map@map=GetMap(mapId);
+			if((@map!=null))
+			{
+				cr.TransitToMap(mapId,hexX,hexY,dir);
+				return 0;
+			}
+		}
+		
+		DeleteNpc(cr);
+	}
+	return 0;
+}
+
+uint cte_BattleNpcSearchForTarget(Critter&cr,int identifier,uint&rate)
+{
+	if(cr.IsLife()&&cr.IsNoPlanes()&&(@bInfo!=null))
+	{
+		BattleTeam@team=bInfo.GetCritterTeam(cr.Id);
+		if((@team!=null))
+		{
+			for(uint i=0,n=bInfo.Teams.length();i<n;i++)
+			{
+				if(team.Index!=i)
+				{
+					for(uint x=0,z=bInfo.Teams[i].Players.length();x<z;x++)
+					{
+						
+						cr.AddEnemyInStack(bInfo.Teams[i].Players[x]);
+						AddAttackPlane(cr,0,bInfo.Teams[i].Players[x]);
+					}
+				}
+				AddWalkPlane(cr,bInfo.Teams[i].StartEntire,5,true);
+			}
+		}
+	}
+	return((1)*__TimeMultiplier*60);
+}        
+
+void _BattleDoorInit(Item&item,bool firstTime)
+{
+	item.SetEvent((4),"_UseBattleDoor");
+}
+
+bool _UseBattleDoor(Item&item,Critter&cr,int skill)
+{
+	if(bInfo.Stage<item.Val1)
+	{
+		cr.SayMsg((11),(0),(7001));
+		return true;
+	}
+	BattleTeam@bt=bInfo.GetCritterTeam(cr.Id);
+	if(item.Val2>0)
+	{
+		if(!(@bt!=null))
+		{
+			cr.SayMsg((11),(0),(7002));
+			return true;
+		}
+	}
+	if(item.Val3>0)
+	{
+		if(!bt.Winner)
+		{
+			cr.SayMsg((11),(0),(7003));
+			return true;
+		}
+	}
+	return false;
+} 
+
+void _BattleMapCritterDead(Map&map,Critter&cr,Critter@killer)
+{
+	
+	BattleTeam@btDead=bInfo.GetCritterTeam(cr.Id);
+	if((@bInfo.Callback!=null))
+	bInfo.Callback.OnCritterDead(cr,killer);
+	if(!(@btDead!=null))
+	return;
+	if((@killer!=null))
+	{
+		BattleTeam@btKiller=bInfo.GetCritterTeam(killer.Id);
+		if((@btKiller!=null))
+		{
+			btKiller.BattlePoints+=GetPoints(cr,killer);
+			PlayerDeadMessage(cr,killer,map);
+			btKiller.TeamKills++;
+		}
+	}
+	bInfo.CheckWinner();
+}
+
+void _BattleMapCritterIn(Map&map,Critter&cr)
+{
+	;
+	BattleTeam@team=bInfo.GetCritterTeam(cr.Id);
+	;
+	if((@team!=null)&&bInfo.Stage==(2))
+	{
+		;
+		Critter@[]critters;
+		map.GetCritters(0,(0x0F)|(0x10),critters);
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			;
+			PlayerJoinedMessage(cr,critters[i]);
+		}
+		
+	}
+} 
+
+void PlayerJoinedMessage(Critter&cr,Critter@crTo)
+{
+	;
+	if(!(@crTo!=null))
+	return;
+	;
+	BattleTeam@team=bInfo.GetCritterTeam(cr.Id);
+	if(!(@team!=null))
+	return;
+	string lexems="$baseColor"+((uint((0xFF<<24)|(((60)&0xFF)<<16)|(((248)&0xFF)<<8)|((0)&0xFF))));
+	lexems+="$team"+(team.Index+1)+"$teamColor"+team.Color;
+	lexems+="$name"+(cr.IsPlayer()?GetPlayerName(cr.Id):"@msg DLG "+((cr.Stat[(104)])!=0?100000+(cr.Stat[(104)])*1000+100:((cr.GetProtoId())*10))+"@");
+	;
+	crTo.SayMsg((11),(0),(7125),lexems);
+}
+
+void PlayerDeadMessage(Critter&crDead,Critter@crKiller,Map@map)
+{
+	if(!(@map!=null)||!(@crKiller!=null))
+	return;
+	BattleTeam@teamDead=bInfo.GetCritterTeam(crDead.Id);
+	BattleTeam@teamKill=bInfo.GetCritterTeam(crKiller.Id);
+	if((@teamDead!=null)&&(@teamKill!=null))
+	{
+		string lexems="$baseColor"+((uint((0xFF<<24)|(((60)&0xFF)<<16)|(((248)&0xFF)<<8)|((0)&0xFF))));
+		lexems+="$team1Color"+teamDead.Color+"$dead"+(crDead.IsPlayer()?GetPlayerName(crDead.Id):"@msg DLG "+((crDead.Stat[(104)])!=0?100000+(crDead.Stat[(104)])*1000+100:((crDead.GetProtoId())*10))+"@");
+		lexems+="$team2Color"+teamKill.Color+"$killer"+(crKiller.IsPlayer()?GetPlayerName(crKiller.Id):"@msg DLG "+((crKiller.Stat[(104)])!=0?100000+(crKiller.Stat[(104)])*1000+100:((crKiller.GetProtoId())*10))+"@");
+		Critter@[]critters;
+		map.GetCritters(0,(0x0F)|(0x10),critters);
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			Critter@cr=critters[i];
+			if((@cr!=null))
+			cr.SayMsg((11),(0),(7126),lexems);
+		}
+		;
+	}
+}
+
+string GetTeamPlayers(BattleTeam@team)
+{
+	string teamText="";
+	if((@team!=null))
+	{
+		Critter@cr;
+		uint l=bInfo.Stage>=(2)?team.Players.length():team.Requests.length();
+		if(l==0)
+		{
+			teamText+="@msg TEXT 7127@";
+		}
+		else
+		{
+			for(uint i=0;i<l;i++)
+			{
+				@cr=GetCritter(bInfo.Stage>=(2)?team.Players[i]:team.Requests[i]);
+				if((@cr!=null))
+				{
+					teamText+=(cr.IsPlayer()?GetPlayerName(cr.Id):"@msg DLG "+((cr.Stat[(104)])!=0?100000+(cr.Stat[(104)])*1000+100:((cr.GetProtoId())*10))+"@")+" ("+cr.Stat[(77)]+")";
+					if(cr.IsDead())
+					teamText+="[Dead]";
+					teamText+="\n";
+				}
+				else
+				{
+					teamText+=GetPlayerName(team.Players[i])+"[Offline]\n";
+					
+				}
+			}
+		}
+	}
+	;
+	return teamText;
+}
+
+int GetPoints(Critter@cr,Critter@killer)
+{
+	if(!(@cr!=null)||!(@killer!=null))
+	return 0;
+	BattleTeam@teamCr=bInfo.GetCritterTeam(cr.Id);
+	BattleTeam@teamKiller=bInfo.GetCritterTeam(killer.Id);
+	if(!(@teamCr!=null)||!(@teamKiller!=null))
+	return-1;
+	int points=1;
+	if(killer.IsPlayer())
+	points++;
+	if(cr.IsPlayer())
+	points++;
+	if(killer.Stat[(77)]<=cr.Stat[(77)])
+	points+=3;
+	if(cr.Stat[(77)]>10)
+	points+=2;
+	if(cr.Stat[(77)]>20)
+	points+=3;
+	if(cr.Stat[(77)]>30)
+	points+=5;
+	if(killer.Stat[(6)]>4)
+	points++;   
+	
+	return(teamCr.Index==teamKiller.Index?(-1)*points:points);
+}
+
+void test(Critter&crp,int id,int,int)
+{
+	Critter@crDead=GetCritter(id);
+	string lexems="$baseColor"+((uint((0xFF<<24)|(((60)&0xFF)<<16)|(((248)&0xFF)<<8)|((0)&0xFF))));
+	lexems+="$team1Color"+((uint((0xFF<<24)|(((0xC8)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF))))+"$dead"+(crDead.IsPlayer()?GetPlayerName(crDead.Id):"@msg DLG "+((crDead.Stat[(104)])!=0?100000+(crDead.Stat[(104)])*1000+100:((crDead.GetProtoId())*10))+"@");
+	lexems+="$team2Color"+((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((0)&0xFF)<<8)|((0xC8)&0xFF))))+"$killer"+(crp.IsPlayer()?GetPlayerName(crp.Id):"@msg DLG "+((crp.Stat[(104)])!=0?100000+(crp.Stat[(104)])*1000+100:((crp.GetProtoId())*10))+"@");
+	Critter@[]critters;
+	crp.GetMap().GetCritters(0,(0x0F)|(0x10),critters);
+	for(uint i=0,l=critters.length();i<l;i++)
+	{
+		Critter@cr=critters[i];
+		if((@cr!=null))
+		cr.SayMsg((11),(0),(7126),lexems);
+	}
+	;
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+import bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)from"entire";
+import bool IsCritterInDeadZone(Critter&cr,Map&map,uint8 dir,uint8 hexFirst,uint8 hexEnd)from"entire";
+import uint GetEventOccurenceTime(uint idx)from"game_event";
+import string DateTimeToString(uint gameTime)from"time"; 
+
+BattleInfo@bInfo;
+
+uint TeamContainerId;  
+
+class PurgatoryStageChangedHandler:IBattleInfoStageChangedHandler,IBattleInfoCallBack
+{
+	void OnStageChanged(uint8 stage)
+	{
+		if(bInfo.Stage==(3))
+		{
+			RadioMessageMsg(0,(0),7132);
+			Location@loc=GetLocationByPid((231),0);
+			if((@loc!=null))
+			{
+				Map@map=loc.GetMapByIndex(0);
+				if((@map!=null))
+				{
+					map.SetEvent((1),"_PurgatoryLoop");
+					map.SetLoopTime(0,25000);
+					Critter@[]players;
+					map.GetCritters(0,(0x0F)|(0x10),players);
+					for(uint i=0,l=players.length();i<l;i++)
+					{
+						players[i].SayMsg((11),(0),7132);
+					}
+				}
+			}
+			return;
+		}
+		if(bInfo.Stage==(4))
+		{
+			
+			Location@loc=GetLocationByPid((231),0);
+			if((@loc!=null))
+			{
+				loc.Visible=false;
+				loc.AutoGarbage=true;
+				CreateTimeEvent(__FullSecond+((20)*__TimeMultiplier*60),"e_DeletePurgatory",loc.Id,true);
+			}
+			BattleTeam@winners=bInfo.GetWinnerTeam();
+			if((@winners!=null))
+			{
+				Critter@[]players;
+				Map@mapInfo=loc.GetMapByIndex(0);
+				mapInfo.GetCritters(0,(0x0F)|(0x10),players);
+				for(uint i=0,l=players.length();i<l;i++)
+				{
+					Critter@player=players[i];
+					if((@player!=null))
+					player.SayMsg((11),(0),7131,"$team"+(winners.Index+1));
+				}
+				int points=winners.BattlePoints;
+				int alive=winners.CountAlive();
+				Map@map=loc.GetMapByIndex(1);
+				Item@[]containers;
+				Item@[]prizeContainers;
+				if(map.GetItemsByType((8),containers)>0)
+				{
+					for(uint i=0,l=containers.length();i<l;i++)
+					{
+						if(containers[i].Val0!=0)
+						prizeContainers.insertLast(containers[i]);
+					}
+					if(prizeContainers.length()>0&&points>0)
+					{ 
+						
+						for(int i=0;i<alive;i++)
+						{
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((41),points*50,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((380),1,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((241),1,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((34),points*2,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((40),5,0);
+						}
+						uint rnd=Random(1,3);
+						
+						if(points>200&&rnd==1)
+						{
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((3),1,0);
+							points-=50;
+						}
+						if(points>200)
+						{
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((331),2,0);
+						}
+						if(points>200)
+						{
+							if(rnd==1)
+							{
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((392),Random(1,2),0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((358),Random(333,444),0);
+							}
+							if(rnd==2)
+							{
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((395),Random(1,2),0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((359),Random(4000,6000),0);
+							}
+							if(rnd==3)
+							{
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((397),Random(1,2),0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((233),Random(1,2),0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((39),Random(200,300),0);
+							}
+							points-=50;
+						}
+						if(points>150)
+						{
+							for(int i=0;i<alive;i++)
+							{
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((17),1,0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((500),1,0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((389),1,0);
+								(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((35),500,0);
+							}
+							points-=50;
+						}
+						if(points>100)
+						{
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((144),4*alive,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((110),5*alive,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((525),2*alive,0);
+							points-=50;
+						}
+						if(points>50)
+						{
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((144),5*alive,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((87),2*alive,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((259),2*alive,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((73),2,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((80),2,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((86),2,0);
+							(prizeContainers[Random(0,prizeContainers.length()-1)]).AddItem((102),2,0);
+						}
+					}
+				}
+				
+			}
+			
+		}
+	}
+	
+	void OnCritterDead(Critter&dead,Critter@killer)
+	{
+		BattleTeam@btDead=bInfo.GetCritterTeam(dead.Id);
+		BattleTeam@btKiller=bInfo.GetCritterTeam(killer.Id);
+		if((@btKiller!=null)&&(@btDead!=null)&&killer.IsPlayer())
+		{
+			if(btKiller.Index==btDead.Index)
+			{
+				killer.StatBase[(82)]-=1000;
+				killer.SayMsg((11),(0),7129);
+			}
+			else
+			{
+				uint xp=killer.Stat[(77)]*100;
+				killer.StatBase[(82)]+=300;
+				killer.StatBase[(76)]+=xp;
+				killer.SayMsg((11),(0),7130,"$xp"+xp);
+			}
+		}
+	}
+}  
+
+bool NeedReplicateCritterToBattle(Critter&cr)
+{
+	;
+	if((@bInfo!=null)&&cr.Stat[(131)]>0&&cr.Stat[(132)]>0)
+	{
+		BattleTeam@team=bInfo.GetCritterTeam(cr.Id);
+		if((@team!=null)&&bInfo.Stage==(2))
+		{
+			if(team.StartMapIndex==uint(cr.Stat[(131)])&&
+			team.StartEntire==uint(cr.Stat[(132)]))
+			{
+				cr.StatBase[(82)]+=cr.Stat[(85)];
+				cr.StatBase[(83)]-=1;
+				return true;
+			}
+		}
+	}
+	;
+	return false;
+}
+
+class PurgatoryInviteCallback:IBattleTeamInviteCallback
+{
+	void OnInvite(Critter@cr,bool&transit,BattleTeam@team)
+	{
+		if((@cr!=null)&&cr.IsNpc())
+		return;
+		Item@[]items;
+		Item@container;
+		if(TeamContainerId>0)
+		@container=GetItem(TeamContainerId);
+		if(!(@cr!=null))
+		return;
+		if((@container!=null))
+		if(cr.GetItems(-1,items)>0)
+		{
+			MoveItems(items,container,cr.Id);
+		}
+		cr.ToDead((114),null);
+		cr.SayMsg((11),(0),(7121));
+		cr.SayMsg((11),(0),(7122));
+		if((@team!=null))
+		{
+			cr.StatBase[(131)]=team.StartMapIndex;
+			cr.StatBase[(132)]=team.StartEntire;
+		}
+		transit=false;
+	}
+	
+	void OnTransit(Critter@cr)
+	{
+		
+	}
+}
+
+PurgatoryStageChangedHandler stageHandler;
+PurgatoryInviteCallback inviteCallback;
+
+uint e_RunPreparationStage(uint[]@values)
+{
+	@bInfo=BattleInfo();
+	bInfo.SetStageHandler(stageHandler);
+	bInfo.SetCallBack(stageHandler);
+	Location@loc=GetLocationByPid((231),0);
+	if((@loc!=null))
+	{
+		loc.Visible=false;
+		loc.AutoGarbage=true;
+	}
+	uint locId=CreateLocation((231),(800),(500),null);
+	if(locId==0)
+	return 0;
+	@loc=GetLocation(locId);
+	if(!(@loc!=null))
+	return 0;
+	bInfo.LocId=locId;
+	Map@map=loc.GetMapByIndex(0);
+	bInfo.AddTeam((33),map.Id,((uint((0xFF<<24)|(((0x8F)&0xFF)<<16)|(((0x6F)&0xFF)<<8)|((0)&0xFF)))),inviteCallback);
+	bInfo.AddTeam((34),map.Id,((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((0)&0xFF)<<8)|((0xFF)&0xFF)))),inviteCallback);
+	bInfo.AddTeam((35),map.Id,((uint((0xFF<<24)|(((0xFF)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF)))),inviteCallback);
+	bInfo.AddTeam((36),map.Id,((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((0xC8)&0xFF)<<8)|((0xC8)&0xFF)))),inviteCallback);
+	bInfo.PrepareBattle();
+	uint16 x=0;
+	uint16 y=0;
+	
+	for(uint i=(1);i<=(44);i++)
+	{
+		if((((i)>=(1)&&(i)<=(19)&&(i)!=(11)&&(i)!=(12)&&(i)!=(8))||(i)==(44))||i==(44))
+		{
+			Location@loc=GetLocationByPid(i,0);
+			if(!(@loc!=null))
+			continue;
+			Map@map=loc.GetMapByIndex(0);
+			if(!(@map!=null))
+			continue;
+			if(GetNearEntire(map,((i==(44))?242:0),x,y))
+			{
+				int[]params=
+				{
+					(104),(21100),(106),(21),(105),(124),(107),
+					(174),(77),50,(532),1,(531),1,(524),1,(513),1,(511),1,
+					(522),1,(420),1,(398),1,(322),1,(306),1,(8),30,(202),300,
+					(0),10,(2),10,(325),1,(14),100,(23),200,(24),200,(25),200,(26),200,
+					(29),200,(7),1000,(72),1500
+				};
+				map.AddNpc((278),x,y,Random(0,5),params,null,"purgatory@_RiperInit");
+				;
+			}
+		}
+	}
+	CreateTimeEvent(__FullSecond,"e_RadioPurgatory1",true);
+	return 0;
+}
+
+uint e_RadioPurgatory1(uint[]@values)
+{
+	if((@bInfo!=null)&&bInfo.Stage==(1))
+	{
+		RadioMessageMsg(0,(0),(7120));
+		return(((5)*__TimeMultiplier*60));
+	}
+	return 0;
+}  
+
+void _RiperInit(Critter&cr,bool firstTime)
+{
+	cr.StatBase[(72)]=cr.Stat[(7)];
+	cr.AddTimeEvent("cte_RipperShout",((5)*__TimeMultiplier*60),0);
+	cr.SetEvent((0),"_RiperIdle");
+}
+
+uint cte_RipperShout(Critter&cr,int identifier,uint&rate)
+{
+	if((@bInfo!=null)&&bInfo.Stage==(1))
+	{
+		cr.SayMsg((3),(1),(1000000000+(cr.Stat[(104)])*100000+(1)));
+		return((9)*__TimeMultiplier*60);
+	}
+	return 0;
+}
+
+void _RiperIdle(Critter&cr)
+{
+	cr.StatBase[(72)]=cr.Stat[(7)];
+}  
+
+uint e_RunBeginStage(uint[]@values)
+{
+	Critter@[]critters;
+	Critter@cr;
+	Location@loc;
+	Map@map; 
+	
+	@map=GetMapByPid((414),0);
+	if((@map!=null))
+	map.GetCritters(0,(0x01)|(0x20),critters);
+	for(uint i=0;i<4&&i<critters.length();i++)
+	bInfo.AddRequest(i,critters[i].Id);
+	
+	bInfo.BeginBattle();
+	
+	critters.resize(0);
+	
+	for(uint i=(1);i<=(44);i++)
+	{
+		if((((i)>=(1)&&(i)<=(19)&&(i)!=(11)&&(i)!=(12)&&(i)!=(8))||(i)==(44))||i==(44))
+		{
+			@loc=GetLocationByPid(i,0);
+			if((@loc!=null))
+			{
+				@map=loc.GetMapByIndex(0);
+				if((@map!=null))
+				map.GetCritters((278),(0x0F)|(0x20),critters);
+			}
+		}
+	}
+	for(uint i=0,l=critters.length();i<l;i++)
+	{
+		@cr=critters[i];
+		if((@cr!=null)&&cr.Stat[(104)]==(21100))
+		DeleteNpc(cr);
+	}
+	return 0;
+} 
+
+uint e_RunFightStage(uint[]@values)
+{
+	bInfo.Fight();
+	
+	return 0;
+} 
+
+uint e_RunEndStage(uint[]@values)
+{
+	if(bInfo.Stage==(3))
+	bInfo.Finish();
+	return 0;
+} 
+
+void _PurgatoryInit(Map&map,bool firstTime)
+{
+	map.SetEvent((6),"_PurgatoryMapIn");
+	map.SetEvent((7),"_PurgatoryMapOut");
+}
+
+void _PurgatoryMapIn(Map&map,Critter&cr)
+{
+	cr.ModeBase[(514)]=0;
+	if(cr.IsPlayer()&&IsCritterInDeadZone(cr,map,0,(100),(103)))
+	{
+		cr.ModeBase[(514)]=1;
+		cr.SayMsg((11),(0),1);
+		if(cr.GetTimeEvents((42),null,null,null)==0)
+		{
+			cr.AddTimeEvent("cte_NoPvpOff",(((1)*__TimeMultiplier*60)),(42));
+		}
+	}
+}
+
+void _PurgatoryMapOut(Map&map,Critter&cr)
+{
+	Map@mapCr=cr.GetMap();
+	if((@mapCr!=null)&&IsCritterInDeadZone(cr,map,0,(100),(103)))
+	return;
+	cr.ModeBase[(514)]=0;
+	cr.SayMsg((11),(0),2);
+	_BattleMapCritterIn(map,cr);
+}
+
+uint cte_NoPvpOff(Critter&cr,int identifier,uint&rate)
+{
+	if(cr.Mode[(514)]==0)
+	return 0;
+	Map@map=cr.GetMap();
+	if((@map!=null)&&IsCritterInDeadZone(cr,map,0,(100),(103)))
+	return(((1)*__TimeMultiplier*60));
+	cr.ModeBase[(514)]=0;
+	cr.SayMsg((11),(0),2);
+	return 0;
+}
+
+void _GateKeeperInit(Critter&cr,bool firstTime)
+{
+	cr.ModeBase[(527)]=1;
+}
+
+void dlg_WhenBegin(Critter&cr,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$time"+DateTimeToString(GetEventOccurenceTime(8));
+}
+
+void dlg_CountPlayers(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	uint total=0;
+	uint alive=0;
+	Critter@cr;
+	for(uint i=0,l=bInfo.Teams.length();i<l;i++)
+	{
+		alive+=bInfo.Teams[i].CountAlive();
+		total+=bInfo.Stage>=(2)?bInfo.Teams[i].Players.length():bInfo.Teams[i].Requests.length();
+	}
+	lexems="$total"+total+"$alive"+alive;
+}
+
+void dlg_Team1(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$players"+GetTeamPlayers(bInfo.Teams[0]);
+}
+
+void dlg_Team2(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$players"+GetTeamPlayers(bInfo.Teams[1]);
+}
+
+void dlg_Team3(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$players"+GetTeamPlayers(bInfo.Teams[2]);
+}
+
+void dlg_Team4(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$players"+GetTeamPlayers(bInfo.Teams[3]);
+}   
+
+void _PurgatoryLoop(Map&map)
+{
+	if((@bInfo!=null)&&bInfo.Stage==(3))
+	{
+		Location@loc=map.GetLocation();
+		if((@loc!=null))
+		{
+			GameVar@lastTransfer=GetLocalVar((19),loc.Id);
+			if((@lastTransfer!=null)&&lastTransfer+((1)*__TimeMultiplier*60)<int(__FullSecond))
+			{
+				lastTransfer=__FullSecond;
+				Map@mapFrom=loc.GetMapByIndex(2);
+				if((@mapFrom!=null))
+				{
+					Item@[]containersFrom;
+					Item@[]containersTo;
+					map.GetItemsByType((8),containersTo);
+					mapFrom.GetItemsByType((8),containersFrom);
+					if(containersFrom.length()>0&&containersTo.length()>0)
+					{
+						Item@[]items;
+						Item@contFrom=containersFrom[Random(0,containersFrom.length()-1)];
+						if((@contFrom!=null)&&contFrom.GetItems(0,items)>0)
+						{
+							Item@contTo=containersTo[Random(0,containersTo.length()-1)];
+							if((@contTo!=null))
+							{
+								;
+								MoveItems(items,contTo,0);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+} 
+
+uint e_DeletePurgatory(uint[]@values)
+{
+	Location@loc=GetLocation(values[0]);
+	if((@loc!=null))
+	{
+		Map@map;
+		Critter@[]critters;
+		for(uint i=0;i<3;i++)
+		{
+			@map=loc.GetMapByIndex(i);
+			map.GetCritters(0,(0x0F)|(0x10),critters);
+		}
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			critters[i].SayMsg((11),(0),7128);
+		}
+		DeleteLocation(loc.Id);
+	}
+	return 0;
+}

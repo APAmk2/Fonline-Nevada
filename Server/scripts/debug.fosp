@@ -1,0 +1,594 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+void ViewPlanes(Critter&player,int param0,int param1,int param2)
+{
+	if(param0==0)
+	param0=20;
+	
+	Map@map=player.GetMap();
+	if(not(@map!=null))
+	return;
+	
+	Critter@[]critters;
+	uint count=0;
+	if(param1==0)
+	count=map.GetCrittersHex(player.HexX,player.HexY,param0,(0x0F)|(0x20),critters);
+	else
+	{
+		Critter@cr=GetCritter(param1);
+		if(not(@cr!=null))
+		return;
+		critters.resize(1);
+		@critters[0]=cr;
+	}
+	
+	for(uint i=0;i<count;i++)
+	{
+		NpcPlane@[]p;
+		uint pcount=critters[i].GetPlanes(p);
+		for(uint j=0;j<pcount;j++)
+		{
+			uint[]param={critters[i].Id,p[j].Type,p[j].Priority};
+			switch(p[j].Type)
+			{
+				case(0):
+				param.resize(5);
+				param[3]=p[j].Misc_WaitSecond;
+				param[4]=p[j].Misc_ScriptId;
+				break;
+				case(1):
+				param.resize(5);
+				param[3]=p[j].Attack_TargId;
+				param[4]=p[j].Attack_MinHp;
+				break;
+				case(2):
+				param.resize(8);
+				param[3]=p[j].Walk_HexX;
+				param[4]=p[j].Walk_HexY;
+				param[5]=p[j].Walk_Dir;
+				if(p[j].Run)
+				param[6]=1;
+				else
+				param[6]=0;
+				param[7]=p[j].Walk_Cut;
+				break;
+				case(3):
+				param.resize(6);
+				param[3]=p[j].Pick_HexX;
+				param[4]=p[j].Pick_HexY;
+				param[5]=p[j].Pick_Pid;
+				break;
+			}
+			CreateTimeEvent(__FullSecond+60+j,"e_ViewPlanes",param,false);
+		}
+	}
+}
+
+uint e_ViewPlanes(uint[]@values)
+{
+	Critter@crit=GetCritter(values[0]);
+	if(not(@crit!=null))
+	return 0;
+	
+	string msg="error";
+	switch(values[1])
+	{
+		case(0):
+		msg="<<MISC>> Prior="+values[2];
+		msg+=" WaitMinute="+values[3]+" ScriptId="+values[4];
+		break;
+		case(1):
+		msg="<<ATTACK>> Prior="+values[2];
+		msg+=" TargId="+values[3]+" MinHp="+values[4];
+		break;
+		case(2):
+		msg="<<WALK>> Prior="+values[2];
+		msg+=" HexX="+values[3]+" HexY="+values[4]+" Dir="+values[5];
+		msg+=" Run="+values[6]+" Cut="+values[7];
+		break;
+		case(3):
+		msg="<<PICK>> Prior="+values[2];
+		msg+=" HexX="+values[3]+" HexY="+values[4]+" Pid="+values[5];
+		break;
+	}
+	
+	crit.Say((2),msg);
+	return 0;
+}   
+
+import void InjureCritter(Critter&cr,uint dmg,uint dmgType,uint8 dir,uint attackerId)from"combat";  
+
+void lvl(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].Stat[(77)]));
+}
+
+void team(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].Stat[(106)]));
+}
+
+void role(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].Stat[(89)]));
+}
+
+void info(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].Stat[param0]));
+}
+
+void hp(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].Stat[(72)])+"/"+""+(critters[i].Stat[(7)]));
+} 
+
+void planc(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].GetPlanes(null)));
+} 
+
+void plans(Critter&player,int param0,int param1,int param2)
+{
+	NpcPlane@[]planes;
+	string str;
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	{
+		str="";
+		uint count=critters[i].GetPlanes(planes);
+		for(uint j=0;j<count;j++)
+		{
+			switch(planes[j].Type)
+			{
+				case(0):
+				str=str+"M ";
+				break;
+				case(1):
+				str=str+"A ";
+				break;
+				case(2):
+				str=str+"W ";
+				break;
+				case(3):
+				str=str+"P ";
+				break;
+				case(4):
+				str=str+"P ";
+				break;
+				case(5):
+				str=str+"C ";
+				break;
+			}
+		}
+		critters[i].Say((2),str);
+	}
+} 
+
+void lvli(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16)*2,(0x01)|(0x10),critters);
+	for(uint i=0;i<count;i++)
+	player.Say((11),GetPlayerName(critters[i].Id)+": "+""+(critters[i].Stat[(77)]));
+}
+
+void dmg(Critter&player,int param0,int param1,int param2)
+{
+	Critter@target=GetCritter(param0);
+	if(not(@target!=null))
+	return;
+	InjureCritter(target,param1,param2,0,player.Id);
+}
+
+void kill(Critter&player,int param0,int param1,int param2)
+{
+	Critter@target=GetCritter(param0);
+	if(not(@target!=null))
+	return;
+	target.Say((11),"Кара небесная поразила вас!");
+	target.ToDead((param1==0?(114):param1),player);
+	
+}
+
+void body(Critter&player,int param0,int param1,int param2)
+{
+	Critter@target=GetCritter((param0==0?player.Id:param0));
+	if(not(@target!=null))
+	return;
+	target.ChangeCrType(param1);
+}
+
+void anim(Critter&player,int param0,int param1,int param2)
+{
+	Critter@target=GetCritter((param0==0?player.Id:param0));
+	if(not(@target!=null))
+	return;
+	target.Animate(param1,param2,null,true,true);
+}
+
+void testmap(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]groups;
+	groups.insertLast(@player);
+	uint locid=CreateLocation(
+	(param1==0?400:param1),player.WorldX,player.WorldY,groups);
+	Location@loc=GetLocation(locid);
+	
+	if(not(@loc!=null))
+	{
+		player.Say((11),"Location not found");
+		return;
+	}
+	Map@map;
+	if(param0!=0)
+	@map=loc.GetMap(param0);
+	else
+	@map=loc.GetMapByIndex(0);
+	if(not(@map!=null))
+	return;
+	player.TransitToMap(map.Id,0);
+} 
+
+void ctd(Critter&player,int param0,int param1,int param2)
+{
+	Critter@target=GetCritter(param0);
+	if(not(@target!=null))
+	return;
+	Map@map=player.GetMap();
+	if(not(@map!=null))
+	return;
+	if(not map.IsHexPassed(player.HexX+1,player.HexY))
+	return;
+	target.TransitToMap(map.Id,player.HexX+1,player.HexY,0);
+}
+
+void god(Critter&player,int,int,int)
+{
+	for(uint i=(0);i<=(6);i++)
+	player.StatBase[i]=10;
+	for(uint i=(16);i<=(22);i++)
+	player.StatBase[i]=100;
+	for(uint i=(23);i<=(31);i++)
+	player.StatBase[i]=100;
+	for(uint i=(200);i<=(217);i++)
+	player.SkillBase[i]=300;
+	player.StatBase[(10)]=999;
+	player.StatBase[(9)]=100;
+	player.StatBase[(72)]=9999;
+	player.StatBase[(7)]=9999;
+}
+
+void mapid(Critter&player,int,int,int)
+{
+	Map@map=player.GetMap();
+	player.Say((11),""+(map.GetProtoId()));
+}
+
+void tele(Critter&player,int param0,int param1,int param2)
+{
+	Critter@target=GetCritter((param0==0?player.Id:param0));
+	if(not(@target!=null))
+	return;
+	Location@loc=GetLocationByPid((param1==0?player.GetMap().Id:param1),0);
+	if(not(@loc!=null))
+	{
+		player.Say((11),"Location not found");
+		return;
+	}
+	Map@map=loc.GetMapByIndex(param2);
+	if(not(@map!=null))
+	{
+		player.Say((11),"Map index not found");
+		@map=loc.GetMapByIndex(0);
+		if(not(@map!=null))
+		return;
+	}
+	target.TransitToMap(map.Id,0);
+}
+
+void items(Critter&player,int param0,int param1,int param2)
+{
+	Item@[]items;
+	uint count=player.GetMap().GetItems(player.HexX,player.HexY,items);
+	for(uint i=0;i<count;i++)
+	player.Say((11),""+items[i].GetProtoId());
+}
+
+void id(Critter&player,int param0,int param1,int param2)
+{
+	Critter@[]critters;
+	uint count=player.GetMap().GetCrittersHex(player.HexX,player.HexY,(16),(0x01)|(0x0F),critters);
+	for(uint i=0;i<count;i++)
+	critters[i].Say((2),""+(critters[i].Id));
+}     
+
+void ToMapEntire(Critter&player,int mapPid,int entire,int skip)
+{
+	Map@map=::GetMapByPid(mapPid,skip);
+	if((@map!=null))
+	{
+		player.TransitToMap(map.Id,entire);
+	}
+	else
+	{
+		player.Say((11),"Карта с pid="+mapPid+" не найдена");
+	}
+} 
+
+void NpcByDialog(Critter&player,int mapPid,int dialog,int)
+{
+	Map@map=::GetMapByPid(mapPid,0);
+	if((@map!=null))
+	{
+		Critter@[]npc;
+		
+		if(map.GetCritters(0,(0x0F)|(0x20),npc)==0)
+		{
+			
+			player.Say((11),"не найдено нпц с таким диалогом");
+			
+		}
+		else
+		{
+			uint idF=0;
+			uint l=0;
+			for(uint i=0;i<npc.length();i++)
+			{
+				if(npc[i].Stat[(104)]==dialog)
+				{
+					l++;
+					idF=(idF==0?npc[i].Id:idF);
+				}
+			}
+			player.Say((11),"Найдено нпц, в штуках:"+l+" Id первого:"+idF);
+		}
+	}
+	
+}
+
+void SetReputation(Critter&cr,int crId,int num,int val)
+{
+	Critter@toCr=GetCritter(crId);
+	if((@toCr!=null))
+	toCr.ReputationBase[num]=val;
+}
+
+void Siren(Critter&cr,int,int,int)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	{
+		cr.Say((11),"Невозможно проиграть звук на глобальной карте");
+		return;
+	}
+	map.PlaySound("AIRSIREN.OGG");
+}
+
+void Mirelurk(Critter&cr,int,int,int)
+{
+	cr.GetMap().AddNpc(487,cr.HexX-3,cr.HexY-3,0,null,null,null);
+	
+}         
+
+void SetMode(Critter&cr,int id,int mode,int value)
+{
+	Critter@crit=GetCritter(id);
+	crit.ModeBase[mode]=value;
+}
+import void AddWave(int waveNum,int mapId,int type)from"mob_wave";
+import void AddSpawnStep(int waveNum,uint8 radius,uint timeNext,uint x,uint y)from"mob_wave";
+import void AddMob(int waveNum,int pid,int team)from"mob_wave";
+import void AddMoveStep(int waveNum,uint8 radius,uint timeNext,uint x,uint y)from"mob_wave";
+import void AddAttackStep(int waveNum,uint8 radius,uint timeNext,uint timeRepeat,uint x,uint y)from"mob_wave";
+import void AddDeleteStep(int waveNum,uint8 radius,uint timeNext)from"mob_wave";
+import void _StartWave(int waveNum)from"mob_wave";
+import void AddTransitStep(int waveNum,uint8 radius,uint timeNext,uint x,uint y,uint mapId)from"mob_wave"; 
+
+void NewWave(Critter&cr,int num,int type,int)
+{
+	AddWave(num,cr.GetMap().Id,type);
+}
+
+void AddStepSpawn(Critter&cr,int num,int radius,int timeNext)
+{
+	AddSpawnStep(num,radius,timeNext,cr.HexX,cr.HexY);
+}
+
+void AddStepMove(Critter&cr,int num,int radius,int timeNext)
+{
+	AddMoveStep(num,radius,timeNext,cr.HexX,cr.HexY);
+}
+
+void AddStepAttack(Critter&cr,int num,int radius,int timeNext)
+{
+	AddAttackStep(num,radius,timeNext,10,cr.HexX,cr.HexY);
+}
+
+void AddStepDelete(Critter&cr,int num,int radius,int timeNext)
+{
+	AddDeleteStep(num,radius,timeNext);
+}
+
+void AddMob(Critter&cr,int num,int pid,int team)
+{
+	AddMob(num,pid,team);
+}
+
+void AddStepTransit(Critter&cr,int num,int radius,int timeNext)
+{
+	AddTransitStep(num,radius,timeNext,cr.HexX,cr.HexY,cr.GetMap().Id);
+}
+
+void BeginWave(Critter&cr,int num,int,int)
+{
+	_StartWave(num);
+}          
+
+void NetId(Critter&player,int searchRadius,int,int)
+{
+	Critter@[]crits;
+	player.GetMap().GetCrittersHex(player.HexX,player.HexY,searchRadius,(0x0F),crits);
+	player.Say((11),"my info: HexX="+player.HexX+"; HexY="+player.HexY+"; SearchRadius="+searchRadius);
+	for(uint i=0;i<crits.length();i++)
+	{
+		player.Say((11),"Critter Pid:"+crits[i].GetProtoId()+"; Dialog:"+crits[i].Stat[(104)]+"; Id:"+crits[i].Id);
+	}
+	player.Say((11),"Total: "+crits.length());
+}
+
+void SetCritParam(Critter&player,int id,int param,int value)
+{
+	Critter@cr=GetCritter(id);
+	if((@cr!=null))
+	{
+		cr.ParamBase[param]=value;
+	}
+}
+
+void GetCritParam(Critter&player,int id,int param,int value)
+{
+	Critter@cr=GetCritter(id);
+	if((@cr!=null))
+	{
+		player.Say((11),"Param #"+param+" val= "+cr.Param[param]);
+	}
+}
+
+void ShowLocation(Critter&player,int,int,int)
+{
+	Map@map=player.GetMap();
+	if((@map!=null))
+	{
+		Location@loc=map.GetLocation();
+		if((@loc!=null)&&!loc.Visible)
+		loc.Visible=true;
+	}
+}
+
+void AddMine(Critter&cr,int,int,int)
+{
+	Item@item=cr.GetMap().AddItem(cr.HexX+1,cr.HexY+1,(545),1);
+	item.SetScript("_MineInit");
+}
+
+void _MineInit(Item&item,bool firstTime)
+{
+	item.TrapValue=150;
+	(item.Flags=(item.Flags)|((0x00020000)));
+	item.SetEvent((7),"explode@_MineWalk");
+	item.Update();
+}
+
+import void SkillUp(Critter&player,int skill)from"stdlib";
+
+void UpSkill(Critter&cr,int crId,int skill,int)
+{
+	SkillUp(GetCritter(uint(crId)),skill);
+}
+
+void CancelInvul(Critter&player,int,int,int)
+{
+	Map@map=player.GetMap();
+	if((@map!=null))
+	{
+		Critter@[]critters;
+		if(map.GetCritters(0,(0x0F)|(0x20),critters)>0)
+		{
+			for(uint i=0,l=critters.length();i<l;i++)
+			{
+				Critter@cr=critters[i];
+				if((@cr!=null))
+				cr.ModeBase[(527)]=0;
+			}
+		}
+	}
+	player.Say((11),"Success");
+}
+
+import void RunGameEvent(uint idx)from"game_event";
+
+import void StopGameEvent(uint idx)from"game_event";
+
+void RunGameEvent(Critter&cr,int idx,int,int)
+{
+	RunGameEvent(idx);
+}
+
+void RunGameEventTime(Critter&cr,int idx,int time,int)
+{
+	
+}
+
+void StopGameEvent(Critter&cr,int idx,int,int)
+{
+	StopGameEvent(idx);
+}  
+
+void MarkCritter2(Critter&cr,int crId,int pid,int color)
+{
+	Item@item=cr.AddItem(pid,1);
+	AllowSlot(17,"noini");
+	cr.MoveItem(item.Id,1,17);
+	item.LightIntensity=Random(30,80);
+	item.LightColor=(color!=0?color:Random(0,0xFFFFFF));
+	item.LightDistance=5;
+	(item.Flags=(item.Flags)|((0x00008000)));
+	item.Update();
+}
+
+void MarkCritter(Critter&cr,int crId,int pid,int color)
+{
+	
+	Item@item=cr.AddItem(pid,1);
+	AllowSlot(17,"");
+	cr.MoveItem(item.Id,1,17);
+	item.LightIntensity=Random(30,80);
+	item.LightColor=(color!=0?color:Random(0,0xFFFFFF));
+	item.LightDistance=5;
+	(item.Flags=(item.Flags)|((0x00008000)));
+	(item.Flags=(item.Flags)|((0x00000001)));
+	item.Update();
+} 
+
+void AddNpc(Critter&cr,int pid,int dialog,int)
+{
+	if(pid<=0||dialog<=0)
+	return;
+	cr.GetMap().AddNpc(pid,cr.HexX-3,cr.HexY-2,0,null,null,null).StatBase[(104)]=dialog;
+}
+
+void patchSalv(Critter&cr,int,int,int)
+{
+	Map@map=GetMapByPid((56),0);
+	if((@map!=null))
+	{
+		Critter@npc=map.AddNpc(212,63,71,2,null,null,"trader@_CashTraderInit");
+	}
+}
+
+import uint ProcessSubQuest1(Critter&player,int newVal)from"quest_warehouse";
+
+void QWHS1(Critter&player,int val,int,int)
+{
+	ProcessSubQuest1(player,val);
+}

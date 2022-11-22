@@ -1,0 +1,779 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";                           
+
+bool AttackRuns=false;
+uint[]QuestPlayers;
+uint MapIdent=0;
+bool NotCome=true;
+bool TribeDead=false;
+uint StartAttackTE=0; 
+
+void _PrimalTribeInit(Map&map,bool firstTime)
+{
+	initQuest(map);
+	
+}
+
+void initNaturResp(Map&map)
+{
+	CreateTimeEvent(__FullSecond,"e_NaturResp",map.Id,false);
+}
+
+uint e_NaturResp(uint[]@values)
+{
+	Map@map=GetMap(values[0]);    
+	
+	return 60*60*12;
+}
+
+void initQuest(Map&map)
+{
+	MapIdent=map.Id;
+	
+	uint menCount=0;
+	map.SetEvent((6),"_PlayerInMap");
+	map.SetEvent((0),"_SaveAD");
+	
+	Critter@[]citizens;
+	GetCritters(map,citizens,(10),(0x0F)|(0x20));
+	menCount=citizens.length();
+	GetAD();
+	GetCritters(map,citizens,(11),(0x0F)|(0x20));
+	if(map.GetNpcCount((12),(0x03)|(0x20))>0)
+	{
+		AttackRuns=true;
+	}
+	
+	for(uint i=0;i<citizens.length();i++)
+	{
+		citizens[i].SetEvent((2),"_CDead");
+		citizens[i].SetEvent((39),"_OnDial");
+		if(i<menCount)
+		{
+			citizens[i].SetEvent((16),"_MOnAttack");
+		}
+		else
+		{
+			citizens[i].SetEvent((16),"_WOnAttack");
+		}
+	}
+}
+
+void _SaveAD(Map&map,bool deleted)
+{
+	if(not SetAnyData("PrimalTribe",QuestPlayers))
+	{
+		Log("AnyData not created");
+	}
+}
+
+void GetAD()
+{
+	if(IsAnyData("PrimalTribe"))
+	{
+		GetAnyData("PrimalTribe",QuestPlayers);
+	}
+}
+
+void r_StartQuest(Critter&master,Critter@npc)
+{
+	GameVar@quest=GetLocalVar((4606),master.Id);
+	if(!(@quest!=null))
+	{
+		Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded");
+	}
+	GameVar@globStart=GetGlobalVar((1));
+	if(!(@globStart!=null))
+	{
+		Log("\n<Trib: Rangers Attack> GVAR_trib_raid not loaded");
+	}
+	GameVar@raidersKilled=GetLocalVar((4607),master.Id);
+	if(!(@raidersKilled!=null))
+	{
+		Log("\n<Trib: Rangers Attack> LVAR_trib_raider_kill_count not loaded.");
+		return;
+	}
+	quest=(1);
+	globStart=1;
+	raidersKilled=0;
+	NotCome=true;
+	QuestPlayers.insertLast(master.Id);
+	StartAttackTE=CreateTimeEvent(__FullSecond+(15*60*60),"e_StartAttack",true);
+}
+
+void r_PushQuestPl(Critter&master,Critter@npc)
+{
+	QuestPlayers.insertLast(master.Id);
+}
+
+void r_GetExp(Critter&master,Critter@npc)
+{
+	GameVar@quest=GetLocalVar((4606),master.Id);
+	if(!(@quest!=null))
+	{
+		Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded");
+	}
+	GameVar@raidersKilled=GetLocalVar((4607),master.Id);
+	if(!(@raidersKilled!=null))
+	{
+		Log("\n<Trib: Rangers Attack> LVAR_trib_raider_kill_count not loaded.");
+		return;
+	}
+	master.StatBase[(76)]+=(raidersKilled.GetValue()+1)*100;
+	master.StatBase[(80)]+=((raidersKilled.GetValue()+1)*10);
+	raidersKilled=0;
+	quest=(7);
+}
+
+bool d_AttackRuns(Critter&master,Critter@npc)
+{
+	if(AttackRuns)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool d_QuestSucc(Critter&master,Critter@npc)
+{
+	GameVar@quest=GetLocalVar((4606),master.Id);
+	if(!(@quest!=null))
+	{
+		Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded");
+		return false;
+	}
+	uint qs=quest.GetValue();
+	if((qs==(2))or(qs==(6))or(qs==(7)))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+uint e_StartAttack(uint[]@values)
+{
+	StartAttackTE=0;
+	uint entGroup=Random((10),(12));
+	SpawnRaiders(MapIdent,entGroup,0,(4));
+	return 0;
+}
+
+void ChangeTarget(Critter&crit)
+{
+	Map@map=crit.GetMap();
+	Critter@[]raiders;
+	GetCritters(map,raiders,(12),(0x03)|(0x20));
+	uint count=map.GetNpcCount((12),(0x03)|(0x20));
+	uint m;
+	if(count==0)
+	{
+		AttackRuns=false;
+	}
+	else
+	{
+		
+		crit.ErasePlane((1),true);
+		m=Random(0,count-1);
+		AddAttackPlane(crit,(50),raiders[m]);
+	}
+}
+
+uint e_DeleteRaider(uint[]@values)
+{
+	Critter@raider;
+	if(not(@values!=null))
+	{
+		return 0;
+	}
+	if(values.length()>0)
+	{
+		@raider=GetCritter(values[0]);
+		if(not(@raider!=null))
+		{
+			
+			return 0;
+		}
+		
+		DeleteNpc(raider);
+	}
+	return 0;
+}
+
+void _CDead(Critter&crit,Critter@killer)
+{
+	if(!(@killer!=null))
+	{
+		return;
+	}
+}
+
+uint e_CChangeTarget(uint[]@values)
+{
+	Critter@crit;
+	if(not(@values!=null))
+	{
+		return 0;
+	}
+	if(values.length()>0)
+	{
+		@crit=GetCritter(values[0]);
+		if(!(@crit!=null))
+		{
+			return 0;
+		}
+		if(crit.IsDead())
+		{
+			return 0;
+		}
+		if(AttackRuns)
+		{
+			ChangeTarget(crit);
+			return(((13+Random(0,7))*__TimeMultiplier*60));
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	return 0;
+}
+
+void _RaiderDead(Critter&crit,Critter@killer)
+{
+	GameVar@questStat;
+	GameVar@raidersKilled;
+	uint count=crit.GetMap().GetNpcCount((12),(0x03)|(0x20));
+	uint CountAll=crit.GetMap().GetNpcCount((12),(0x0F)|(0x20));
+	GameVar@globStart=GetGlobalVar((1));
+	if(!(@globStart!=null))
+	{
+		Log("\n<Trib: Rangers Attack> GVAR_trib_raid not loaded");
+	}
+	if((@killer!=null))
+	{
+		if((killer.IsNpc())and(killer.Stat[(89)]!=(12)))
+		{
+			ChangeTarget(killer);
+			
+		}
+		if(killer.IsPlayer())
+		{
+			@questStat=GetLocalVar((4606),killer.Id);
+			if(!(@questStat!=null))
+			{
+				Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded.");
+				return;
+			}
+			@raidersKilled=GetLocalVar((4607),killer.Id);
+			if(!(@raidersKilled!=null))
+			{
+				Log("\n<Trib: Rangers Attack> LVAR_trib_raider_kill_count not loaded.");
+				return;
+			}
+			if((questStat.GetValue()==(0))or(questStat.GetValue()==(3))or(questStat.GetValue()==(4))or(questStat.GetValue()==(5))or(questStat.GetValue()==(8))or(questStat.GetValue()==(9))or(questStat.GetValue()==(10))or(questStat.GetValue()==(6)))
+			{
+				if(raidersKilled.GetValue()==int(CountAll-1))
+				{
+					questStat=(2);
+				}
+				else
+				{
+					if(raidersKilled.GetValue()==0)
+					{
+						questStat=(6);
+					}
+					raidersKilled+=1;
+				}
+			}
+		}
+	}
+	if(count==0)
+	{
+		globStart=0;
+		SendQuestStat();
+	}
+	CreateTimeEvent(__FullSecond+60*Random(20,60),"e_DeleteRaider",crit.Id,true);
+}
+
+void _PlayerDead(Critter&player,Critter@killer)
+{
+	GameVar@questStat=GetLocalVar((4606),player.Id);
+	if(!(@questStat!=null))
+	{
+		Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded.");
+		return;
+	}
+	if((questStat.GetValue()!=(2))and(questStat.GetValue()!=(6)))
+	{
+		questStat=(4);
+	}
+	player.SetEvent((2),"");
+}
+
+bool _MOnAttack(Critter&crit,Critter&attacker)
+{   
+	
+	if(attacker.Stat[(89)]==(12))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool _WOnAttack(Critter&crit,Critter&attacker)
+{   
+	
+	if(attacker.Stat[(89)]==(12))
+	{
+		RunAway(crit);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+uint GetCritters(Map@map,Critter@[]@arr,int npcRole,int findType)
+{
+	uint findCount=0;
+	uint count=map.GetNpcCount(npcRole,findType);
+	for(uint i=0;i<count;i++)
+	{
+		Critter@cr=map.GetNpc(npcRole,findType,i);
+		if(not(@cr!=null))
+		continue;
+		findCount++;
+		arr.insertLast(@cr);
+	}
+	return findCount;
+}
+
+Critter@SpawnRaider(Map&map,uint8 entGroup,uint8 entNum,uint16 npcPid,uint8 dir,uint dialog,uint bagId,uint level)
+{
+	uint16 x=0,y=0;
+	if(not map.GetEntireCoords(entGroup,entNum,x,y))
+	{
+		Log("\n<Trib: Rangers Attack> Error: GetEntireCoords "+entGroup+":"+entNum);
+		return null;
+	}
+	
+	int[]params=
+	{
+		(104),dialog,(107),bagId,(106),(8),(92),x,(93),y,
+		(89),(12),(84),-1,(533),1,(517),1,(77),level
+	};
+	Critter@raider=map.AddNpc(npcPid,x,y,dir,params,null,null);
+	if(not(@raider!=null))
+	{
+		Log("\n<Trib: Rangers Attack> critter not valid ");
+		return null;
+	}
+	CreateTimeEvent(__FullSecond,"e_RaiderChangeTarget",raider.Id,false);
+	raider.SetEvent((2),"_RaiderDead");
+	return raider;
+}
+
+uint e_RaiderChangeTarget(uint[]@values)
+{
+	Critter@raider;
+	Critter@[]players;
+	Map@map;
+	uint citizenCount;
+	GameVar@questState;
+	uint mCount,wCount;
+	Critter@target;
+	if(not(@values!=null))
+	{
+		return 0;
+	}
+	if(values.length()>0)
+	{
+		@raider=GetCritter(values[0]);
+		if(not(@raider!=null))
+		{
+			
+			return 0;
+		}
+		if(raider.IsDead())
+		{
+			return 0;
+		}
+		@map=raider.GetMap();
+		if(not(@map!=null))
+		{
+			Log("\n<Trib: Rangers Attack> map not valid ");
+			return 0;
+		}
+		citizenCount=map.GetNpcCount((10),(0x03)|(0x20));  
+		
+		@questState=GetGlobalVar((1));
+		if(!(@questState!=null))
+		{
+			Log("\n<Trib: Rangers Attack> GVAR_trib_raid not loaded");
+		}
+		citizenCount+=map.GetNpcCount((11),(0x03)|(0x20));  
+		
+		if(citizenCount==0)
+		{
+			AddWalkPlane(raider,(20),raider.Stat[(92)],raider.Stat[(93)],Random(0,5),true,Random(0,1));
+			AddMiscPlane(raider,(10),0,"plane_DelRaider");
+			questState=0;
+			TribeDead=true;
+			SendQuestStat();
+			return 0;
+		}
+		else
+		{
+			mCount=map.GetNpcCount((10),(0x03)|(0x20));
+			wCount=map.GetNpcCount((11),(0x03)|(0x20));
+			raider.ClearEnemyStack();
+			raider.ErasePlane((1),true);
+			map.GetCritters(0,(0x03)|(0x10),players);
+			if((Random(0,1)==0)or(players.length()==0))
+			{
+				if((Random(0,1)==0)or(wCount==0))
+				{
+					@target=map.GetNpc((10),(0x03)|(0x20),Random(0,mCount-1));
+				}
+				else
+				{
+					@target=map.GetNpc((11),(0x03)|(0x20),Random(0,wCount-1));
+				}
+			}
+			else
+			{
+				@target=players[Random(0,players.length()-1)];
+			}
+			if((@target!=null))
+			{
+				AddAttackPlane(raider,(50),target);
+			}
+			return(((13+Random(0,7))*__TimeMultiplier*60));
+		}
+	}
+	return 0;
+}
+
+void plane_DelRaider(Critter&raider)
+{
+	if(raider.Stat[(89)]!=(12))
+	return;
+	DeleteNpc(raider);
+}
+
+void SpawnRaiders(uint mapId,uint entGroup,uint dialogId,uint mobLevel)
+{
+	uint npcPid;
+	Map@map=GetMap(mapId);
+	uint count=0;
+	if(not(@map!=null))
+	{
+		Log("\n<Trib: Rangers Attack> map not valid");
+		return;
+	}
+	uint bagId;
+	Critter@[]raiders;
+	uint entCount=map.CountEntire(entGroup);
+	GetCritters(map,raiders,(12),(0x0F)|(0x20));
+	count=raiders.length();
+	if(count>0)
+	{
+		for(uint i=0;i<raiders.length();i++)
+		{
+			DeleteNpc(raiders[i]);
+		}
+	}
+	for(uint i=0;i<entCount;i++)
+	{
+		npcPid=Random((238),(239));
+		if(npcPid==(238))
+		{
+			bagId=Random((169),(170));
+		}
+		else
+		{
+			bagId=Random((171),(172));
+		}
+		Critter@raider=SpawnRaider(map,entGroup,i,npcPid,Random(0,5),dialogId,bagId,mobLevel);
+		if(not(@raider!=null))
+		{
+			continue;
+		}
+	}
+	if(!AttackRuns)
+	{
+		AttackRuns=true;
+		for(uint i=0;i<QuestPlayers.length();i++)
+		{
+			Critter@crit=GetCritter(QuestPlayers[i]);
+			GameVar@questStat=GetLocalVar((4606),QuestPlayers[i]);
+			if(!(@questStat!=null))
+			{
+				Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded.");
+				return;
+			}
+			if(questStat.GetValue()==(1))
+			{
+				questStat=(10);
+			}
+		}
+	}
+	Critter@[]citizensM;
+	Critter@[]citizensW;
+	GetCritters(map,citizensM,(10),(0x03)|(0x20));
+	GetCritters(map,citizensW,(11),(0x03)|(0x20));
+	
+	for(uint i=0;i<citizensM.length();i++)
+	{
+		CreateTimeEvent(__FullSecond,"e_CChangeTarget",citizensM[i].Id,true);
+	}
+	for(uint i=0;i<citizensW.length();i++)
+	{
+		CreateTimeEvent(__FullSecond+(((6+Random(0,7))*__TimeMultiplier*60)),"e_RunRandom",citizensW[i].Id,false);
+		citizensW[i].ModeBase[(517)]=1;
+		citizensW[i].SetEvent((36),"_WPlaneEnd");
+	}
+}
+
+void SendQuestStat()
+{
+	Critter@crit;
+	GameVar@questStat;
+	GameVar@raidersKilled;
+	GameVar@questFromElize;
+	Map@map;
+	uint mapId;
+	for(uint i=0;i<QuestPlayers.length();i++)
+	{
+		@crit=GetCritter(QuestPlayers[i]);
+		@questStat=GetLocalVar((4606),QuestPlayers[i]);
+		if(!(@questStat!=null))
+		{
+			Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded.");
+			return;
+		}
+		@raidersKilled=GetLocalVar((4607),QuestPlayers[i]);
+		if(!(@raidersKilled!=null))
+		{
+			Log("\n<Trib: Rangers Attack> LVAR_trib_raider_kill_count not loaded.");
+			return;
+		}
+		@questFromElize=GetLocalVar((4000),QuestPlayers[i]);
+		if(!(@questFromElize!=null))
+		{
+			Log("\n<Trib: Rangers Attack> LVAR_ncr_elize_slavers not loaded.");
+			return;
+		}
+		if((raidersKilled.GetValue()==0)and(questStat!=(4)))
+		{
+			if((@crit!=null))
+			{
+				@map=crit.GetMap();
+				if((@map!=null))
+				{
+					mapId=map.Id;
+				}
+				else
+				{
+					mapId=0;
+				}
+				if(mapId!=MapIdent)
+				{
+					if(questFromElize.GetValue()==0)
+					{
+						questStat=(3);
+					}
+					else
+					{
+						if(NotCome)
+						{
+							questStat=(8);
+						}
+						else
+						{
+							questStat=(3);
+						}
+					}
+				}
+				else
+				{
+					if(TribeDead)
+					{
+						questStat=(9);
+					}
+					else
+					{
+						questStat=(5);
+					}
+				}
+			}
+			else
+			{
+				if(questFromElize.GetValue()==0)
+				{
+					questStat=(3);
+				}
+				else
+				{
+					if(NotCome)
+					{
+						questStat=(8);
+					}
+					else
+					{
+						questStat=(3);
+					}
+				}
+			}
+		}
+	}
+	QuestPlayers.resize(0);
+}
+
+void _PlayerInMap(Map&map,Critter&crit)
+{
+	if(crit.IsNpc())
+	{
+		return;
+	}
+	GameVar@questStat=GetLocalVar((4606),crit.Id);
+	if(questStat.GetValue()==(1))
+	{
+		if(!AttackRuns)
+		{
+			if(StartAttackTE!=0)
+			{
+				EraseTimeEvent(StartAttackTE);
+				StartAttackTE=0;
+			}
+			e_StartAttack(null);
+		}
+		crit.SetEvent((2),"_PlayerDead");
+		NotCome=false;
+	}
+}
+
+void RunAway(Critter&crit)
+{
+	uint16 x,y,homeX=0,homeY=0,homeM=0,homeD=0;
+	uint8 dir;
+	do
+	{
+		x=crit.HexX+Random(-8,8);
+	}
+	while((x<homeX+(15))or(x>homeX-(15)));
+	do
+	{
+		y=crit.HexY+Random(-8,8);
+	}
+	while((y<homeY+(15))or(y>homeY-(15)));
+	dir=GetDirection(crit.HexX,crit.HexY,x,y);
+	AddWalkPlane(crit,(20),x,y,dir,true,0);
+}
+
+uint e_RunRandom(uint[]@values)
+{
+	GameVar@globStart=GetGlobalVar((1));
+	if(!(@globStart!=null))
+	{
+		Log("\n<Trib: Rangers Attack> GVAR_trib_raid not loaded");
+	}
+	Critter@crit;
+	if(not(@values!=null))
+	{
+		return 0;
+	}
+	if(values.length()>0)
+	{
+		@crit=GetCritter(values[0]);
+		if((@crit!=null))
+		{
+			Map@map=crit.GetMap();
+			if((@map!=null))
+			{
+				uint count=map.GetNpcCount((12),(0x03)|(0x20));
+				if(count==0)
+				{
+					if(globStart.GetValue()!=0)
+					{
+						SendQuestStat();
+						globStart=0;
+					}
+					crit.ModeBase[(517)]=0;
+					crit.SetEvent((36),"");
+				}
+				else
+				{
+					RunAway(crit);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+int _WPlaneEnd(Critter&crit,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	CreateTimeEvent(__FullSecond+(((6+Random(0,7))*__TimeMultiplier*60)),"e_RunRandom",crit.Id,false);
+	return(0);
+} 
+
+bool _OnDial(Critter&crit,Critter&player,bool attach,uint talkCount)
+{
+	GameVar@quest;
+	uint qs;
+	if(crit.Stat[(104)]!=(1700))
+	{
+		@quest=GetLocalVar((4606),player.Id);
+		if(!(@quest!=null))
+		{
+			Log("\n<Trib: Rangers Attack> LVAR_q_trib_sulik_raid not loaded");
+			return true;
+		}
+		qs=quest.GetValue();
+		if((qs==(2))or(qs==(6)))
+		{
+			crit.SayMsg((2),(0),(2600));
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	else
+	{
+		return true;
+	}
+}
+
+void critter_init(Critter&crit,bool firstTime)
+{
+	if(!AttackRuns)
+	{
+		return;
+	}
+	if(crit.Stat[(71)]==(0))
+	{
+		CreateTimeEvent(__FullSecond,"e_CChangeTarget",crit.Id,true);
+	}
+	else
+	{
+		CreateTimeEvent(__FullSecond+(((6+Random(0,7))*__TimeMultiplier*60)),"e_RunRandom",crit.Id,false);
+		crit.ModeBase[(517)]=1;
+		crit.SetEvent((36),"_WPlaneEnd");
+	}
+}

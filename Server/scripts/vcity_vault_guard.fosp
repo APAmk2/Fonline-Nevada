@@ -1,0 +1,7 @@
+ 
+
+void _VaultGuardInit(Critter&cr,bool firstTime)
+{} 
+
+void t_in_vault(Critter&player,Scenery&trigger,bool entered,uint8 dir)
+{}

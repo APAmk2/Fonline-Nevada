@@ -1,0 +1,392 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,int identifier,uint identifierExt,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import void CombatAttack(Critter&cr,Critter&target,ProtoItem&weapon,uint8 weaponMode,ProtoItem@ammo)from"combat";
+import uint EraseAttackPlane(Critter&npc,Critter&target)from"npc_planes";
+import uint8 GetDir(Critter&cr0,Critter&cr1)from"merc";
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";
+import int GetDeteriorationProcent(Item&item)from"repair";
+import void UseDrugOn(Critter&cr,Critter&onCr,Item&drug)from"drugs";
+import void SetDeterioration(Item&item,int deteriorationProcent)from"repair";                                                                                                                               
+
+class CommonPattern
+{
+	
+	bool _MsgReact(Critter&sender,Critter&reciever,uint msg)
+	{
+		uint dist=GetCrittersDistantion(sender,reciever);
+		if(dist==0)
+		return false;
+		if(sender.Id==reciever.Id)
+		return false;
+		
+		switch(msg)
+		{
+			case(156):
+			return(dist<=(12));
+			case(157):
+			return true;
+			default:
+			break;
+		}
+		return false;
+	}  
+	
+	void _TryUseStim(Critter&cr)
+	{
+		if(!cr.IsLife())
+		return;
+		if(cr.Stat[(72)]*100>cr.Stat[(7)]*50)
+		return;
+		
+		if(cr.CountItem((144))>0||cr.CountItem((40))>0)
+		{
+			Item@item=cr.GetItem((cr.CountItem((144))>0?(144):(40)),-1);
+			UseDrugOn(cr,cr,item);
+			cr.Animate(0,(28),null,true,true);
+			return;
+		}
+	} 
+	
+	void _ShowCritter(Critter&cr,Critter&showCrit)
+	{
+		if(!cr.IsCurPlane((1))&&showCrit.IsPlayer())
+		{
+			NpcPlane@[]planes;
+			uint count=cr.GetPlanes(planes);
+			if(count>0)
+			{
+				uint critId=showCrit.Id;
+				for(uint i=0;i<count;i++)
+				{
+					if(planes[i].Attack_TargId==critId)
+					return;
+				}
+			}
+			AttackPlayer(cr,showCrit);
+		}
+	} 
+	
+	bool _Attacked(Critter&cr,Critter&attacker)
+	{
+		_TryUseStim(cr);
+		cr.SendMessage((356),0,(2));
+		return false;
+	} 
+	
+	void _Dead(Critter&cr,Critter@killer)
+	{
+		if(!cr.IsDead())
+		return;
+		Item@[]items;
+		uint iCount=cr.GetItems(-1,items);
+		if(iCount>0)
+		{
+			for(uint i=0;i<iCount;i++)
+			{
+				Item@item=items[i];
+				if(!(@item!=null))
+				continue;
+				
+				SetDeterioration(item,Random(50,90));
+				
+				if(item.GetType()==(4))
+				{
+					do{if(item.GetCount()>(uint(item.GetCount()-Random(1,30)))) item.SetCount(item.GetCount()-(uint(item.GetCount()-Random(1,30))));else DeleteItem(item);}while(false);
+				}
+			}
+		}
+	} 
+	
+	int _PlaneBegin(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+	{
+		if(plane.Type==(1))
+		{
+			Critter@target=GetCritter(plane.Attack_TargId);
+			if((@target!=null)&&target.Stat[(106)]==cr.Stat[(106)])
+			{
+				EraseAttackPlane(cr,target);
+				EraseAttackPlane(target,cr);
+				return(2);
+			}
+		}
+		return(0);
+	}
+	
+	void AttackPlayer(Critter&cr,Critter&player)
+	{
+		AttackPlayer(cr,0,player);
+	}
+	
+	void AttackPlayer(Critter&cr,uint priority,Critter&player)
+	{
+		if(!player.IsPlayer())
+		return;
+		AddAttackPlane(cr,priority,player);
+	}
+	
+	void SetEvents(Critter&cr)
+	{}
+}  
+
+bool _GetLimits(uint[]arr,uint&min,uint&max)
+{
+	if(arr.length()==0)
+	return false;
+	min=arr[0];
+	max=arr[0];
+	for(uint i=0;i<arr.length();i++)
+	{
+		min=(min<arr[i]?min:arr[i]);
+		max=(max>arr[i]?max:arr[i]);
+	}
+	
+	return true;
+}
+
+bool _GetFirstMinIndex(uint[]arr,uint&minIndex)
+{
+	uint min=0;
+	uint max=0;
+	if(!_GetLimits(arr,min,max))
+	return false;
+	
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(arr[i]==min)
+		minIndex=i;
+	}
+	return false;
+}
+
+bool _GetRandomMaxIndex(uint[]arr,uint&maxIndex)
+{
+	uint min=0;
+	uint max=0;
+	if(!_GetLimits(arr,min,max))
+	return false;
+	uint[]maxes;
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(arr[i]==max)
+		{
+			maxes.insertLast(i);
+		}
+	}
+	maxIndex=maxes[Random(0,maxes.length()-1)];
+	return true;
+}
+
+void _CritterInit(Critter&cr,bool firstTime)
+{
+	pattern.SetEvents(cr);
+}
+
+void DL(string s)
+{
+	
+}                     
+
+const int[]slayerStats_=
+{
+	
+	160,190,190,220,12,220,30,40,10,
+	180,200,200,240,14,250,40,55,12,
+	190,220,220,260,16,290,40,60,13,
+	200,250,220,290,22,320,45,60,15,
+	240,300,250,300,25,360,45,80,18
+};          
+
+class SlayerPattern:CommonPattern
+{ 
+	
+	int _PlaneBegin(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+	{
+		this._SetRun(plane,cr);
+		this._SetSneak(cr);
+		
+		if(plane.Type==(1))
+		{
+			CreateTimeEvent((__FullSecond+(((((34-cr.Stat[(12)])>(3))?(34-cr.Stat[(12)]):(3)))*__TimeMultiplier))-__FullSecond,"e_SneakWhileAttack",cr.Id,false);
+		}
+		
+		return(0);
+	}
+	
+	void _SetSneak(Critter&cr)
+	{
+		if(cr.Timeout[(243)]<=0&&cr.Mode[(510)]==0)
+		cr.ModeBase[(510)]=1;
+	}
+	
+	void _SetRun(NpcPlane&plane,Critter&cr)
+	{
+		if(cr.Timeout[(238)]<=0)
+		plane.Run=true;
+		else
+		plane.Run=__RunOnCombat;
+	} 
+	
+	int _PlaneRun(Critter&cr,NpcPlane&plane,int reason,uint&result0,uint&result1,uint&result2)
+	{
+		_SetRun(plane,cr);
+		_SetSneak(cr);
+		return(0);
+	}
+	
+	void _Idle(Critter&cr)
+	{
+		_SetSneak(cr);
+		
+		Map@map=cr.GetMap();
+		Critter@[]critters;
+		
+		if(map.GetCrittersHex(cr.HexX,cr.HexY,(10),(0x03)|(0x10),critters)>0)
+		{
+			for(uint i=0,l=critters.length();i<l;i++)
+			{
+				Critter@player=critters[i];
+				if(cr.IsSee(player))
+				{
+					AddAttackPlane(cr,0,player);
+					break;
+				}
+			}
+		}
+	}
+	
+	bool _Attack(Critter&cr,Critter&target)
+	{
+		if(target.IsNpc())
+		return false;
+		
+		NpcPlane@plane=cr.GetCurPlane();
+		_SetRun(plane,cr);
+		
+		if(target.IsKnockout())
+		return false;
+		uint8 mode=0;
+		ProtoItem@weapon=cr.GetSlotProto((1),mode);
+		if(!(@weapon!=null))
+		return false;
+		if(weapon.Type!=(3))
+		return false;
+		if(weapon.Weapon_Skill_0!=(204)&&weapon.Weapon_Skill_0!=(203))
+		return false;
+		
+		Item@weap=cr.GetItem(0,(1));
+		if(!(@weap!=null))
+		return false;
+		
+		ProtoItem@ammo=GetProtoItem(weap.AmmoPid); 
+		
+		cr.TimeoutBase[(249)]=__FullSecond+((1)*__TimeMultiplier*60);
+		CombatAttack(cr,target,weapon,(((((7))<<4)|((0)&0xF))&0xFF),ammo);
+		
+		return true;
+	}
+	
+	void SetEvents(Critter&cr)
+	{
+		cr.SetEvent((15),"_SlayerAttack");
+		cr.SetEvent((37),"_SlayerPlaneRun");
+		cr.SetEvent((35),"_SlayerPlaneBegin");
+		cr.SetEvent((16),"_SlayerAttacked");
+		cr.SetEvent((0),"_SlayerIdle");
+		cr.SetEvent((2),"_SlayerDead");
+	}
+} 
+
+SlayerPattern pattern; 
+
+void _SlayerDead(Critter&cr,Critter@killer)
+{
+	pattern._Dead(cr,killer);
+}
+
+void _SlayerInit(Critter&cr,bool firstTime)
+{
+	_CritterInit(cr,firstTime);
+}
+
+void SetSlayerStats(Critter&cr,uint8 lvl)
+{
+	lvl=(((lvl)>((5)-1))?((5)-1):(((lvl)<(0))?(0):(lvl)));
+	if(lvl<1)
+	return;
+	if(lvl>2)
+	cr.PerkBase[(322)]=1;
+	cr.PerkBase[(326)]=1;
+	if(lvl>2)
+	cr.PerkBase[(324)]=1;
+	cr.PerkBase[(316)]=1;
+	
+	cr.StatBase[(10)]=((slayerStats_[(lvl<(5)?lvl:0)*(9)+(4<(9)?4:0)]));
+	cr.StatBase[(0)]=10;
+	cr.StatBase[(7)]=((slayerStats_[(lvl<(5)?lvl:0)*(9)+(5<(9)?5:0)]));
+	cr.StatBase[(72)]=cr.Stat[(7)];
+	cr.StatBase[(8)]=((slayerStats_[(lvl<(5)?lvl:0)*(9)+(8<(9)?8:0)]));
+	
+	for(int i=(23);i<=(31);i++)
+	{
+		if(i!=(28))
+		{
+			cr.StatBase[i]=(Random((slayerStats_[(lvl<(5)?lvl:0)*(9)+(6<(9)?6:0)]),(slayerStats_[(lvl<(5)?lvl:0)*(9)+(7<(9)?7:0)])));
+		}
+	}
+	
+	cr.SkillBase[(204)]=(Random((slayerStats_[(lvl<(5)?lvl:0)*(9)+(0<(9)?0:0)]),(slayerStats_[(lvl<(5)?lvl:0)*(9)+(1<(9)?1:0)])));
+	cr.SkillBase[(203)]=(Random((slayerStats_[(lvl<(5)?lvl:0)*(9)+(0<(9)?0:0)]),(slayerStats_[(lvl<(5)?lvl:0)*(9)+(1<(9)?1:0)])));
+	cr.SkillBase[(208)]=(Random((slayerStats_[(lvl<(5)?lvl:0)*(9)+(2<(9)?2:0)]),(slayerStats_[(lvl<(5)?lvl:0)*(9)+(3<(9)?3:0)])));
+}  
+
+int _SlayerPlaneBegin(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	return pattern._PlaneBegin(cr,plane,reason,someCr,someItem);
+} 
+
+uint e_SneakWhileAttack(uint[]@values)
+{
+	Critter@cr=GetCritter(values[0]);
+	if(!(@cr!=null))
+	return 0;
+	pattern._SetSneak(cr);
+	if(cr.IsCurPlane((1)))
+	{
+		return(__FullSecond+(((((34-cr.Stat[(12)])>(3))?(34-cr.Stat[(12)]):(3)))*__TimeMultiplier))-__FullSecond;
+	}
+	else
+	{
+		return 0;
+	}
+} 
+
+int _SlayerPlaneRun(Critter&cr,NpcPlane&plane,int reason,uint&result0,uint&result1,uint&result2)
+{
+	return pattern._PlaneRun(cr,plane,reason,result0,result1,result2);
+} 
+
+bool _SlayerAttacked(Critter&sniper,Critter&attacker)
+{
+	return pattern._Attacked(sniper,attacker);
+}
+
+void _SlayerIdle(Critter&cr)
+{
+	pattern._Idle(cr);
+}
+
+bool _SlayerAttack(Critter&cr,Critter&target)
+{
+	return pattern._Attack(cr,target);
+}
+
+void testSlayer(Critter&cr,int lvl,int team,int bag)
+{ 
+	
+	int[]params={(107),bag,(106),team};
+	Critter@npc=cr.GetMap().AddNpc(222,cr.HexX-5,cr.HexY-5,0,params,null,"pattern_slayer@_CritterInit");
+	SetSlayerStats(npc,lvl);
+}

@@ -1,0 +1,422 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+
+bool d_IsGroupExist(Critter&player,Critter@npc)
+{
+	Critter@[]group;
+	Critter@leader=GetCritter(GetLeaderId(player));
+	group.insertLast(@leader);
+	leader.GetFollowGroup((0x0F),group);
+	if(group.length()>1)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool d_IsGroupNotExist(Critter&player,Critter@npc)
+{
+	return(not d_IsGroupExist(player,null));
+}
+
+bool d_IsQuestGroupLevelRight(Critter&player,Critter@npc)
+{
+	Critter@[]group;
+	Critter@leader=GetCritter(GetLeaderId(player));
+	group.insertLast(@leader);
+	leader.GetFollowGroup((0x0F),group);  
+	
+	for(uint i=0;i<group.length();i++)
+	{
+		
+		if(group[i].IsNpc())
+		continue; 
+		
+		if(group[i].StatBase[(77)]<(5)||group[i].StatBase[(77)]>(24))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool d_IsQuestGroupLevelNotRight(Critter&player,Critter@npc)
+{
+	return(not d_IsQuestGroupLevelRight(player,null));
+}
+
+bool d_IsQuestGroupHaveGoodKarma(Critter&player,Critter@npc)
+{
+	Critter@[]group;
+	Critter@leader=GetCritter(GetLeaderId(player));
+	group.insertLast(@leader);
+	leader.GetFollowGroup((0x0F),group);  
+	
+	int GroupKarma=0;
+	for(uint i=0;i<group.length();i++)
+	{
+		GroupKarma=GroupKarma+group[i].StatBase[(80)];
+	}
+	int ArroyoRep=0;
+	for(uint i=0;i<group.length();i++)
+	{
+		if(group[i].IsPlayer())
+		{
+			ArroyoRep=ArroyoRep+group[i].Reputation[(585)];
+		}
+	}
+	if(GroupKarma<=-20||ArroyoRep<=-10)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+bool d_IsQuestGroupHaveBadKarma(Critter&player,Critter@npc)
+{
+	return(not d_IsQuestGroupHaveGoodKarma(player,null));
+}
+
+bool d_IsQuestActive(Critter&player,Critter@npc)
+{
+	
+	if(!TimeOutIsFree())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool d_IsQuestNotActive(Critter&player,Critter@npc)
+{
+	return(not d_IsQuestActive(player,null));
+}  
+
+void r_StartQuest(Critter&player,Critter@npc)
+{  
+	
+	if(TimeOutIsFree())
+	{
+		StartQuest(player,1);
+		return;
+	}
+	else
+	{
+		return;
+	}
+	
+}  
+
+uint r_StartStage2(Critter&player,Critter@npc)
+{ 
+	
+	Critter@[]group;
+	Critter@leader=GetCritter(GetLeaderId(player));
+	group.insertLast(@leader);
+	leader.GetFollowGroup((0x0F),group);  
+	
+	if(group.length()<(3))
+	{
+		return(27);
+	}
+	else
+	{
+		StartQuest(player,2);
+	}
+	return 0;
+	
+}     
+
+void StartQuest(Critter&player,uint stage)
+{ 
+	
+	Critter@[]group;
+	Critter@leader=GetCritter(GetLeaderId(player));
+	group.insertLast(@leader);
+	leader.GetFollowGroup((0x0F),group);   
+	
+	if(group.length()<(3))
+	{
+		return;
+	}  
+	
+	if(stage==1)
+	{
+		DeleteRaidersCamp(true);
+		
+	}
+	else
+	{
+		DeleteRaidersCamp(false);
+	} 
+	
+	uint[]LastGoupArrDef(group.length());
+	for(uint i=0;i<group.length();i++)
+	{
+		LastGoupArrDef[i]=group[i].Id;
+	}
+	SetAnyData("LastGoupArrDef",LastGoupArrDef); 
+	
+	uint[]RaidersCount={0};
+	SetAnyData("ArrouoRaidersCount",RaidersCount);  
+	
+	GameVar@raiders_camp=GetGlobalVar((4704));
+	if(!(@raiders_camp!=null))
+	return;
+	
+	if(stage==1)
+	{
+		Location@camp=_GetRaidersCamp(group);
+		if(!(@camp!=null))
+		return;
+		Map@map=camp.GetMapByIndex(0);
+		
+		raiders_camp=camp.Id;  
+		
+		for(uint i=0;i<group.length();i++)
+		{
+			
+			if(group[i].IsNpc())
+			continue;
+			GameVar@quest=GetLocalVar((4702),group[i].Id);
+			if((@quest!=null))
+			if(quest.GetValue()==0||quest.GetValue()==4||quest.GetValue()==8)
+			quest=1;
+		}
+	}
+	else if(stage==2)
+	{
+		Location@camp=_GetRaidersForce(group);
+		if(!(@camp!=null))
+		return;
+		Map@map=camp.GetMapByIndex(0);
+		
+		raiders_camp=camp.Id;
+		
+		for(uint i=0;i<group.length();i++)
+		{
+			
+			if(group[i].IsNpc())
+			continue;
+			GameVar@quest=GetLocalVar((4702),group[i].Id);
+			if((@quest!=null)&&quest.GetValue()==2)
+			quest=3;
+		}
+	}
+	else
+	{
+		return;
+	} 
+	
+	GameVar@mynoc_timeout=GetGlobalVar((4703));
+	mynoc_timeout=__FullSecond+(60*60*24*(1));
+	
+	CreateTimeEvent(mynoc_timeout.GetValue()+(60*24*(1)),"e_TimeExpired",0,true); 
+	
+	return;
+	
+}  
+
+bool TimeOutIsFree()
+{ 
+	
+	GameVar@mynoc_timeout=GetGlobalVar((4703));
+	if(!(@mynoc_timeout!=null))
+	return false; 
+	
+	if(mynoc_timeout.GetValue()==0)
+	{
+		return true;
+	} 
+	
+	if(__FullSecond>=uint(mynoc_timeout.GetValue()))
+	{
+		mynoc_timeout=0;
+		return true;
+	}
+	else
+	{
+		
+		return false;
+	}
+	
+}  
+
+void DeleteRaidersCamp(bool isFail)
+{
+	
+	GameVar@camp=GetGlobalVar((4704));
+	if((@camp!=null))
+	{
+		if(camp.GetValue()!=0)
+		{
+			Location@loc=GetLocation(camp.GetValue());
+			uint[]oldGroup;
+			if(!GetAnyData("LastGoupArrDef",oldGroup))
+			{ 
+				
+			}
+			else
+			{
+				
+				for(uint i=0;i<oldGroup.length();i++)
+				{
+					Critter@player=GetCritter(oldGroup[i]);
+					if(!(@player!=null))
+					{
+						continue;
+					} 
+					
+					Map@player_map=player.GetMap();
+					if((@player_map!=null))
+					{
+						Location@player_loc=player_map.GetLocation();
+						if(!(@player_loc!=null))
+						continue;
+						if(player_loc.GetProtoId()==loc.GetProtoId())
+						{
+							
+							player.TransitToGlobal(false);
+							player.SayMsg((11),(0),3483);
+						}
+						
+						if(player.IsKnownLoc(true,loc.Id))
+						player.UnsetKnownLoc(true,loc.Id);
+					}
+					
+					if(isFail)
+					{
+						
+						GameVar@quest=GetLocalVar((4702),player.Id);
+						if((@quest!=null))
+						if(quest.GetValue()==1||quest.GetValue()==2||quest.GetValue()==3||quest.GetValue()==5)
+						quest=8;
+					}
+				}
+			}
+			
+			DeleteLocation(loc.Id);
+			camp=0;
+		}
+		
+		uint[]RaidersCount={0};
+		SetAnyData("ArrouoRaidersCount",RaidersCount);
+	}
+	return;
+	
+}  
+
+uint GetLeaderId(Critter&player)
+{
+	Critter@leader;
+	if((@player.GetFollowLeader()!=null))
+	{
+		@leader=player.GetFollowLeader();
+	}
+	else
+	{
+		@leader=player;
+	}
+	if((@leader!=null))
+	{
+		return(leader.Id);
+	}
+	else
+	{
+		return(0);
+	}
+}  
+
+uint e_TimeExpired(uint[]@values)
+{
+	uint[]RaidersCount(1);
+	if(GetAnyData("LastGoupArrDef",RaidersCount))
+	{
+		if(RaidersCount[0]==0)
+		{
+			DeleteRaidersCamp(false);
+		}
+		else
+		{
+			DeleteRaidersCamp(true);
+		}
+	}
+	else
+	{
+		DeleteRaidersCamp(false);
+	}
+	
+	GameVar@mynoc_timeout=GetGlobalVar((4703));
+	if((@mynoc_timeout!=null))
+	{
+		mynoc_timeout=0;
+	}
+	return 0;
+}  
+
+Location@_GetRaidersCamp(Critter@[]group)
+{
+	
+	int x,y;
+	x=Random(0,1);
+	y=Random(-2,-1);
+	uint locId=CreateLocation(
+	(210),
+	((4*__GlobalMapZoneLength-__GlobalMapZoneLength/2)+x*__GlobalMapZoneLength),
+	((3*__GlobalMapZoneLength-__GlobalMapZoneLength/2)+y*__GlobalMapZoneLength),
+	group);
+	if(locId==0)
+	{
+		return null;
+	}
+	
+	Location@camp=GetLocation(locId);
+	
+	if(!(@camp!=null))
+	{
+		return null;
+	} 
+	
+	camp.Visible=false;
+	camp.AutoGarbage=false;
+	camp.Radius=6; 
+	
+	return camp;
+}  
+
+Location@_GetRaidersForce(Critter@[]group)
+{
+	
+	int x,y;
+	x=Random(1,2);
+	y=Random(-1,2);
+	uint locId=CreateLocation(
+	(211),
+	((4*__GlobalMapZoneLength-__GlobalMapZoneLength/2)+x*__GlobalMapZoneLength+Random(-(__GlobalMapZoneLength/2),(__GlobalMapZoneLength/2))),
+	((3*__GlobalMapZoneLength-__GlobalMapZoneLength/2)+y*__GlobalMapZoneLength+Random(-(__GlobalMapZoneLength/2),(__GlobalMapZoneLength/2))),
+	group);
+	if(locId==0)
+	{
+		return null;
+	}
+	Location@camp=GetLocation(locId);
+	
+	if(!(@camp!=null))
+	{
+		return null;
+	} 
+	
+	camp.Visible=false;
+	camp.AutoGarbage=false;
+	camp.Radius=6; 
+	
+	return camp;
+}

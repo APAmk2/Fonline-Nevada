@@ -1,0 +1,102 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+
+bool critter_check_move_item(Critter&cr,Item&item,uint8 toSlot,Item@itemSwap)
+{
+	uint8 fromSlot=item.CritSlot; 
+	
+	if(toSlot==(255))
+	return true; 
+	
+	bool handsSwap=((fromSlot==(1)&&toSlot==(2))||(fromSlot==(2)&&toSlot==(1)));
+	if((@itemSwap!=null)&&!handsSwap)
+	return false; 
+	
+	if(toSlot==(1))
+	{
+		if(item.GetType()==(3)&&!IsCritterAnim1(cr.CrType,item.Proto.Weapon_Anim1))
+		return false;
+	} 
+	
+	if(toSlot==(3))
+	{
+		if(item.GetType()!=(1))
+		return false;
+		if(item.Proto.Slot!=(0))
+		return false;
+		if(!IsCritterCanArmor(cr.CrType))
+		return false;
+	} 
+	
+	if(toSlot>(3))
+	{
+		if(toSlot!=item.Proto.Slot)
+		return false;
+	} 
+	
+	return true;
+}   
+
+void critter_move_item(Critter&cr,Item&item,uint8 fromSlot)
+{
+	uint8 toSlot=item.CritSlot; 
+	
+	if(item.GetType()==(1)&&(fromSlot==(3)||toSlot==(3)))
+	{
+		if(GetCritterAnimType(cr.CrType)!=(1))
+		{
+			
+			bool isMale=(cr.Stat[(71)]==(0));
+			uint crType=cr.Stat[(112)];
+			if(crType==0)
+			crType=(isMale?((11)):((4)));
+			if(toSlot==(3))
+			crType=(isMale?item.Proto.Armor_CrTypeMale:item.Proto.Armor_CrTypeFemale); 
+			
+			if(cr.Stat[(112)]==(106)&&isMale)
+			{
+				crType=(106);
+				if(toSlot==(3))
+				{
+					crType=item.Proto.Armor_CrTypeMale;
+					if(crType==(12))
+					crType=(107);
+					else if(crType==(13))
+					crType=(108);
+					else if(crType==(14))
+					crType=(109);
+				}
+			}
+			
+			if(cr.CrType!=crType)
+			cr.ChangeCrType(crType);
+		}  
+		
+		int sign=(toSlot==(3)?int(1):-1);
+		switch(item.Proto.Armor_Perk)
+		{
+			case(1):
+			cr.StatBase[(32)]+=3*sign;
+			cr.StatBase[(62)]+=30*sign;
+			break;
+			case(2):
+			cr.StatBase[(62)]+=20*sign;
+			break;
+			case(3):
+			cr.StatBase[(32)]+=4*sign;
+			cr.StatBase[(62)]+=60*sign;
+			break;
+			case(4):
+			cr.StatBase[(32)]+=4*sign;
+			cr.StatBase[(62)]+=75*sign;
+			break;
+			case(5):
+			cr.StatBase[(35)]+=1*sign;
+			break;
+			default:
+			break;
+		}
+		cr.StatBase[(114)]=(toSlot==(3)?item.Proto.Armor_Perk:0);
+	}     
+	
+}
+

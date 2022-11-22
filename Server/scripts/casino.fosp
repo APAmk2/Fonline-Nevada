@@ -1,0 +1,94 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+bool s_Onehanded(Critter&cr,Scenery&onehanded,int skill,Item@item)
+{
+	if(skill!=(-1)||((@item!=null)&&item.GetProtoId()!=(41)))
+	{
+		cr.SayMsg((11),(3),(10202));
+		return true;
+	} 
+	
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return true;
+	
+	if(map.GetData(61)<int(__FullSecond))
+	{
+		map.SetData(60,(8000));
+		map.SetData(61,__FullSecond+(60*60*24*7));
+	}
+	
+	int OnehandedMoney=map.GetData(60);
+	
+	if(OnehandedMoney<=0)
+	{
+		cr.SayMsg((11),(0),(2001));
+		return true;
+	} 
+	
+	uint bet=(5);
+	if((@item!=null))
+	{
+		
+		bet=item.GetCount();
+	}
+	else
+	{
+		
+		bet=cr.CountItem((41));
+		if(bet<(1))
+		{
+			cr.SayMsg((11),(3),(10202));
+			return true;
+		}
+		if(bet>(5))
+		bet=(5);
+	} 
+	
+	if(bet>(50))
+	bet=(50); 
+	
+	if((@map!=null))
+	map.SetTextMsg(onehanded.HexX,onehanded.HexY,((uint((0xFF<<24)|(((0x7F)&0xFF)<<16)|(((0x7F)&0xFF)<<8)|((0x7F)&0xFF)))),(0),(2000)); 
+	
+	int gambling=cr.Skill[(216)];
+	if(OnehandedMoney<0)
+	gambling+=OnehandedMoney;
+	gambling=(((gambling)>(95))?(95):(((gambling)<(6))?(6):(gambling))); 
+	
+	if(gambling>=Random(1,100))
+	{
+		
+		if(Random(0,99)==77)
+		bet*=10;
+		if(Random(0,999)==777)
+		bet*=100;
+		if(Random(0,9999)==7777)
+		bet*=1000; 
+		
+		cr.AddItem((41),bet);
+		if(bet>(50))
+		cr.Say((11),"***JACKPOT***");
+		cr.Say((11),"+"+bet+"$");
+		OnehandedMoney-=bet;
+	}
+	
+	else
+	{
+		
+		cr.DeleteItem((41),bet);
+		cr.Say((11),"-"+bet+"$");
+		OnehandedMoney+=bet;
+	}
+	
+	map.SetData(60,OnehandedMoney);
+	return true;
+}

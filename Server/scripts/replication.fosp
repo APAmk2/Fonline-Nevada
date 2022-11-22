@@ -1,0 +1,556 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
+class Entire
+{
+	int Number;
+	uint16 HexX;
+	uint16 HexY;
+}
+
+Entire@GetEntire(Map&map,int entireNum,int skip)
+{
+	Entire ent;
+	if(map.GetEntireCoords(entireNum,skip,ent.HexX,ent.HexY)==false)
+	return null;
+	ent.Number=entireNum;
+	return ent;
+}
+
+uint ParseEntires(Map&map,Entire[]&entires,int number)
+{
+	uint oldCount=entires.length();
+	uint count=map.CountEntire(number);
+	entires.resize(oldCount+count);
+	
+	for(uint i=0;i<count;i++)
+	{
+		Entire@ent=entires[oldCount+i];
+		if(map.GetEntireCoords(number,i,ent.HexX,ent.HexY)==false)
+		return 0;
+		ent.Number=number;
+	}
+	
+	return count;
+}
+
+bool GetEntireFreeHex(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint count=map.CountEntire(number); 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy)&&map.IsHexPassed(hx,hy))
+		return true;
+	}
+	
+	if(hx==0||hy==0||hx>=map.GetWidth()-1||hy>=map.GetHeight()-1)
+	return false; 
+	
+	for(uint i=0;i<count;i++)
+	{
+		if(map.GetEntireCoords(number,i,hx,hy))
+		{
+			for(int x=-1;x<=1;x++)
+			{
+				for(int y=-1;y<=1;y++)
+				{
+					if(x==0&&y==0)
+					continue;
+					
+					if(__MapHexagonal)
+					{
+						if((hx%2)==1&&((x==-1&&y==1)||(x==1&&y==1)))
+						continue;
+						if((hx%2)==0&&((x==-1&&y==-1)||(x==1&&y==-1)))
+						continue;
+					}
+					
+					if(map.IsHexPassed(hx+x,hy+y))
+					{
+						hx+=x;
+						hy+=y;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)
+{
+	uint16 hxBase=hx;
+	uint16 hyBase=hy;
+	
+	Entire[]entires;
+	uint count=ParseEntires(map,entires,number);
+	if(count==0)
+	return false;
+	
+	hx=entires[0].HexX;
+	hy=entires[0].HexY;
+	for(uint i=1;i<count;i++)
+	{
+		Entire@ent=entires[i];
+		if(GetDistantion(hxBase,hyBase,ent.HexX,ent.HexY)<GetDistantion(hxBase,hyBase,hx,hy))
+		{
+			hx=ent.HexX;
+			hy=ent.HexY;
+		}
+	}
+	
+	return true;
+}                  
+
+bool IsCritterInDeadZone(Critter&cr,Map&map,uint8 dir,uint8 hexFirst,uint8 hexEnd)
+{
+	uint crossNum=0;
+	for(uint i=hexFirst;i<=hexEnd;i++)
+	{
+		if(BeamCrossing2Section(map,i,(i==hexEnd?hexFirst:i+1),cr.HexX,cr.HexY,dir))
+		{
+			crossNum++;
+			
+		}
+	}
+	bool inZone=false;
+	if(crossNum>0&&(crossNum%2==1))
+	inZone=true;
+	
+	return inZone;
+	
+}         
+
+bool BeamCrossing2Section(Map&map,uint8 hexNum1,uint8 hexNum2,uint16 beamX,uint16 beamY,uint8 dir)
+{
+	
+	uint16 hx0=beamX;
+	uint16 beamX2=hx0;
+	uint16 hy0=beamY;
+	uint16 beamY2=hy0;
+	uint steps=0;
+	
+	while(hx0!=beamX2||hy0!=beamY2||steps==0)
+	{
+		steps+=1;
+		hx0=beamX2;
+		hy0=beamY2;
+		map.MoveHexByDir(beamX2,beamY2,dir,steps);
+	} 
+	
+	uint16 hx1=0;
+	uint16 hx2=0;
+	uint16 hy1=0;
+	uint16 hy2=0;
+	
+	if(!map.GetEntireCoords(hexNum1,0,hx1,hy1))
+	return false;
+	if(!map.GetEntireCoords(hexNum2,0,hx2,hy2))
+	return false;                           
+	
+	float z=(int(hx1)-int(hx2))*(int(beamY2)-int(beamY))-(int(hy1)-int(hy2))*(int(beamX2)-int(beamX));
+	
+	float ch=(int(hx1)-int(beamX))*(int(beamY2)-int(beamY))-(int(hy1)-int(beamY))*(int(beamX2)-int(beamX));
+	
+	float cbeam=(int(hx1)-int(hx2))*(int(hy1)-int(beamY))-(int(hy1)-int(hy2))*(int(hx1)-int(beamX));
+	
+	if(z==0&&ch==0&&cbeam==0)
+	return false;
+	
+	if(z==0)
+	return false;
+	
+	float crossS=ch/z;
+	
+	float crossB=cbeam/z;
+	return(0<crossS&&crossS<1&&0<crossB&&crossB<1);
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+import void DropDrugEffects(Critter&cr)from"drugs";
+import void DropPoison(Critter&cr)from"poison";
+import void DropRadiation(Critter&cr)from"radiation";
+import void PlayVideo(Critter&cr,string&videoName,bool canStop)from"media";
+import void FindEncounter(Critter@[]&group,Item@car,uint x,uint y,uint&encounterDescriptor,bool&waitForAnswer,bool empty)from"worldmap";
+import void InviteToEncounter(Critter@[]&group,Item@car,uint encounterDescriptor,int combatMode,uint&mapId,uint16&hexX,uint16&hexY,uint8&dir)from"worldmap";
+import bool NeedReplicateCritterToBattle(Critter&cr)from"purgatory";
+
+const uint16 HellMapPid=(225);
+const uint16[]ReplicatorsMapPids={(221),(222),(223),(224)};
+uint ReplicatorPos=0; 
+
+bool IsPermanentDeathInit=false;
+uint[]PermanentDeath;
+
+bool IsPermanentDeath(uint id)
+{
+	if(not IsPermanentDeathInit)
+	{
+		GetAnyData("PermanentDeath",PermanentDeath);
+		IsPermanentDeathInit=true;
+	}
+	
+	for(uint i=0,j=PermanentDeath.length();i<j;i++)
+	if(PermanentDeath[i]==id)
+	return true;
+	return false;
+}
+
+void ClearPermanentDeath()
+{
+	PermanentDeath.resize(0);
+	SetAnyData("PermanentDeath",PermanentDeath);
+}
+
+void AddPermanentDeath(uint id)
+{
+	if(not IsPermanentDeathInit)
+	{
+		GetAnyData("PermanentDeath",PermanentDeath);
+		IsPermanentDeathInit=true;
+	}
+	
+	if(not IsPermanentDeath(id))
+	{
+		PermanentDeath.insertLast(id);
+		SetAnyData("PermanentDeath",PermanentDeath);
+	}
+}
+
+Map@GetStartReplicatorMap()
+{
+	return GetMapByPid(ReplicatorsMapPids[0],0);
+}
+
+Map@GetNearReplicatorMap(Critter&cr)
+{
+	Map@nearMap=null;
+	int nearDist=0;
+	for(uint i=0,j=ReplicatorsMapPids.length();i<j;i++)
+	{
+		Map@map=GetMapByPid(ReplicatorsMapPids[i],0);
+		if((@map!=null))
+		{
+			Location@loc=map.GetLocation();
+			int dx=int(cr.WorldX)-int(loc.WorldX);
+			int dy=int(cr.WorldY)-int(loc.WorldY);
+			int dist=int(sqrt(dx*dx+dy*dy)); 
+			
+			if(loc.GetProtoId()==(43))
+			{
+				GameVar@status=GetGlobalVar((1825));
+				if((@status!=null)&&status==1)
+				continue;
+			}
+			
+			if(not(@nearMap!=null)||dist<nearDist)
+			{
+				@nearMap=map;
+				nearDist=dist;
+			}
+		}
+	}
+	return nearMap;
+}
+
+void SetStartLocation(Critter&cr)
+{
+	Map@replicator=GetStartReplicatorMap();
+	if(not(@replicator!=null))
+	return; 
+	
+	uint zoneX=cr.WorldX/__GlobalMapZoneLength;
+	uint zoneY=cr.WorldY/__GlobalMapZoneLength;
+	cr.SetFog(zoneX,zoneY,(0));
+	cr.SetFog(zoneX-1,zoneY-1,(0));
+	cr.SetFog(zoneX,zoneY-1,(0));
+	cr.SetFog(zoneX+1,zoneY-1,(0));
+	cr.SetFog(zoneX-1,zoneY,(0));
+	cr.SetFog(zoneX+1,zoneY,(0));
+	cr.SetFog(zoneX-1,zoneY+1,(0));
+	cr.SetFog(zoneX,zoneY+1,(0));
+	cr.SetFog(zoneX+1,zoneY+1,(0));
+	
+	cr.TransitToMap(replicator.Id,(242));
+	
+	cr.SetKnownLoc(true,replicator.GetLocation().Id);
+	cr.SetKnownLoc(false,(44));
+	uint16 replPid=replicator.GetLocation().GetProtoId();
+	if(replPid==(40))
+	{
+		cr.SetKnownLoc(false,(1));
+		cr.SetKnownLoc(false,(2));
+	}
+	else if(replPid==(41))
+	{
+		cr.SetKnownLoc(false,(3));
+	}
+	else if(replPid==(42))
+	{
+		cr.SetKnownLoc(false,(13));
+	}
+	else if(replPid==(43))
+	{
+		cr.SetKnownLoc(false,(6));
+		cr.SetKnownLoc(false,(7));
+	}
+	
+	zoneX=cr.WorldX/__GlobalMapZoneLength;
+	zoneY=cr.WorldY/__GlobalMapZoneLength;
+	cr.SetFog(zoneX,zoneY,(3));
+	cr.SetFog(zoneX-1,zoneY-1,(1));
+	cr.SetFog(zoneX,zoneY-1,(1));
+	cr.SetFog(zoneX+1,zoneY-1,(1));
+	cr.SetFog(zoneX-1,zoneY,(1));
+	cr.SetFog(zoneX+1,zoneY,(1));
+	cr.SetFog(zoneX-1,zoneY+1,(1));
+	cr.SetFog(zoneX,zoneY+1,(1));
+	cr.SetFog(zoneX+1,zoneY+1,(1));
+}
+
+void SetReplicationTime(Critter&cr)
+{
+	int replTime=cr.Stat[(84)];
+	if(replTime<0)
+	return;
+	if(replTime==0)
+	{
+		if(cr.IsPlayer())
+		replTime=3;
+		else
+		replTime=Random(90,120);
+	}
+	replTime*=((1)*__TimeMultiplier*60);
+	cr.TimeoutBase[(241)]=__FullSecond+replTime;
+}
+
+bool IsHellMap(int mapPid)
+{
+	return mapPid==HellMapPid;
+}
+
+void ReplicateCritter(Critter&cr)
+{
+	Map@dieMap=cr.GetMap();
+	Map@map=null;
+	uint16 hx=0,hy=0,mapId=0; 
+	
+	Item@[]cars;
+	cr.GetItemsByType((13),cars);
+	if(cars.length()>0)
+	{
+		
+		bool transferred=false;
+		uint encounterDescriptor=uint(-1);
+		bool waitForAnswer=false;
+		FindEncounter(cr.GetGlobalGroup(),cars[0],cr.WorldX,cr.WorldY,encounterDescriptor,waitForAnswer,true);
+		if(encounterDescriptor!=uint(-1))
+		{
+			uint mapId=0;
+			uint16 hexX=0;
+			uint16 hexY=0;
+			uint8 dir=0;
+			InviteToEncounter(cr.GetGlobalGroup(),cars[0],encounterDescriptor,(0),mapId,hexX,hexY,dir);
+			if(mapId!=0&&cr.TransitToMap(mapId,hexX,hexY,dir))
+			transferred=true;
+		} 
+		
+		if(!transferred)
+		{
+			for(uint i=0;i<cars.length();i++)
+			DeleteItem(cars[i]);
+		} 
+		
+		cr.TimeoutBase[(241)]=__FullSecond+((1)*__TimeMultiplier*60);
+		return;
+	}
+	
+	if(cr.IsPlayer())
+	{
+		bool dieMapIsHell=((@dieMap!=null)&&IsHellMap(dieMap.GetProtoId()));
+		bool customReplMap=false;
+		if(cr.Stat[(131)]>0)
+		{
+			
+			NeedReplicateCritterToBattle(cr);
+			customReplMap=true;
+		}
+		
+		if(not customReplMap&&cr.Stat[(82)]<0)
+		{
+			@map=GetMapByPid(HellMapPid,0);
+			
+			if(not dieMapIsHell)
+			{
+				GameVar@hellVisits=GetLocalVar((20),cr.Id);
+				hellVisits+=1; 
+				
+				if(hellVisits==1)
+				PlayVideo(cr,"TheLifeAfterHell.ogv|TheLifeAfterHell.ogg",false); 
+				
+				if(__PermanentDeath>0&&hellVisits>__PermanentDeath)
+				{
+					AddPermanentDeath(cr.Id);
+					cr.SayMsg((11),(3),(1049));
+					cr.Disconnect();
+				}
+			}
+		}
+		else
+		{
+			if(customReplMap)
+			{
+				@map=GetMap(cr.Stat[(131)]);
+			}
+			else
+			@map=GetNearReplicatorMap(cr);
+		}
+		
+		if(not(@map!=null)||not GetEntireFreeHex(map,(customReplMap?cr.Stat[(132)]:(242)),hx,hy))
+		{
+			
+			cr.TimeoutBase[(241)]=__FullSecond+((1)*__TimeMultiplier*60);
+			return;
+		}
+		
+		if((cr.Mode[(511)]==0&&cr.Mode[(523)]==0))
+		{
+			Map@dropMap=cr.GetMap();
+			Item@[]items;
+			cr.GetItems(-1,items); 
+			
+			for(uint i=0,j=items.length();i<j;i++)
+			{
+				if((((items[i].Flags)&((0x00200000)))!=0))
+				{
+					DeleteItem(items[i]);
+					@items[i]=null;
+				}
+				else if((((items[i].Flags)&((0x00000001)))!=0))
+				{
+					@items[i]=null;
+				}
+			} 
+			
+			if((@dropMap!=null))
+			MoveItems(items,dropMap,cr.HexX,cr.HexY);
+			else
+			DeleteItems(items);
+		}
+		if(!customReplMap)
+		{
+			if(not dieMapIsHell)
+			{
+				cr.StatBase[(82)]-=cr.Stat[(85)];
+				cr.AddItem((117),1);
+				if(cr.Stat[(82)]>=100)
+				cr.AddItem((100),1);
+			}
+			cr.StatBase[(83)]++;
+		}
+		else
+		{
+			
+			cr.StatBase[(131)]=0;
+			cr.StatBase[(132)]=0;
+		}
+	}
+	else
+	{
+		cr.DropPlanes();
+		cr.ClearEnemyStackNpc();
+		cr.StatBase[(110)]=0;
+		@map=cr.GetMap();
+		if(not(@map!=null))
+		{
+			DeleteNpc(cr);
+			return;
+		}
+		hx=cr.HexX;
+		hy=cr.HexY;
+		
+		if(cr.Stat[(113)]!=0)
+		{
+			Item@block=GetItem(cr.Stat[(113)]);
+			if((@block!=null))
+			DeleteItem(block);
+			cr.StatBase[(113)]=0;
+		}
+		
+		if(not map.IsHexPassed(hx,hy))
+		{
+			bool founded=false;
+			for(int x=-1;x<=1;x++)
+			{
+				for(int y=-1;y<=1;y++)
+				{
+					if(x==0&&y==0)
+					continue;
+					
+					if(__MapHexagonal)
+					{
+						if((hx%2)==1&&((x==-1&&y==1)||(x==1&&y==1)))
+						continue;
+						if((hx%2)==0&&((x==-1&&y==-1)||(x==1&&y==-1)))
+						continue;
+					}
+					
+					if(map.IsHexPassed(hx+x,hy+y))
+					{
+						hx+=x;
+						hy+=y;
+						founded=true;
+						break;
+					}
+				}
+				if(founded)
+				break;
+			}
+			
+			if(not founded)
+			{
+				
+				cr.TimeoutBase[(241)]=__FullSecond+((1)*__TimeMultiplier*60);
+				return;
+			}
+		}
+	}
+	
+	cr.TransitToMap(map.Id,hx,hy,Random(0,5));
+	cr.DamageBase[(502)]=0;
+	cr.DamageBase[(503)]=0;
+	cr.DamageBase[(504)]=0;
+	cr.DamageBase[(505)]=0;
+	cr.DamageBase[(506)]=0;
+	if(cr.Stat[(130)]>0)
+	{
+		cr.ChangeCrType(cr.Stat[(130)]);
+		cr.StatBase[(112)]=cr.Stat[(130)];
+		cr.StatBase[(130)]=0;
+	}
+	cr.ToLife();
+	cr.StatBase[(72)]=cr.Stat[(7)];
+	cr.StatBase[(75)]=cr.Stat[(8)]*100;
+	DropPoison(cr);
+	DropRadiation(cr);
+	if(cr.IsNpc()||map.GetProtoId()!=HellMapPid)
+	DropDrugEffects(cr);
+	cr.DropTimers();
+	for(uint i=(__TimeoutBegin);i<=(__TimeoutEnd);i++)
+	if(i!=(242))
+	cr.TimeoutBase[i]=0;
+}   
+
+void _TurretInit(Critter&turret,bool firstTime)
+{
+	turret.StatBase[(1)]=10;
+	turret.SkillBase[(201)]=300;
+	turret.SkillBase[(202)]=300;
+	turret.ModeBase[(513)]=1;
+	turret.ModeBase[(522)]=1;
+}   
+
+void _HubologistInit(Critter&hubologist,bool firstTime)
+{
+	hubologist.ModeBase[(513)]=1;
+}

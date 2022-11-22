@@ -1,0 +1,442 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+import bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)from"entire";
+import void _NpcMessage(Critter&cr,Critter&fromCr,int message,int value)from"npc_dialog";
+import void BeginDialog(Critter&cr,int dialog)from"npc_dialog";
+import bool _GuardedItemSkill(Item&item,Critter&cr,int skill)from"item";
+import bool IsLocalNpc(Critter@cr,Map@map)from"npc_revenge";
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes"; 
+
+bool d_IsHonomerNear(Critter&player,Critter@npc)
+{
+	Map@map=player.GetMap();
+	Critter@[]critters;
+	if(map.GetCritters((279),(0x01)|(0x20),critters)>0)
+	{
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			if(critters[i].Stat[(104)]==(1458))
+			return true;
+		}
+	}
+	return false;
+}
+
+bool d_NoHonomerNear(Critter&player,Critter@npc)
+{
+	return!d_IsHonomerNear(player,npc);
+} 
+
+void AddNewHonomer()
+{
+	Map@map=GetMapByPid((142),0);
+	uint16 hx=0;
+	uint16 hy=0;
+	if((@map!=null)&&GetNearEntire(map,(43),hx,hy))
+	{
+		Critter@[]critters;
+		map.GetCritters((279),(0x0F)|(0x20),critters);
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			if(critters[i].Stat[(104)]==(1458))
+			return;
+		}
+		int[]params={(104),(1458)};
+		map.AddNpc((279),hx,hy,Random(0,5),params,null,"_HonomerInit");
+	}
+}
+
+void _HonomerInit(Critter&cr,bool firstTime)
+{
+	cr.SetEvent((40),"_HonomerGlobalProcess");
+	cr.SetEvent((1),"_HonomerFinish");
+	cr.SetEvent((2),"_HonomerDead");
+	cr.SetEvent((0),"_HonomerIdle");
+	cr.SetEvent((18),"_HonomerMessage");
+	cr.SetEvent((36),"_HonomerPlaneEnd");
+}
+
+void _HonomerMessage(Critter&cr,Critter&fromCr,int message,int value)
+{
+	if(value==2||value==4)
+	{
+		_NpcMessage(cr,fromCr,message,value);
+	}
+}
+
+int _HonomerPlaneEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(cr.IsNoPlanes()&&d_HonomerInLab(cr,cr))
+	{
+		uint16 hx=0,hy=0;
+		Map@map=cr.GetMap();
+		if((@map!=null)&&map.GetEntireCoords((19),0,hx,hy))
+		{
+			if(hx==cr.HexX&&hy==cr.HexY)
+			{ 
+				
+				map.GetEntireCoords((21),0,hx,hy);
+				Item@door=map.GetItem(hx,hy,(2019));
+				if((@door!=null))
+				{
+					door.LockerOpen();
+					CreateTimeEvent(__FullSecond+__TimeMultiplier*10,"item@e_AutoCloseDoor",door.Id,true);
+				}
+				if(map.GetEntireCoords((20),0,hx,hy))
+				{
+					cr.SetHomePos(hx,hy,0);
+				}
+				return(0);
+			}
+		}
+		if((@map!=null)&&map.GetEntireCoords((20),0,hx,hy))
+		{
+			if(plane.Type!=(0))
+			{
+				if(hx==cr.HexX&&hy==cr.HexY)
+				{
+					BeginDialog(cr,4);
+				}
+			}
+			else
+			{
+				if(Random(1,3)==1)
+				cr.Animate(0,(28),null,true,true);
+			}
+		}
+	}
+	return(0);
+}
+
+void _HonomerDead(Critter&cr,Critter@killer)
+{
+	_HonomerIdle(cr);
+}
+
+bool _HonomerGlobalProcess(Critter&cr,int type,Item@car,float&x,float&y,float&toX,float&toY,float&speed,uint&encounterDescriptor,bool&waitForAnswer)
+{
+	if(type!=(2)&&type!=(3))
+	{
+		bool ok=false;
+		Critter@[]group=cr.GetGlobalGroup();
+		GameVar@playerId=GetLocalVar((4436),cr.Id);
+		
+		if((@playerId!=null))
+		{
+			Critter@player=GetCritter(playerId.GetValue());
+			if((@player!=null))
+			{
+				for(uint i=0,l=group.length();i<l;i++)
+				{
+					if(group[i].Id==player.Id)
+					{
+						ok=true;
+						break;
+					}
+				}
+			}
+		}
+		if(!ok)
+		{
+			
+			DeleteNpc(cr);
+			return true;
+		}
+	}
+	
+	if(type!=(0))
+	{
+		GameVar@locId=GetLocalVar((4435),cr.Id);
+		if((@locId!=null))
+		{
+			Location@loc=GetLocation(locId.GetValue());
+			if((@loc!=null))
+			{
+				if(loc.WorldX==x&&loc.WorldY==y)
+				{
+					Map@map=loc.GetMapByIndex(1);
+					cr.TransitToMap(map.Id,(1),true);
+					loc.AutoGarbage=true;
+					cr.SetEvent((0),"_HonomerIdle");
+					GameVar@pId=GetLocalVar((4436),cr.Id);
+					if((@pId!=null)&&pId.GetValue()>0)
+					{
+						GameVar@qVar=GetLocalVar((4434),pId.GetValue());
+						if((@qVar!=null)&&qVar==2)
+						{
+							qVar=3;
+							Critter@player=GetCritter(pId.GetValue());
+							if((@player!=null))
+							player.StatBase[(76)]+=1000;
+						}
+					}
+					BeginDialog(cr,(2));
+				}
+				else
+				{
+					speed=(2.4f);
+					toX=loc.WorldX;
+					toY=loc.WorldY;
+				}
+				return true;
+			}
+		} 
+		
+		DeleteNpc(cr);
+		return true;
+	}
+	return false;
+}
+
+void _HonomerIdle(Critter&cr)
+{
+	uint16 x=0;
+	uint16 y=0;
+	uint mapId=0;
+	uint8 dir=0;
+	cr.GetHomePos(mapId,x,y,dir);
+	if((@cr.GetMap()!=null)&&cr.GetMap().Id!=mapId)
+	{
+		cr.SetHomePos(cr.HexX,cr.HexY,0);
+	}
+	cr.SetEvent((0),"");
+}
+
+void _HonomerFinish(Critter&cr,bool deleted)
+{
+	if(deleted)
+	{
+		AddNewHonomer();
+	}
+}
+
+bool d_HonomerInLab(Critter&player,Critter@npc)
+{
+	Map@map=npc.GetMap();
+	return((@map!=null)&&(map.GetLocation().GetProtoId()==(219)));
+}
+
+bool d_NotHonomerInLab(Critter&player,Critter@npc)
+{
+	return!d_HonomerInLab(player,npc);
+}
+
+bool d_IsMyFollower(Critter&player,Critter@npc)
+{
+	GameVar@playerId=GetLocalVar((4436),npc.Id);
+	return((@playerId!=null)&&playerId.GetValue()==int(player.Id));
+}
+
+bool d_NotMyFollower(Critter&player,Critter@npc)
+{
+	return!d_IsMyFollower(player,npc);
+}
+
+void r_SetFollower(Critter&player,Critter@npc)
+{
+	GameVar@playerId=GetLocalVar((4436),npc.Id);
+	if((@playerId!=null))
+	{
+		playerId=player.Id;
+		
+		if(npc.GetTimeEvents((121),null,null,null)>0)
+		npc.EraseTimeEvents((121));
+		npc.AddTimeEvent("cte_ClearFollower",60*60*24,(121),0);
+	}
+}
+
+uint cte_ClearFollower(Critter&cr,int identifier,uint&rate)
+{
+	GameVar@playerId=GetLocalVar((4436),cr.Id);
+	if((@playerId!=null))
+	playerId=0;
+	return 0;
+}
+
+void r_Travel(Critter&player,Critter@npc)
+{
+	GameVar@locNpc=GetLocalVar((4435),npc.Id);
+	GameVar@locPlayer=GetLocalVar((4435),player.Id);
+	if(!(@locNpc!=null)||!(@locPlayer!=null))
+	return;
+	Location@loc;
+	if(locPlayer>0)
+	@loc=GetLocation(locPlayer.GetValue());
+	if(!(@loc!=null))
+	{
+		uint locId=CreateLocation((219),(532),(1435),null);
+		if(locId==0)
+		return;
+		@loc=GetLocation(locId);
+		loc.Visible=false;
+		loc.AutoGarbage=false;
+	}
+	locNpc=loc.Id;
+	locPlayer=loc.Id;
+	Critter@[]grp;
+	grp.insertLast(@npc);
+	grp.insertLast(@player);
+	npc.TransitToGlobal(grp);
+}
+
+void AttackPlayer(Critter&target)
+{
+	Map@map=target.GetMap();
+	if(!(@map!=null))
+	return;
+	Location@loc=map.GetLocation();
+	uint maps=loc.GetMapCount();
+	Critter@[]critters;
+	for(uint i=0;i<maps;i++)
+	{
+		@map=loc.GetMapByIndex(i);
+		@critters;
+		map.GetCritters(0,(0x0F)|(0x20),critters);
+		for(uint i=0,l=critters.length();i<l;i++)
+		{
+			Critter@cr=critters[i];
+			if((@cr!=null)&&IsLocalNpc(cr,map)&&!cr.CheckEnemyInStack(target.Id))
+			{
+				cr.AddEnemyInStack(target.Id);
+				AddAttackPlane(cr,0,target);
+			}
+		}
+	}
+} 
+
+void _DoorGuardInit(Critter&cr,bool firstTime)
+{
+	cr.SetEvent((18),"_DoorGuardMessage");
+	cr.SetEvent((16),"_HubAttacked");
+	cr.StatBase[(89)]=(18);
+}
+bool _HubAttacked(Critter&cr,Critter&attacker)
+{
+	AttackPlayer(cr);
+	return false;
+}
+void _DoorGuardMessage(Critter&cr,Critter&fromCr,int message,int value)
+{
+	if(value==2)
+	_NpcMessage(cr,fromCr,message,value);
+	if(message==(4023)&&value==2)
+	{
+		uint16 hx=0,hy=0,x=0,y=0;
+		uint8 d=0;
+		uint mapId=0;
+		fromCr.GetHomePos(mapId,x,y,d);
+		if(cr.GetMap().GetEntireCoords((19),0,hx,hy)&&hx!=x&&hy!=y&&hx>0&&hy>0)
+		fromCr.SetHomePos(hx,hy,0);
+	}
+} 
+
+void _DoorInit(Item&item,bool firstTime)
+{
+	item.SetEvent((4),"_DoorSkill");
+}
+
+bool _DoorSkill(Item&item,Critter&cr,int skill)
+{
+	if(cr.IsPlayer()&&cr.Mode[(510)]==0)
+	return _GuardedItemSkill(item,cr,skill);
+	return false;
+} 
+
+void _HubInit(Critter&cr,bool firstTime)
+{
+	if(cr.Stat[(89)]==(22))
+	cr.SetEvent((18),"_HubMessage");
+	cr.SetEvent((16),"_HubAttacked");
+}
+
+void _HubMessage(Critter&cr,Critter&fromCr,int message,int value)
+{
+	if(value==3)
+	_NpcMessage(cr,fromCr,message,value);
+} 
+
+void t_NpcDialog(Critter&player,Scenery&trigger,bool entered,uint8 dir)
+{
+	Map@map=player.GetMap();
+	Critter@cr=player.GetMap().GetNpc((22),(0x01)|(0x20),0);
+	if((@cr!=null)&&cr.Stat[(97)]==0&&cr.IsNoPlanes())
+	{
+		cr.StatBase[(97)]=1;
+		BeginDialog(cr,3);
+	}
+} 
+
+void t_CloseDoor(Critter&cr,Scenery&trigger,bool entered,uint8 dir)
+{
+	if(cr.IsNpc()&&cr.Stat[(104)]==(1458))
+	{
+		Map@map=cr.GetMap();
+		GameVar@inside=GetLocalVar((4437),map.Id);
+		if((@inside!=null)&&inside==0)
+		{
+			inside=1;
+			uint16 hx=0,hy=0;
+			if(map.GetEntireCoords((21),0,hx,hy))
+			{
+				Item@door=map.GetItem(hx,hy,(2019));
+				if((@door!=null))
+				{
+					door.LockerClose();
+				}
+			}
+		}
+	}
+	
+} 
+
+void t_Attack(Critter&cr,Scenery&trigger,bool entered,uint8 dir)
+{
+	if(cr.Mode[(510)]>0)
+	return;
+	uint pid=0;
+	Item@item=cr.GetItem(0,(3));
+	if((@item!=null))
+	pid=item.GetProtoId();
+	if(cr.IsPlayer()&&pid!=(113)&&
+	pid!=(524)&&
+	pid!=(585))
+	{
+		Map@map=cr.GetMap();
+		GameVar@failed=GetLocalVar((4438),cr.Id);
+		if((@map!=null)&&(@failed!=null)&&failed==0)
+		{
+			AttackPlayer(cr);
+			Critter@[]critters;
+			if(map.GetCrittersHex(trigger.HexX,trigger.HexY,map.GetWidth(),(0x20)|(0x01),critters)>0)
+			{
+				critters[0].SayMsg((3),(0),(8030));
+			}
+		}
+	}
+}
+
+bool d_InRobe(Critter&cr,Critter@npc)
+{
+	uint pid=0;
+	Item@item=cr.GetItem(0,(3));
+	if((@item!=null))
+	pid=item.GetProtoId();
+	return(pid==(113)||pid==(524)||pid==(585));
+}
+
+bool d_NotRobe(Critter&player,Critter@npc)
+{
+	return!d_InRobe(player,npc);
+}
+
+void r_ShowHell(Critter&player,Critter@npc)
+{
+	Map@map=GetMapByPid((225),0);
+	if((@map!=null))
+	{
+		uint16 hx=0,hy=0;
+		if(map.GetEntireCoords((242),0,hx,hy))
+		player.ViewMap(map,50,hx,hy,5);
+		
+	}
+}

@@ -1,0 +1,153 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+import bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)from"entire";
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target,bool run)from"npc_planes";       
+
+void CallTownSupply(Critter&victim,Critter&hostile)
+{
+	if(IsValidForSupply(victim,hostile))
+	{
+		uint[]values={victim.Id,hostile.Id,0};
+		::CreateTimeEvent(__FullSecond+(Random(((5)*__TimeMultiplier*60),((60)*__TimeMultiplier*60))),"e_CallTownSupply",values,true);
+	}
+}
+
+uint e_CallTownSupply(uint[]@values)
+{
+	uint victimId=values[0];
+	Critter@hostile=::GetCritter(values[1]);
+	uint rate=++values[2];
+	
+	if((@hostile!=null)&&hostile.GetMapId()!=0&&not hostile.IsDead())
+	{
+		uint count=hostile.Stat[(77)]/10+1;
+		if(count>10)
+		count=10;
+		CallSupply(victimId,hostile,count);
+		return 0;
+	}
+	
+	if(rate>=10)
+	return 0;
+	return(Random(((5)*__TimeMultiplier*60),((60)*__TimeMultiplier*60)));
+}
+
+bool IsValidForSupply(Critter&victim,Critter&hostile)
+{
+	
+	if(hostile.IsPlayer()&&hostile.GetAccess()<(2)&&victim.IsNpc()&&victim.Mode[(533)]==0)
+	{
+		int bt=victim.Stat[(67)];
+		if(bt>=(0)&&bt<=(4))
+		{
+			Map@map=hostile.GetMap();
+			if((@map!=null))
+			{
+				uint16 locPid=map.GetLocation().GetProtoId();
+				if((((locPid)>=(1)&&(locPid)<=(19)&&(locPid)!=(11)&&(locPid)!=(12)&&(locPid)!=(8))||(locPid)==(44)))
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void CallSupply(uint victimId,Critter&target,int supplyCount)
+{
+	Map@map=target.GetMap();
+	if(not(@map!=null))
+	return;
+	uint16 hx=target.HexX,hy=target.HexY;
+	if(not GetNearEntire(map,(0),hx,hy))
+	return;
+	
+	int rnd=Random(0,9);
+	int[]params=
+	{
+		(107),(234)+rnd,(106),(5),
+		(66),0,(420),1,(511),1,(532),1,(533),1,
+		(90),victimId,(91),target.Id
+	};
+	Critter@bountyHunter=map.AddNpc((181)+rnd,hx,hy,Random(0,5),params,null,"_GuardInit");
+	if(not(@bountyHunter!=null))
+	return;
+	
+	AddAttackPlane(bountyHunter,0,target,true);
+	
+	if(supplyCount>1)
+	CallSupply(victimId,target,supplyCount-1);
+}
+
+void _GuardInit(Critter&bountyHunter,bool firstTime)
+{
+	bountyHunter.StatBase[(89)]=(29);
+	bountyHunter.SetEvent((0),"_GuardIdle");
+	bountyHunter.SetEvent((2),"_GuardDead");
+	bountyHunter.SetEvent((26),"_GuardSmthDead");
+	
+	bountyHunter.SetEvent((36),"_GuardPlaneEnd");
+	bountyHunter.StatBase[(101)]=100;
+	bountyHunter.PerkBase[(325)]=1;
+	bountyHunter.PerkBase[(324)]=1;
+	bountyHunter.PerkBase[(420)]=1;
+	bountyHunter.PerkBase[(322)]=1;
+}
+
+void _GuardIdle(Critter&bountyHunter)
+{
+	uint16 hx=bountyHunter.HexX,hy=bountyHunter.HexY;
+	if(not GetNearEntire(bountyHunter.GetMap(),(0),hx,hy))
+	DeleteNpc(bountyHunter);
+	else
+	{
+		bountyHunter.StatBase[(75)]=bountyHunter.Stat[(8)]*100;
+		NpcPlane@plane=CreatePlane();
+		plane.Type=(2);
+		plane.Priority=(20);
+		plane.Identifier=(29);
+		plane.Walk_HexX=hx;
+		plane.Walk_HexY=hy;
+		plane.Walk_Dir=6;
+		plane.Run=true;
+		plane.Walk_Cut=2;
+		if(not bountyHunter.AddPlane(plane))
+		DeleteNpc(bountyHunter);
+	}
+}
+
+void _GuardDead(Critter&bountyHunter,Critter@killer)
+{
+	
+	DeleteNpc(bountyHunter);
+}
+
+void _GuardSmthDead(Critter&bountyHunter,Critter&fromCrit,Critter@killer)
+{
+	
+	if((@killer!=null)&&killer.IsPlayer()&&fromCrit.StatBase[(89)]==(29))
+	{
+		bountyHunter.AddEnemyInStack(killer.Id);
+		return;
+	} 
+	
+	uint victimId=bountyHunter.StatBase[(90)];
+	uint hostileId=bountyHunter.StatBase[(91)];
+	if(victimId!=0&&hostileId==fromCrit.Id)
+	{
+		Critter@victim=::GetCritter(victimId);
+		if((@victim!=null))
+		victim.EraseEnemyFromStack(hostileId);
+	}
+}
+
+void _GuardSmthAttack(Critter&bountyHunter,Critter&fromCrit,Critter&target)
+{
+	
+}
+
+int _GuardPlaneEnd(Critter&bountyHunter,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(plane.Identifier==(29))
+	DeleteNpc(bountyHunter);
+	return(0);
+}

@@ -1,0 +1,1571 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+
+class Sprite
+{
+	Sprite()
+	{
+		Id=0;
+		Width=0;
+		Height=0;
+		FrmCount=0;
+	}
+	
+	void Load(string&name,int path)
+	{
+		if(name.length()>0)
+		Id=LoadSprite(name,path);
+		else
+		Id=0;
+		RefreshData();
+	}
+	
+	void Load(uint nameHash,uint8 dir)
+	{
+		Id=LoadSprite(nameHash,dir);
+		RefreshData();
+	}
+	
+	void LoadByIni(string&iniKey,int path)
+	{
+		string@name=GetIfaceIniStr(iniKey);
+		if(@name!=null&&name.length()>0)
+		Id=LoadSprite(name,path);
+		else
+		Id=0;
+		RefreshData();
+	}
+	
+	void Draw(int x,int y)
+	{
+		if(Id!=0)
+		DrawSprite(Id,-1,x,y,0);
+	}
+	
+	private void RefreshData()
+	{
+		if(Id!=0)
+		{
+			Width=GetSpriteWidth(Id,0);
+			Height=GetSpriteHeight(Id,0);
+			FrmCount=GetSpriteCount(Id);
+		}
+		else
+		{
+			Width=0;
+			Height=0;
+			FrmCount=0;
+		}
+	}
+	
+	uint Id;
+	int Width;
+	int Height;
+	uint FrmCount;
+}             
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+import void InitializeGame()from"config";
+import void InitTestScreen()from"client_screen_test";
+import void InitRadioScreen()from"radio";
+import void GUI_Init()from"client_gui";
+import void GUI_GetActiveScreens(int[]&result)from"client_gui";
+import void GUI_ShowScreen(int screenIndex,int p0,int p1,int p2)from"client_gui";
+import void GUI_HideScreen(int screenIndex,int p0,int p1,int p2)from"client_gui";
+import void GUI_Render(bool mainScreen)from"client_gui";
+import bool GUI_MouseDown(int click,int x,int y)from"client_gui";
+import bool GUI_MouseUp(int click,int x,int y)from"client_gui";
+import void GUI_MouseMove(int x,int y)from"client_gui";
+import bool GUI_KeyDown(uint8 key,string&keyText)from"client_gui";
+import bool GUI_KeyUp(uint8 key,string&keyText)from"client_gui";
+import void GUI_InputLost()from"client_gui";
+import bool PerkCheck(CritterCl&cr,uint perk)from"perks";
+import void CritterGenerate(int[]&data)from"parameters";
+import bool CritterGenerateCheck(int[]&data)from"parameters";
+import void InitNameColorizing()from"name_colorizing";
+import bool TryColorizeCritter(CritterCl&cr)from"name_colorizing";
+import bool PlayerIgnored(CritterCl&cr)from"ignore_list";
+import bool IgnorePlayer(string&message)from"ignore_list";
+import void InitIgnoreList()from"ignore_list";
+import void InitChosenTabs()from"chosen_tabs";
+import void DrawChosenTabs()from"chosen_tabs";    
+
+import void PlayAnimSound(uint crType,int gender,uint anim1,uint anim2)from"animation";
+import uint CheckPlayerName(const string&name)from"parameters";  
+
+bool start()
+{
+	InitializeGame();
+	
+	if(__ScreenWidth<800||__ScreenWidth>1280||__ScreenHeight<600||__ScreenHeight>1024)
+	{
+		
+		Message(GetMsgStr((3),(1040)));
+	}       
+	
+	LoadFont((10),"CourierNewSmall"); 
+	
+	GUI_Init();
+	InitNameColorizing();
+	InitIgnoreList();
+	
+	InitRadioScreen();
+	InitChosenTabs();                                    
+	
+	return true;
+}  
+
+uint loop()
+{
+	return 60000;
+}  
+
+void get_active_screens(int[]&result)
+{
+	GUI_GetActiveScreens(result);
+}  
+
+void screen_change(bool show,int screen,int p0,int p1,int p2)
+{
+	if(show)
+	GUI_ShowScreen(screen,p0,p1,p2);
+	else
+	GUI_HideScreen(screen,p0,p1,p2);
+}              
+
+void render_iface(uint layer)
+{
+	if(layer==2)
+	{
+		GUI_Render(true);
+	}
+	else if(layer==3)
+	{
+		DrawChosenTabs();
+		GUI_Render(false);
+	}
+	else if(layer==100&&__GmapActive)
+	{          
+		
+	}
+}  
+
+void render_map()
+{}   
+
+bool mouse_down(int click)
+{
+	return GUI_MouseDown(click,__MouseX,__MouseY);
+}
+
+bool mouse_up(int click)
+{
+	return GUI_MouseUp(click,__MouseX,__MouseY);
+}
+
+void mouse_move(int x,int y)
+{ 
+	
+	GUI_MouseMove(x,y);
+}   
+
+bool AltDown=false;
+bool CtrlDown=false;
+bool key_down(uint8 key,string&keyText)
+{
+	
+	if(key==0x1D||key==0x9D)
+	CtrlDown=true;
+	if(key==0x38||key==0xB8)
+	AltDown=true;
+	
+	if(__OpenGLRendering)
+	{
+		if(AltDown&&key==0x10)
+		SetEffect((0x08000000),0,null);
+		if(AltDown&&key==0x11)
+		SetEffect((0x08000000),0,"Flush_Map_BlackWhite.glsl");
+	}
+	else
+	{
+		int effectType=(0x00000001)|(0x00000002)|(0x00000004)|(0x00000008)|(0x00000010);
+		if(AltDown&&key==0x10)
+		SetEffect(effectType,0,null);
+		if(AltDown&&key==0x11)
+		SetEffect(effectType,0,"2D_BlackWhite.fx");
+	}
+	
+	if(key==0x2C)
+	__MapZooming=true; 
+	
+	if(key==0x13)
+	{
+		CritterCl@chosen=GetChosen();
+		if((@chosen!=null))
+		{
+			ItemCl@weapon=chosen.GetItem(0,(1));
+			if((@weapon!=null))
+			{
+				uint[]use={(6),weapon.Id,0,(1),0,(3),0};
+				SetChosenActions(use);
+			}
+		}
+	}
+	
+	if(AltDown&&key==0x06)
+	{
+		uint[]use={(10),(206),GetChosen().Id,0,0,0,0};
+		SetChosenActions(use);
+	}
+	if(AltDown&&key==0x07)
+	{
+		uint[]use={(10),(207),GetChosen().Id,0,0,0,0};
+		SetChosenActions(use);
+	}
+	
+	if(CtrlDown&&key==0x02)
+	{
+		uint16 pid=(40);
+		CritterCl@cr=GetChosen();
+		ItemCl@item=cr.GetItem(pid,-1);
+		uint[]use={(6),item.Id,0,0,0,(4),0};
+		SetChosenActions(use);
+	}
+	
+	if(CtrlDown&&key==0x03)
+	{
+		uint16 pid=(144);
+		CritterCl@cr=GetChosen();
+		ItemCl@item=cr.GetItem(pid,-1);
+		uint[]use={(6),item.Id,0,0,0,(4),0};
+		SetChosenActions(use);
+	}
+	
+	return GUI_KeyDown(key,keyText);
+}
+
+bool key_up(uint8 key,string&keyText)
+{
+	if(key==0x38||key==0xB8)
+	AltDown=false;
+	if(key==0x2C)
+	__MapZooming=false;
+	
+	return GUI_KeyUp(key,keyText);
+}  
+
+void input_lost()
+{
+	AltDown=false;
+	__MapZooming=false;
+	
+	GUI_InputLost();
+}  
+
+void critter_in(CritterCl&cr)
+{
+	
+	cr.NameColor=((uint((0xFF<<24)|(((0xAD)&0xFF)<<16)|(((0xAD)&0xFF)<<8)|((0xB9)&0xFF))));
+	cr.ContourColor=(cr.IsPlayer()?((uint((0xFF<<24)|(((150)&0xFF)<<16)|(((150)&0xFF)<<8)|((0)&0xFF)))):((uint((0xFF<<24)|(((150)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF))))); 
+	
+	if(TryColorizeCritter(cr))
+	return; 
+	
+	cr.NameColor=(((((__GetColor(((((uint((0xFF<<24)|(((0xAD)&0xFF)<<16)|(((0xAD)&0xFF)<<8)|((0xB9)&0xFF))))>>16)&0xFF)+cr.Stat[(100)]/10,((((uint((0xFF<<24)|(((0xAD)&0xFF)<<16)|(((0xAD)&0xFF)<<8)|((0xB9)&0xFF))))>>8)&0xFF)+cr.Stat[(100)]/10,(((uint((0xFF<<24)|(((0xAD)&0xFF)<<16)|(((0xAD)&0xFF)<<8)|((0xB9)&0xFF))))&0xFF)+cr.Stat[(100)]/10))|0xFF000000)^0xFF000000)|(((((uint((0xFF<<24)|(((0xAD)&0xFF)<<16)|(((0xAD)&0xFF)<<8)|((0xB9)&0xFF))))>>24)&0xFF)&0xFF)<<24));                    
+	
+}
+
+void critter_out(CritterCl&cr)
+{}  
+
+void item_map_in(ItemCl&item)
+{}
+
+void item_map_changed(ItemCl&itemNow,ItemCl&itemBefore)
+{}
+
+void item_map_out(ItemCl&item)
+{}  
+
+void item_inv_in(ItemCl&item)
+{}
+
+void item_inv_out(ItemCl&item)
+{}  
+
+void item_drop(ItemCl&item)
+{}   
+
+bool map_message(string&message,uint16&hexX,uint16&hexY,uint&color,uint&delay)
+{
+	
+	if(color==0xFFFFFFFE)
+	message=".."+message+"..";
+	return true;
+}   
+
+bool in_message(string&message,int&sayType,uint&critterId,uint&delay)
+{
+	CritterCl@cr=GetCritter(critterId);
+	if((@cr!=null)&&PlayerIgnored(cr))
+	return false;
+	return true;
+}  
+
+bool out_message(string&message,int&sayType)
+{
+	if(message[0]=="~")
+	{
+		if(message=="~names")
+		{
+			InitNameColorizing();
+			Message("Names colorizer refreshed.");
+			return false;
+		}
+		
+		if(message=="~ignorelist")
+		{
+			InitIgnoreList();
+			Message("Ignore List refreshed.");
+			return false;
+		}
+		
+		if(message=="~globalmap")
+		{
+			RunServerScriptUnsafe("nopvp_maps@unsafe_CritterToGlobal",0,0,0,null,null);
+			return false;
+		}
+		
+		if(message.length()>8&&substring(message,0,8)=="~ignore ")
+		{
+			IgnorePlayer(message);
+			InitIgnoreList();
+			return false;
+		}
+		
+		return true;
+	}
+	
+	if(sayType==(1))
+	{
+		if(message.length()>2&&(message[0]=="/"||message[0]=="."))
+		{
+			string ch=message[1];
+			if(ch=="к"||ch=="К"||ch=="s"||ch=="S")
+			sayType=(3);
+			else if(ch=="э"||ch=="Э"||ch=="e"||ch=="E")
+			sayType=(5);
+			else if(ch=="ш"||ch=="Ш"||ch=="w"||ch=="W")
+			sayType=(7);
+			else if(ch=="с"||ch=="С"||ch=="$")
+			sayType=(9);
+			else if(ch=="р"||ch=="Р"||ch=="r"||ch=="R")
+			sayType=(10);
+			
+			if(sayType!=(1))
+			{
+				message[0]="";
+				message[0]="";
+				while(message[0]==" ")
+				message[0]="";
+			}
+		}
+		else if(
+		message.length()>=4&&message[0]=="*"&&message[1]!="*"&&
+		message[message.length()-2]!="*"&&message[message.length()-1]=="*")
+		{
+			sayType=(5);
+			message=substring(message,1,message.length()-2);
+		}
+	}
+	
+	bool result=false;
+	for(uint i=0,j=message.length();i<j;i++)
+	{
+		if(message[i]!=" ")
+		{
+			result=true;
+			break;
+		}
+	}
+	
+	return result;
+}  
+
+int to_hit(CritterCl&chosen,CritterCl&target,ProtoItem&weapon,uint8 weaponMode)
+{
+	int use=((weaponMode)&0xF);
+	int hitLocation=(((weaponMode)>>4)&0xF);
+	if(use>2)
+	return 0;
+	
+	if(target.IsDead())
+	return 0;
+	if(!chosen.IsLife())
+	return 0;
+	
+	ItemCl@realWeapon=chosen.GetItem(0,(1));
+	ProtoItem@ammo=null;
+	
+	if((@realWeapon!=null)&&((use)==0?weapon.Weapon_Round_0:((use)==1?weapon.Weapon_Round_1:((use)==2?weapon.Weapon_Round_2:0)))>0)
+	{
+		if(realWeapon.AmmoCount==0)
+		return 0;
+		@ammo=GetProtoItem(realWeapon.AmmoPid);
+	}
+	
+	uint skillNum=((use)==0?weapon.Weapon_Skill_0:((use)==1?weapon.Weapon_Skill_1:((use)==2?weapon.Weapon_Skill_2:0)));
+	int wpnMaxDist=((use)==0?weapon.Weapon_MaxDist_0:((use)==1?weapon.Weapon_MaxDist_1:((use)==2?weapon.Weapon_MaxDist_2:0)));
+	if(skillNum==(205))
+	wpnMaxDist=(((wpnMaxDist)<(3*(((int(10))<(chosen.Stat[(0)]+2*chosen.Perk[(336)]))?(int(10)):(chosen.Stat[(0)]+2*chosen.Perk[(336)]))))?(wpnMaxDist):(3*(((int(10))<(chosen.Stat[(0)]+2*chosen.Perk[(336)]))?(int(10)):(chosen.Stat[(0)]+2*chosen.Perk[(336)]))));
+	
+	int dist=GetCrittersDistantion(chosen,target);
+	if(dist>wpnMaxDist)
+	return 0;
+	
+	int toHit=int(chosen.Skill[skillNum]);
+	int weaponPerk=weapon.Weapon_Perk;
+	int blockers=0;
+	
+	if(skillNum!=(203)&&skillNum!=(204))
+	{
+		
+		int distmod1=2;
+		int distmod2=0;
+		if(weaponPerk==(1))
+		distmod1=4;
+		else if(weaponPerk==(5))
+		{
+			distmod1=5;
+			distmod2=8;
+		}
+		
+		int perception=chosen.Stat[(1)];
+		int acc=dist;
+		
+		if(dist<distmod2)
+		acc+=distmod2;
+		else
+		{
+			if(chosen.IsPlayer())
+			acc-=(perception-2)*distmod1;
+			else
+			acc-=perception*distmod1;
+		}
+		
+		if(-2*perception>acc)
+		acc=-2*perception;
+		
+		acc-=2*chosen.Perk[(315)];
+		
+		if(acc>=0)
+		{
+			if(chosen.Damage[(502)]!=0)
+			acc*=-12;
+			else
+			acc*=-4;
+		}
+		else
+		acc*=-4;
+		
+		toHit+=acc;
+		
+		blockers=GetCrittersPath(chosen.HexX,chosen.HexY,target.HexX,target.HexY,0.0f,dist,(0x01),null);
+		if(!target.IsKnockout())
+		blockers--;
+		toHit-=10*blockers;
+	}
+	
+	if(!(weapon.Weapon_IsUnarmed)&&chosen.Trait[(553)]!=0&&(@realWeapon!=null))
+	toHit+=((((weapon.Flags)&((0x00000080)))!=0)?-40:20);
+	
+	int handlingStrength=chosen.Stat[(0)];
+	int reqStrength=weapon.Weapon_MinStrength;
+	if(chosen.Perk[(407)]!=0)
+	handlingStrength+=3;
+	if(handlingStrength<reqStrength)
+	toHit-=(reqStrength-handlingStrength)*20;
+	if(weaponPerk==(2))
+	toHit+=20;
+	
+	int acmod=target.Stat[(9)];
+	if((@ammo!=null))
+	acmod+=ammo.Ammo_ACMod;
+	if(acmod>0)
+	toHit-=acmod;  
+	
+	if(chosen.Damage[(502)]!=0)
+	toHit-=25;
+	if(chosen.Perk[(440)]!=0&&((__Hour)>=22||(__Hour)<=6))
+	toHit+=13;
+	if(target.IsKnockout())
+	toHit+=40;
+	toHit+=target.GetMultihex()*15;
+	
+	int hitMod=GetHitAim(hitLocation);
+	if(skillNum==(204)||skillNum==(203))
+	hitMod/=2;
+	toHit-=hitMod;
+	toHit=(((toHit)>(95))?(95):(((toHit)<(5))?(5):(toHit)));
+	
+	return toHit;
+}
+
+uint GetHitAim(int hitLocation)
+{
+	switch(hitLocation)
+	{
+		case(0):
+		break;
+		case(9):
+		break;
+		case(4):
+		return __HitAimTorso;
+		case(7):
+		return __HitAimEyes;
+		case(1):
+		return __HitAimHead;
+		case(2):
+		case(3):
+		return __HitAimArms;
+		case(8):
+		return __HitAimGroin;
+		case(5):
+		case(6):
+		return __HitAimLegs;
+		default:
+		break;
+	}
+	return 0;
+}  
+
+void hit_aim(uint8&aim)
+{}  
+
+void combat_result(uint[]&data)
+{
+	uint datalen=data.length();
+	if(datalen==0)
+	return;
+	if(data[0]!=datalen)
+	return;
+	
+	uint current=1;
+	
+	while(current<datalen)
+	{
+		int damage=-1;
+		uint effect=0;
+		uint loc=0;
+		int message=-1;
+		
+		uint mode=data[current++];
+		uint who=data[current++];
+		uint who2;
+		CritterCl@originalTarget;
+		
+		CritterCl@cr=GetCritter(who);
+		CritterCl@chosen=GetChosen();
+		CritterCl@trueTarget=null;
+		
+		bool self=(who==GetChosen().Id);
+		
+		string name="error0";
+		if((@cr!=null))
+		{
+			if(!self)
+			name=cr.Name;
+			else
+			name=GetMsgStr((5),chosen.Stat[(71)]==(0)?506:556);
+		}
+		
+		uint offset;
+		if(self)
+		{
+			if(cr.Stat[(71)]==(0))
+			offset=506;
+			else
+			offset=556;
+		}
+		else
+		{
+			if(cr.Stat[(71)]==(0))
+			offset=606;
+			else
+			offset=706;
+		}
+		
+		string result; 
+		
+		switch(mode)
+		{
+			case(2):
+			effect=data[current++];
+			result=GetMsgStr((5),offset+8);
+			result=ReplaceText(result,"%s",name);
+			break;
+			case(3):
+			effect=data[current++];
+			damage=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?28:27));
+			result=ReplaceText(result,"%s",name);
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(4):
+			case(8):
+			damage=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?7:(damage!=0?17:21)));
+			result=ReplaceText(result,"%s",name);
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(5):
+			case(9):
+			loc=data[current++];
+			damage=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?6:(damage!=0?16:20)));
+			result=ReplaceText(result,"%s",name);
+			result=ReplaceText(result,"%s",GetMsgStr((5),1000+cr.CrTypeAlias*10+loc-1));
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(6):
+			damage=data[current++];
+			effect=data[current++];
+			message=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?14:(damage!=0?18:22)));
+			result=ReplaceText(result,"%s",name);
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(7):
+			loc=data[current++];
+			damage=data[current++];
+			effect=data[current++];
+			message=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?5:(damage!=0?15:19)));
+			result=ReplaceText(result,"%s",name);
+			result=ReplaceText(result,"%s",GetMsgStr((5),1000+cr.CrTypeAlias*10+loc-1));
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(10):
+			damage=data[current++];
+			message=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?14:(damage!=0?18:22)));
+			result=ReplaceText(result,"%s",name);
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(11):
+			loc=data[current++];
+			damage=data[current++];
+			message=data[current++];
+			result=GetMsgStr((5),offset+(damage>1?5:(damage!=0?15:19)));
+			result=ReplaceText(result,"%s",name);
+			result=ReplaceText(result,"%s",GetMsgStr((5),1000+cr.CrTypeAlias*10+loc-1));
+			if(damage>1)
+			result=ReplaceText(result,"%d",damage);
+			break;
+			case(12):
+			who2=data[current++]; 
+			
+			@trueTarget=GetCritter(who2);
+			if(self)
+			{
+				
+				result=GetMsgStr((5),cr.Stat[(71)]==(0)?608:708);
+				string nameTrue="error1";
+				if((@trueTarget!=null))
+				nameTrue=trueTarget.Name;
+				result=ReplaceText(result,"%s",nameTrue);
+			}
+			else
+			{
+				
+				result=GetMsgStr((5),offset+3);
+				if(who2==GetChosen().Id)
+				{
+					result=ReplaceText(result,"%s",GetMsgStr((5),chosen.Stat[(71)]==(0)?506:556));
+				}
+				else
+				{
+					string nameTrue="error1";
+					if((@trueTarget!=null))
+					nameTrue=trueTarget.Name;
+					result=ReplaceText(result,"%s",nameTrue);
+				}
+				result=ReplaceText(result,"%s",name);
+			}
+			break;
+			case(1):
+			result=GetMsgStr((5),offset+9);
+			result=ReplaceText(result,"%s",name);
+			break;
+			case(13):
+			result=GetMsgStr((5),offset+9);
+			result=ReplaceText(result,"%s",name);
+			result+=GetMsgStr((5),108)+GetMsgStr((5),offset-306+20);
+			default:
+			break;
+		}
+		
+		bool isVerbose=(__CombatMessagesType==0);
+		string@[]ext;
+		
+		if(message!=-1&&isVerbose)
+		{
+			result+=GetMsgStr((5),message);
+		}
+		else if(effect!=0)
+		{
+			offset-=306;
+			if(mode>(3))
+			{
+				if((((effect)&((0x00000001)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+0));
+				if((((effect)&((0x00000002)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+1));
+				if((((effect)&((0x00000004)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+2));
+				if((((effect)&((0x00000008)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+3));
+				if((((effect)&((0x00000010)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+4));
+				if((((effect)&((0x00000020)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+5));
+				if((((effect)&((0x00000040)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+6)); 
+				
+				if((((effect)&((0x00000800)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+11));
+				if((((effect)&((0x00004000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+14));
+				if((((effect)&((0x00008000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+15));
+				if((((effect)&((0x00200000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+21));
+			}
+			else
+			{
+				if((((effect)&((0x00000002)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+1));
+				
+				if((((effect)&((0x00001000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+12));
+				if((((effect)&((0x00002000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+13));
+				if((((effect)&((0x00004000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+14));
+				if((((effect)&((0x00008000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+15));
+				if((((effect)&((0x00010000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+16));
+				if((((effect)&((0x00020000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+17));
+				if((((effect)&((0x00040000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+18));
+				if((((effect)&((0x00080000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+19));
+				
+				if((((effect)&((0x00200000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+21));
+				if((((effect)&((0x10000000)))!=0))
+				ext.insertLast(@GetMsgStr((5),offset+7));
+			}
+			offset+=306;
+		}
+		
+		if(8<=mode&&mode<=11&&(!isVerbose||message==-1))
+		ext.insertLast(@GetMsgStr((5),offset+7-306));
+		
+		for(uint m=0,n=ext.length();m<n;m++)
+		{
+			if(m==n-1)
+			result+=GetMsgStr((5),108);
+			else
+			result+=", ";
+			
+			result+=ext[m];
+		}
+		
+		result+=".";
+		
+		Message(result,int(2));
+		
+		if(8<=mode&&mode<=11&&isVerbose&&message!=-1)
+		Message(name+" "+GetMsgStr((5),offset+7-306)+".",int(2)); 
+		
+		if(__DamageHitDelay>0&&damage>0)
+		MapMessage("-"+damage,cr.HexX,cr.HexY,__DamageHitDelay,0xFFC80000,true,Random(-5,5),-20);
+	}
+}   
+
+string generic_description(int descType,int&offsX,int&offsY)
+{
+	CritterCl@chosen=GetChosen();
+	if(not(@chosen!=null))
+	return"";
+	string result;
+	
+	if(descType==(0))
+	{
+		result+=chosen.Name+"\n";
+		result+="---------------------\n";
+		result+=GetMsgStr((3),(400+((0))))+"\n";
+		result+=GetMsgStr((3),(400+((1))))+"\n";
+		result+=GetMsgStr((3),(400+((2))))+"\n";
+		result+=GetMsgStr((3),(400+((3))))+"\n";
+		result+=GetMsgStr((3),(400+((4))))+"\n";
+		result+=GetMsgStr((3),(400+((5))))+"\n";
+		result+=GetMsgStr((3),(400+((6))))+"\n";
+		result+="---------------------\n";
+		
+		ItemCl@weaponMain=chosen.GetItem(0,(1));
+		if((@weaponMain!=null))
+		{
+			int use=((weaponMain.Mode)&0xF);
+			if(use>2)
+			use=0;
+			
+			result+=GetMsgStr((2),(weaponMain.GetProtoId()*100+weaponMain.Info))+"\n";
+			
+			if(weaponMain.GetType()==(3))
+			{
+				result+=GetMsgStr((3),(415))+" ";
+				result+=((use)==0?weaponMain.Proto.Weapon_DmgMin_0:((use)==1?weaponMain.Proto.Weapon_DmgMin_1:((use)==2?weaponMain.Proto.Weapon_DmgMin_2:0)))+"-";
+				int wpnMaxDmg=((use)==0?weaponMain.Proto.Weapon_DmgMax_0:((use)==1?weaponMain.Proto.Weapon_DmgMax_1:((use)==2?weaponMain.Proto.Weapon_DmgMax_2:0)));
+				if((((use)==0?weaponMain.Proto.Weapon_Skill_0:((use)==1?weaponMain.Proto.Weapon_Skill_1:((use)==2?weaponMain.Proto.Weapon_Skill_2:0)))==(203)||((use)==0?weaponMain.Proto.Weapon_Skill_0:((use)==1?weaponMain.Proto.Weapon_Skill_1:((use)==2?weaponMain.Proto.Weapon_Skill_2:0)))==(204)))
+				wpnMaxDmg+=chosen.Stat[(10)];
+				result+=wpnMaxDmg;
+				
+				if(((use)==0?weaponMain.Proto.Weapon_MaxDist_0:((use)==1?weaponMain.Proto.Weapon_MaxDist_1:((use)==2?weaponMain.Proto.Weapon_MaxDist_2:0)))>1)
+				{
+					result+=" "+GetMsgStr((3),(416))+" ";
+					int wpnMaxDist=((use)==0?weaponMain.Proto.Weapon_MaxDist_0:((use)==1?weaponMain.Proto.Weapon_MaxDist_1:((use)==2?weaponMain.Proto.Weapon_MaxDist_2:0)));
+					if(((use)==0?weaponMain.Proto.Weapon_Skill_0:((use)==1?weaponMain.Proto.Weapon_Skill_1:((use)==2?weaponMain.Proto.Weapon_Skill_2:0)))==(205))
+					wpnMaxDist=(((wpnMaxDist)<(3*(((int(10))<(chosen.Stat[(0)]+2*chosen.Perk[(336)]))?(int(10)):(chosen.Stat[(0)]+2*chosen.Perk[(336)]))))?(wpnMaxDist):(3*(((int(10))<(chosen.Stat[(0)]+2*chosen.Perk[(336)]))?(int(10)):(chosen.Stat[(0)]+2*chosen.Perk[(336)]))));
+					result+=wpnMaxDist;
+				}
+				result+="\n";
+				
+				if(weaponMain.Proto.Weapon_MaxAmmoCount>0)
+				{
+					result+=GetMsgStr((3),(417))+" ";
+					result+=weaponMain.AmmoCount+"/";
+					result+=weaponMain.Proto.Weapon_MaxAmmoCount+" ";
+					result+=GetMsgStr((3),(10900+(weaponMain.Proto.Weapon_Caliber)));
+				}
+				result+="\n";
+			}
+			else
+			{
+				result+="\n\n";
+			}
+		}
+		else
+		{
+			
+			uint8 mode=0;
+			ProtoItem@unarmed=chosen.GetSlotProto((1),mode);
+			result+=GetMsgStr((3),(414))+"\n";
+			result+=GetMsgStr((3),(424))+" ";
+			result+=((((mode)&0xF))==0?unarmed.Weapon_DmgMin_0:((((mode)&0xF))==1?unarmed.Weapon_DmgMin_1:((((mode)&0xF))==2?unarmed.Weapon_DmgMin_2:0)))+"-";
+			result+=(((((mode)&0xF))==0?unarmed.Weapon_DmgMax_0:((((mode)&0xF))==1?unarmed.Weapon_DmgMax_1:((((mode)&0xF))==2?unarmed.Weapon_DmgMax_2:0)))+chosen.Stat[(10)]);
+			result+="\n\n";
+		}
+		result+="---------------------\n";
+		
+		ItemCl@weaponExt=chosen.GetItem(0,(2));
+		if((@weaponExt!=null))
+		{
+			int use=((weaponExt.Mode)&0xF);
+			if(use>2)
+			use=0;
+			
+			result+=GetMsgStr((2),(weaponExt.GetProtoId()*100+weaponExt.Info))+"\n";
+			
+			if(weaponExt.GetType()==(3))
+			{
+				result+=GetMsgStr((3),(415))+" ";
+				result+=((use)==0?weaponExt.Proto.Weapon_DmgMin_0:((use)==1?weaponExt.Proto.Weapon_DmgMin_1:((use)==2?weaponExt.Proto.Weapon_DmgMin_2:0)))+"-";
+				int wpnMaxDmg=((use)==0?weaponExt.Proto.Weapon_DmgMax_0:((use)==1?weaponExt.Proto.Weapon_DmgMax_1:((use)==2?weaponExt.Proto.Weapon_DmgMax_2:0)));
+				if((((use)==0?weaponExt.Proto.Weapon_Skill_0:((use)==1?weaponExt.Proto.Weapon_Skill_1:((use)==2?weaponExt.Proto.Weapon_Skill_2:0)))==(203)||((use)==0?weaponExt.Proto.Weapon_Skill_0:((use)==1?weaponExt.Proto.Weapon_Skill_1:((use)==2?weaponExt.Proto.Weapon_Skill_2:0)))==(204)))
+				wpnMaxDmg+=chosen.Stat[(10)];
+				result+=wpnMaxDmg;
+				if(((use)==0?weaponExt.Proto.Weapon_MaxDist_0:((use)==1?weaponExt.Proto.Weapon_MaxDist_1:((use)==2?weaponExt.Proto.Weapon_MaxDist_2:0)))>1)
+				{
+					result+=" "+GetMsgStr((3),(416))+" ";
+					int wpnMaxDist=((use)==0?weaponExt.Proto.Weapon_MaxDist_0:((use)==1?weaponExt.Proto.Weapon_MaxDist_1:((use)==2?weaponExt.Proto.Weapon_MaxDist_2:0)));
+					if(((use)==0?weaponExt.Proto.Weapon_Skill_0:((use)==1?weaponExt.Proto.Weapon_Skill_1:((use)==2?weaponExt.Proto.Weapon_Skill_2:0)))==(205))
+					wpnMaxDist=(((wpnMaxDist)<(3*(((int(10))<(chosen.Stat[(0)]+2*chosen.Perk[(336)]))?(int(10)):(chosen.Stat[(0)]+2*chosen.Perk[(336)]))))?(wpnMaxDist):(3*(((int(10))<(chosen.Stat[(0)]+2*chosen.Perk[(336)]))?(int(10)):(chosen.Stat[(0)]+2*chosen.Perk[(336)]))));
+					result+=wpnMaxDist;
+				}
+				result+="\n";
+				
+				if(weaponExt.Proto.Weapon_MaxAmmoCount>0)
+				{
+					result+=GetMsgStr((3),(417))+" ";
+					result+=weaponExt.AmmoCount+"/";
+					result+=weaponExt.Proto.Weapon_MaxAmmoCount+" ";
+					result+=GetMsgStr((3),(10900+(weaponExt.Proto.Weapon_Caliber)));
+				}
+				result+="\n";
+			}
+			else
+			{
+				result+="\n\n";
+			}
+		}
+		else
+		{
+			
+			uint8 mode=0;
+			ProtoItem@unarmed=chosen.GetSlotProto((2),mode);
+			result+=GetMsgStr((3),(414))+"\n";
+			result+=GetMsgStr((3),(424))+" ";
+			result+=((((mode)&0xF))==0?unarmed.Weapon_DmgMin_0:((((mode)&0xF))==1?unarmed.Weapon_DmgMin_1:((((mode)&0xF))==2?unarmed.Weapon_DmgMin_2:0)))+"-";
+			result+=(((((mode)&0xF))==0?unarmed.Weapon_DmgMax_0:((((mode)&0xF))==1?unarmed.Weapon_DmgMax_1:((((mode)&0xF))==2?unarmed.Weapon_DmgMax_2:0)))+chosen.Stat[(10)]);
+			result+="\n\n";
+		}
+		
+		result+=GetMsgStr((3),(420))+" ";
+		result+=(chosen.ItemsWeight()/1000)+"/";
+		result+=(chosen.Stat[(11)]/1000)+".";
+	}
+	else if(descType==(1))
+	{
+		offsX=23;
+		result+="\n\n";
+		result+=chosen.Stat[(0)]+"\n";
+		result+=chosen.Stat[(1)]+"\n";
+		result+=chosen.Stat[(2)]+"\n";
+		result+=chosen.Stat[(3)]+"\n";
+		result+=chosen.Stat[(4)]+"\n";
+		result+=chosen.Stat[(5)]+"\n";
+		result+=chosen.Stat[(6)];
+	}
+	else if(descType==(2))
+	{
+		offsX=39;
+		result+="\n\n";
+		result+=GetMsgStr((3),(407))+" ";
+		result+=chosen.Stat[(72)]+"/"+chosen.Stat[(7)]+"\n";
+		result+=GetMsgStr((3),(408))+" ";
+		result+=chosen.Stat[(9)]+"\n";
+		result+=GetMsgStr((3),(409))+"\n";
+		result+=GetMsgStr((3),(410))+"\n";
+		result+=GetMsgStr((3),(411))+"\n";
+		result+=GetMsgStr((3),(412))+"\n";
+		result+=GetMsgStr((3),(413));
+	}
+	else if(descType==(3))
+	{
+		offsX=103;
+		result+="\n\n\n\n";
+		result+=chosen.Stat[(16)]+"/"+chosen.Stat[(23)]+"%\n";
+		result+=chosen.Stat[(17)]+"/"+chosen.Stat[(24)]+"%\n";
+		result+=chosen.Stat[(18)]+"/"+chosen.Stat[(25)]+"%\n";
+		result+=chosen.Stat[(19)]+"/"+chosen.Stat[(26)]+"%\n";
+		result+=chosen.Stat[(22)]+"/"+chosen.Stat[(29)]+"%";
+	}
+	
+	return result;
+}  
+
+string item_description(ItemCl&item,int lookType)
+{
+	
+	if(not IsMsgStr((2),(item.GetProtoId()*100+item.Info)+(lookType!=(1)?1:0)))
+	return GetMsgStr((3),(10010));
+	
+	string result; 
+	
+	if(lookType==(5))
+	{
+		string fuel=GetMsgStr((3),(561));
+		fuel=ReplaceText(fuel,"VALUE",item.Charge/100);
+		fuel=ReplaceText(fuel,"MAX_VALUE",item.Proto.Car_TankVolume/100);
+		string deterioration=GetMsgStr((3),(562));
+		deterioration=ReplaceText(deterioration,"VALUE",item.Deterioration*100/item.Proto.Car_MaxDeterioration);
+		result=fuel+"\n"+deterioration;
+	}
+	
+	else if(lookType==(1))
+	{
+		result+=ReplaceText(GetMsgStr((3),(10000)),"NAME",GetMsgStr((2),(item.GetProtoId()*100+item.Info)));
+	}
+	
+	else
+	{
+		if(lookType==(4))
+		result+=GetMsgStr((2),(item.GetProtoId()*100+item.Info))+"\n";
+		
+		if(item.GetProtoId()==(58)&&item.HolodiskNumber!=0)
+		result+=GetMsgStr((7),((item.HolodiskNumber)*10));
+		else
+		result+=GetMsgStr((2),(item.GetProtoId()*100+item.Info)+1);
+		
+		if(lookType!=(2))
+		{
+			
+			result+="\n"+ReplaceText(GetMsgStr((3),(435)),"VALUE",item.Proto.Weight*item.GetCount()); 
+			
+			if(item.GetType()==(3)&&item.Proto.Weapon_MaxAmmoCount>0)
+			{
+				result+="\n";
+				string str=GetMsgStr((3),(434));
+				str=ReplaceText(str,"VALUE",item.AmmoCount);
+				str=ReplaceText(str,"MAX_VALUE",item.Proto.Weapon_MaxAmmoCount);
+				str=ReplaceText(str,"AMMO",GetMsgStr((3),(10900+(item.Proto.Weapon_Caliber))));
+				result+=str;
+			} 
+			
+			if(item.IsDeteriorable())
+			{
+				uint8 brokenFlags=item.BrokenFlags;
+				uint8 brokenCount=item.BrokenCount;
+				uint16 deterioration=item.Deterioration; 
+				
+				result+="\n";
+				if((((brokenFlags)&((0x08)))!=0))
+				result+=GetMsgStr((3),(506));
+				else if((((brokenFlags)&((0x01)))!=0))
+				result+=GetMsgStr((3),(503));
+				else if((((brokenFlags)&((0x02)))!=0))
+				result+=GetMsgStr((3),(504));
+				else if((((brokenFlags)&((0x04)))!=0))
+				result+=GetMsgStr((3),(505));
+				else
+				result+=ReplaceText(GetMsgStr((3),(500)),"VALUE",deterioration*100/(10000)); 
+				
+				if((((brokenFlags)&((0x10)))!=0))
+				result+="\n"+GetMsgStr((3),(501)); 
+				
+				if((((brokenFlags)&((0x20)))!=0))
+				result+="\n"+GetMsgStr((3),(502)); 
+				
+				CritterCl@chosen=GetChosen();
+				if((@chosen!=null)&&chosen.Perk[(332)]!=0)
+				result+="\n"+ReplaceText(GetMsgStr((3),(507)),"VALUE",brokenCount);
+			} 
+			
+			if(item.GetType()==(7))
+			result+="\n"+ReplaceText(GetMsgStr((3),(550)),"KEY_ID",item.LockerId);
+		}
+	} 
+	
+	if(item.Lexems!="")
+	return FormatTags(result,item.Lexems);
+	return result;
+}  
+
+string critter_description(CritterCl&cr,int lookType)
+{
+	string result;
+	int gender=cr.Stat[(71)]; 
+	
+	if(cr.IsPlayer())
+	{
+		
+		if(lookType==(0))
+		{
+			result=cr.Name;
+		}
+		
+		else if(lookType==(1))
+		{
+			result+=GetMsgStr((3),(11000+(gender)*1000));
+			result+=cr.Name;
+			result+=".";
+		}
+		
+		else
+		{
+			result+=GetMsgStr((3),(11000+(gender)*1000)); 
+			
+			uint ageStr=GetMsgStrNumUpper((3),(11100+((cr.Stat[(70)])>99?99:(cr.Stat[(70)]))+(gender)*1000));
+			if(ageStr!=0)
+			result+=GetMsgStr((3),ageStr);
+			else
+			result+=cr.Name;
+			result+=".";                                                                  
+			
+		}
+	}
+	
+	else
+	{
+		uint dlgId=cr.Stat[(104)];
+		uint16 npcPid=cr.Pid;
+		bool defaultText=false;
+		
+		if(lookType==(0))
+		{
+			result=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+100:((npcPid)*10)));
+		}
+		
+		else if(lookType==(1))
+		{
+			if(cr.IsLife()&&IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+200:((npcPid)*10+1))))
+			result+=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+200:((npcPid)*10+1)));
+			else if(cr.IsKnockout()&&IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+220:((npcPid)*10+1))))
+			result+=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+220:((npcPid)*10+1)));
+			else if(cr.IsDead()&&IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+240:((npcPid)*10+1))))
+			result+=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+240:((npcPid)*10+1)));
+			else
+			defaultText=true;
+		}
+		
+		else
+		{
+			if(cr.IsLife()&&IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+210:((npcPid)*10+1))))
+			result+=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+210:((npcPid)*10+1)));
+			else if(cr.IsKnockout()&&IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+230:((npcPid)*10+1))))
+			result+=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+230:((npcPid)*10+1)));
+			else if(cr.IsDead()&&IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+250:((npcPid)*10+1))))
+			result+=GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+250:((npcPid)*10+1)));
+			else
+			defaultText=true;
+		}
+		
+		if(defaultText)
+		{
+			
+			if(IsMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+100:((npcPid)*10))))
+			{
+				if(cr.IsLife())
+				result+=ReplaceText(GetMsgStr((3),(11010)),"NAME",GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+100:((npcPid)*10))));
+				else if(cr.IsKnockout())
+				result+=ReplaceText(GetMsgStr((3),(11011)),"NAME",GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+100:((npcPid)*10))));
+				else if(cr.IsDead())
+				result+=ReplaceText(GetMsgStr((3),(11012)),"NAME",GetMsgStr((1),((dlgId)!=0?100000+(dlgId)*1000+100:((npcPid)*10))));
+			}
+			
+			else
+			{
+				result+=GetMsgStr((3),(11014));
+			}
+		}
+	} 
+	
+	if(lookType==(2))
+	{
+		if(result.length()>0&&result[result.length()-1]!=".")
+		result+=".";
+		result+=" ";
+		
+		CritterCl@chosen=GetChosen();
+		if((@chosen!=null)&&chosen.Perk[(301)]!=0)
+		{
+			result+=GetMsgStr((3),(12530+(gender)));
+			result=ReplaceText(result,"CUR",cr.Stat[(72)]);
+			result=ReplaceText(result,"MAX",cr.Stat[(7)]);
+			
+			ItemCl@item=cr.GetItem(0,(1));
+			if((cr.Damage[(502)]!=0||cr.Damage[(503)]!=0||cr.Damage[(504)]!=0||cr.Damage[(505)]!=0||cr.Damage[(506)]!=0))
+			{
+				if((@item!=null))
+				result+=", ";
+				else
+				result+=GetMsgStr((3),(54));
+				
+				result+=GetMsgStr((3),(12520+(gender)*2+(false?1:0)));
+			}
+			
+			if((@item!=null))
+			{
+				if(item.GetType()==(3))
+				{
+					if(item.Proto.Weapon_MaxAmmoCount==0)
+					{
+						result+=GetMsgStr((3),(12540));
+						result=ReplaceText(result,"WEAPON",GetMsgStr((2),(item.GetProtoId()*100+item.Info)));
+					}
+					else
+					{
+						result+=GetMsgStr((3),(12541));
+						result=ReplaceText(result,"WEAPON",GetMsgStr((2),(item.GetProtoId()*100+item.Info)));
+						result=ReplaceText(result,"CUR",item.AmmoCount);
+						result=ReplaceText(result,"MAX",item.Proto.Weapon_MaxAmmoCount);
+						result=ReplaceText(result,"AMMO",GetMsgStr((3),(10900+(item.Proto.Weapon_Caliber))));
+					}
+				}
+				else
+				{
+					result+=GetMsgStr((3),(12542));
+					result=ReplaceText(result,"MISC",GetMsgStr((2),(item.GetProtoId()*100+item.Info)));
+				}
+			}
+		}
+		else
+		{
+			result+=GetMsgStr((3),(12500+(gender)));
+			
+			int hp_proc=cr.Stat[(72)]*100/cr.Stat[(7)];
+			if(cr.IsDead())
+			result+=GetMsgStr((3),(12510+(0)));
+			else if(hp_proc<34)
+			result+=GetMsgStr((3),(12510+(1)));
+			else if(hp_proc<67)
+			result+=GetMsgStr((3),(12510+(2)));
+			else if(hp_proc<100)
+			result+=GetMsgStr((3),(12510+(3)));
+			else
+			result+=GetMsgStr((3),(12510+(4)));
+			
+			if((cr.Damage[(502)]!=0||cr.Damage[(503)]!=0||cr.Damage[(504)]!=0||cr.Damage[(505)]!=0||cr.Damage[(506)]!=0))
+			{
+				if(hp_proc<90)
+				result+=GetMsgStr((3),(54));
+				result+=GetMsgStr((3),(12520+(gender)*2+(hp_proc>=90?1:0)));
+			}
+		}
+		result+=".";
+	} 
+	
+	if(cr.Lexems!="")
+	return FormatTags(result,cr.Lexems);
+	return result;
+}               
+
+bool get_elevator(uint type,uint[]&data)
+{
+	const string iface="art\\intrface\\";
+	const uint[][]elevators=
+	{  
+		
+		{0,1,4,GetStrHash(iface+"EL_BOS.FRM"),230,284,0,0,0,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),4,11,42,58,91,11,102,58,151,11,162,58,211,11,222,58,271},
+		
+		{0,0,2,GetStrHash(iface+"EL_BOS.FRM"),230,284,GetStrHash(iface+"EL_BOS2.FRM"),0,37,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),2,11,42,58,91,11,102,58,151},
+		
+		{0,1,3,GetStrHash(iface+"EL_MAST1.FRM"),230,284,0,0,0,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),3,11,42,58,91,11,102,58,151,11,162,58,211},
+		
+		{0,3,2,GetStrHash(iface+"EL_MAST1.FRM"),230,284,GetStrHash(iface+"EL_MAST2.FRM"),0,37,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),2,11,42,58,91,11,102,58,151},
+		
+		{0,1,3,GetStrHash(iface+"EL_MIL1.FRM"),231,285,0,0,0,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),3,11,42,58,91,11,102,58,151,11,162,58,211},
+		
+		{0,3,4,GetStrHash(iface+"EL_MIL1.FRM"),231,285,GetStrHash(iface+"EL_MIL2.FRM"),0,37,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),2,11,42,58,91,11,102,58,151},
+		
+		{0,3,3,GetStrHash(iface+"EL_MIL1.FRM"),231,285,GetStrHash(iface+"EL_MIL3.FRM"),0,37,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),3,11,42,58,91,11,102,58,151,11,162,58,211},
+		
+		{0,4,3,GetStrHash(iface+"EL_MIL1.FRM"),231,285,GetStrHash(iface+"EL_MIL4.FRM"),0,37,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),3,11,42,58,91,11,102,58,151,11,162,58,211},
+		
+		{0,1,3,GetStrHash(iface+"EL_VAULT.FRM"),230,284,0,0,0,GetStrHash(iface+"elevator_indicator.frm"),121,41,GetStrHash(iface+"EBUT_IN.FRM"),3,11,42,58,91,11,102,58,151,11,162,58,211},
+	};
+	
+	uint index=(type&0xFFFF);
+	uint currentLevel=(type>>16);
+	
+	if(index>8)
+	return false;
+	data.resize(elevators[index].length());
+	for(uint i=0;i<data.length();i++)
+	data[i]=elevators[index][i];
+	data[0]=currentLevel;
+	return true;
+}  
+
+void _PlayMusic(int pos,int repeat,int,string@musicName,int[]@)
+{
+	PlayMusic(musicName,uint(pos),uint(repeat));
+}
+
+void _PlayVideo(int canStop,int,int,string@videoName,int[]@)
+{
+	PlayVideo(videoName,canStop!=0);
+}  
+
+void _FlushScreen(int fromColor,int toColor,int timeMs,string@,int[]@)
+{
+	FlushScreen(fromColor,toColor,timeMs);
+}
+
+void _QuakeScreen(int noise,int timeMs,int,string@,int[]@)
+{
+	QuakeScreen(noise,timeMs);
+}    
+
+uint item_cost(ItemCl&item,CritterCl&chosen,CritterCl&npc,bool sell)
+{
+	return sell?1:2;
+}  
+
+bool check_perk(CritterCl&cr,uint perk)
+{
+	return PerkCheck(cr,perk);
+}   
+
+void player_data_generate(int[]&data)
+{
+	CritterGenerate(data);   
+	
+}
+
+bool player_data_check(string&name,int[]&data)
+{    
+	
+	uint nameError=CheckPlayerName(name);
+	if(nameError!=0)
+	{
+		Message(GetMsgStr((3),nameError));
+		return false;
+	}
+	
+	return CritterGenerateCheck(data);
+}  
+
+void critter_action(bool localCall,CritterCl&cr,int action,int actionExt,ItemCl@item)
+{
+	
+	if(cr.IsChosen()&&not localCall)
+	{
+		switch(action)
+		{
+			case(2):
+			case(3):
+			case(4):
+			case(5):
+			case(6):
+			case(7):
+			case(8):
+			case(9):
+			case(10):
+			case(11):
+			return;
+			default:
+			break;
+		}
+	}
+	
+	uint8 mode=0;
+	const ProtoItem@proto=((@item!=null)?item.Proto:cr.GetSlotProto((1),mode));
+	
+	if((action>=(2)&&action<=(11))||action==(17))
+	cr.Wait(__Breaktime);
+	
+	switch(action)
+	{
+		case(0): 
+		
+		break;
+		case(1): 
+		
+		break;
+		case(2):
+		if(cr.IsLife())
+		{
+			uint8 fromSlot=actionExt;
+			uint8 toSlot=item.CritSlot;
+			
+			cr.ClearAnim();
+			
+			if(toSlot==(1))
+			cr.Animate(0,(20),item);
+			else if(fromSlot==(1))
+			cr.Animate(0,(21),item);
+			else
+			cr.Animate(0,(29));
+		}
+		break;
+		case(3):
+		break;
+		case(4):
+		if(cr.IsLife()&&(@proto!=null))
+		{
+			cr.ClearAnim();
+			
+			if(proto.Type==(3)&&(((proto.Flags)&((0x01000000)))!=0)&&cr.IsAnimAviable(proto.Weapon_Anim1,proto.Weapon_Anim2_0))
+			cr.Animate(proto.Weapon_Anim1,proto.Weapon_Anim2_0,item);
+			else
+			cr.Animate(0,(28),item);
+		}
+		break;
+		case(5):
+		if(cr.IsLife())
+		{
+			cr.ClearAnim();
+			cr.Animate(0,(27));
+		}
+		break;
+		case(6):
+		if(cr.IsLife()&&(@proto!=null))
+		{
+			int use=(actionExt&0xF);
+			int aim=((actionExt>>4)&0xF);
+			bool fail=(((actionExt>>8)&1)!=0);
+			
+			cr.ClearAnim();
+			
+			cr.Animate(0,(22));
+			
+			PlaySound('W','A',((use)==0?proto.Weapon_SoundId_0:((use)==1?proto.Weapon_SoundId_1:((use)==2?proto.Weapon_SoundId_2:0))),use!=1?'1':'2');
+			cr.Animate(0,((use)==0?proto.Weapon_Anim2_0:((use)==1?proto.Weapon_Anim2_1:((use)==2?proto.Weapon_Anim2_2:0))),item);
+			
+			if(fail)
+			cr.Animate(0,(72),item);
+			else
+			cr.Animate(0,(23));
+		}
+		break;
+		case(7):
+		if(cr.IsLife()&&(@proto!=null))
+		{
+			cr.ClearAnim();
+			PlaySound('W','R',proto.Weapon_SoundId_0,'1');
+			cr.Animate(item.Proto.Weapon_Anim1,(30),item);
+		}
+		break;
+		case(8):
+		if(cr.IsLife()&&actionExt!=(208))
+		{
+			cr.ClearAnim();
+			cr.Animate(0,(28));
+		}
+		break;
+		case(9):
+		if(cr.IsLife()&&(@proto!=null))
+		{
+			cr.ClearAnim();
+			cr.Animate(0,proto.GroundLevel?(27):(28));
+		}
+		break;
+		case(10):
+		if(cr.IsLife())
+		{
+			cr.ClearAnim();
+			
+			switch(actionExt)
+			{
+				case 0:
+				cr.Animate(0,(35));
+				break;
+				case 1:
+				cr.Animate(0,(36));
+				break;
+				case 2:
+				cr.Animate(0,(37));
+				break;
+				default:
+				break;
+			}
+		}
+		break;
+		case(11):
+		if(cr.IsLife())
+		{
+			cr.ClearAnim();
+			int transferType=actionExt/10;
+			int directionType=actionExt%10;
+			
+			if(transferType==(2)||transferType==(4))
+			cr.Animate(0,(27));
+			else
+			cr.Animate(0,(28));
+		}
+		break;
+		case(13):
+		if(not cr.IsAnimPlaying()&&cr.IsLife())
+		{
+			cr.Animate(0,actionExt==0?(70):(71));
+		}
+		break;
+		case(14):
+		if(not cr.IsAnimPlaying())
+		{
+			if(cr.IsLife())
+			cr.Animate(0,actionExt==0?(72):(73));
+			else if(cr.IsKnockout())
+			cr.Animate(0,actionExt==0?(90):(91));
+		}
+		else
+		{      
+			
+		}
+		break;
+		case(15):
+		if(cr.IsLife())
+		{
+			cr.ClearAnim();
+			cr.Animate(0,actionExt==0?(72):(73));
+		}
+		else if(cr.IsKnockout())
+		{
+			cr.ClearAnim();
+			cr.Animate(0,actionExt==0?(90):(91));
+		}
+		break;
+		case(16):
+		if(not cr.IsKnockout())
+		{
+			cr.ClearAnim();
+			cr.Animate(0,actionExt);
+		}
+		break;
+		case(17):
+		if(cr.IsKnockout())
+		{
+			cr.ClearAnim();
+			cr.Animate(0,actionExt);
+		}
+		break;
+		case(18):
+		if(cr.IsLife()&&not cr.IsAnimPlaying())
+		{
+			cr.Animate(0,(24));
+		}
+		break;
+		case(19):
+		if(not cr.IsDead())
+		{
+			cr.ClearAnim();
+			cr.Animate(0,actionExt);
+		}
+		break;
+		case(20):
+		break;
+		case(21):
+		break;
+		case(22):
+		break;
+		case(23):
+		break;
+		default:
+		break;
+	}
+}  
+
+void animation2d_process(bool animateStay,CritterCl&cr,uint anim1,uint anim2,ItemCl@item)
+{
+	if(!animateStay)
+	PlayAnimSound(cr.CrType,cr.Stat[(71)],anim1,anim2);
+}  
+
+void animation3d_process(bool animateStay,CritterCl&cr,uint anim1,uint anim2,ItemCl@item)
+{
+	if(!animateStay)
+	PlayAnimSound(cr.CrType,cr.Stat[(71)],anim1,anim2);                                                                                                                                                                                                                                                                
+	
+}                                                                                                                                                                                                                                                                                                                                                                                                        
+
+void items_collection(int collection,ItemCl@[]&items)
+{       
+	
+}  
+
+void filename_logfile(string&filename)
+{
+	filename="messagebox\\"+filename;
+}  
+
+void filename_screenshot(string&filename)
+{
+	filename="screenshots\\"+filename;
+}

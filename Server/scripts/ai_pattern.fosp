@@ -1,0 +1,158 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+import void SetSniperStats(Critter&cr,uint8 lvl)from"pattern_sniper";
+import void SetSlayerStats(Critter&cr,uint8 lvl)from"pattern_slayer";
+import void SetMedicStats(Critter&cr,uint8 lvl)from"pattern_medic";
+import void SetTermStats(Critter&cr,uint8 lvl)from"pattern_term";                     
+
+void _PatternInit(Critter&cr,bool firstTime)
+{
+	switch(cr.Stat[(89)])
+	{
+		case(21):
+		SetSniperStats(cr,0);
+		cr.SetScript("pattern_sniper@_CritterInit");
+		break;
+		case(22):
+		SetSniperStats(cr,1);
+		cr.SetScript("pattern_sniper@_CritterInit");
+		
+		break;
+		case(23):
+		SetSniperStats(cr,1);
+		cr.SetScript("pattern_sniper@_CritterInit");
+		
+		break;
+		case(24):
+		SetSniperStats(cr,1);
+		cr.SetScript("pattern_sniper@_CritterInit");
+		
+		break;
+		case(31):
+		SetTermStats(cr,0);
+		cr.SetScript("pattern_term@_CritterInit");
+		
+		break;
+		case(32):
+		SetTermStats(cr,0);
+		cr.SetScript("pattern_term@_CritterInit");
+		
+		break;
+		case(33):
+		SetTermStats(cr,0);
+		cr.SetScript("pattern_term@_CritterInit");
+		
+		break;
+		case(34):
+		SetTermStats(cr,0);
+		cr.SetScript("pattern_term@_CritterInit");
+		
+		break;
+		case(35):
+		SetTermStats(cr,0);
+		cr.SetScript("pattern_term@_CritterInit");
+		
+		break;
+		case(41):
+		SetMedicStats(cr,0);
+		cr.SetScript("pattern_medic@_CritterInit");
+		
+		break;
+		case(42):
+		SetMedicStats(cr,0);
+		cr.SetScript("pattern_medic@_CritterInit");
+		
+		break;
+		case(43):
+		SetMedicStats(cr,0);
+		SetMedicStats(cr,2);
+		cr.SetScript("pattern_medic@_CritterInit");
+		
+		break;
+		case(44):
+		SetMedicStats(cr,0);
+		cr.SetScript("pattern_medic@_CritterInit");
+		
+		break;
+		case(45):
+		SetMedicStats(cr,0);
+		cr.SetScript("pattern_medic@_CritterInit");
+		
+		break;
+		
+		case(51):
+		
+		SetSlayerStats(cr,0);
+		cr.SetScript("pattern_slayer@_CritterInit");
+		
+		break;
+		case(52):
+		
+		SetSlayerStats(cr,0);
+		cr.SetScript("pattern_slayer@_CritterInit");
+		
+		break;
+		case(53):
+		
+		SetSlayerStats(cr,0);
+		cr.SetScript("pattern_slayer@_CritterInit");
+		
+		break;
+		case(54):
+		
+		SetSlayerStats(cr,0);
+		cr.SetScript("pattern_slayer@_CritterInit");
+		
+		break;
+		case(55):
+		
+		SetSlayerStats(cr,3);
+		cr.SetScript("pattern_slayer@_CritterInit");
+		
+		break;
+		default:
+		break;
+	}
+}
+
+void _Term1Init(Critter&cr,bool firstTime)
+{
+	SetTermStats(cr,0);
+	cr.SetScript("pattern_term@_CritterInit");
+}
+
+void _Slayer2Init(Critter&cr,bool firstTime)
+{
+	SetSlayerStats(cr,0);
+	cr.SetScript("pattern_slayer@_CritterInit");
+}
+
+void _Slayer3Init(Critter&cr,bool firstTime)
+{
+	SetSlayerStats(cr,0);
+	cr.SetScript("pattern_slayer@_CritterInit");
+}
+
+void _Sniper1Init(Critter&cr,bool firstTime)
+{
+	SetSniperStats(cr,0);
+	cr.SetScript("pattern_sniper@_CritterInit");
+} 
+
+void _Medic2Init(Critter&cr,bool firstTime)
+{
+	SetMedicStats(cr,1);
+	cr.SetScript("pattern_medic@_CritterInit");
+}
+
+void _Term3Init(Critter&cr,bool firstTime)
+{
+	SetTermStats(cr,2);
+	cr.SetScript("pattern_term@_CritterInit");
+}
+
+void _Sniper4Init(Critter&cr,bool firstTime)
+{
+	SetSniperStats(cr,3);
+	cr.SetScript("pattern_sniper@_CritterInit");
+}

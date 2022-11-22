@@ -1,0 +1,175 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+void _PetInit(Critter&cr,bool firstTime)
+{
+	cr.ModeBase[(527)]=1;
+	cr.ModeBase[(511)]=1;
+	cr.ModeBase[(513)]=1;
+	cr.ModeBase[(524)]=1;
+	cr.ModeBase[(517)]=(((Random(0,2))>(1))?(1):(((Random(0,2))<(0))?(0):(Random(0,2))));
+	cr.ModeBase[(526)]=1;
+	cr.ModeBase[(537)]=1;
+	cr.ModeBase[(541)]=1;
+	cr.StatBase[(89)]=(765567);
+	
+	cr.SetEvent((9),"_PetHideCritter");
+	cr.SetEvent((35),"_PetPlanBegin");
+	cr.SetEvent((36),"_PetPlanEnd");
+	cr.SetEvent((20),"_PetUseItemOnMe");
+	cr.SetEvent((16),"_PetAttacked");
+	cr.SetEvent((0),"_PetIdle");
+	
+	cr.ShowCritterDist1=(8);
+}
+
+void _PetIdle(Critter&cr)
+{
+	if(cr.IsLife()&&FollowMaster(cr,cr.StatBase[(92)]))
+	{
+		if(Random(1,5)>4&&cr.IsNoPlanes())
+		{
+			cr.MoveRandom();
+		}
+		return;
+	}
+	else
+	{
+		if(cr.StatBase[(91)]+((10)*__TimeMultiplier)<int(__FullSecond))
+		{
+			;
+			DeleteNpc(cr);
+		}
+	}
+}
+
+bool _PetAttacked(Critter&cr,Critter&attacker)
+{      
+	
+	DeleteNpc(cr);
+	return true;
+}
+
+bool _PetUseItemOnMe(Critter&cr,Critter&whoUse,Item&item)
+{
+	return UseItem(cr,whoUse,item);
+}
+
+int _PetPlanBegin(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(plane.Type==(1))
+	{
+		return(2);
+	}
+	return(0);
+}
+
+int _PetPlanEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	return(0);
+}
+
+void _PetHideCritter(Critter&cr,Critter&hideCrit)
+{
+	if(hideCrit.Id==uint(cr.StatBase[(92)]))
+	{
+		if(!FollowMaster(cr,cr.StatBase[(92)]))
+		DeleteNpc(cr);
+	}
+} 
+
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+
+bool FollowMaster(Critter&pet,uint idMaster)
+{
+	Critter@cr=GetCritter(idMaster);
+	if((@cr!=null))
+	{
+		Map@mapCr=cr.GetMap();
+		Map@mapPet=pet.GetMap();
+		if((@mapCr!=null)&&(@mapPet!=null)&&mapCr.Id==mapPet.Id)
+		{
+			uint dist=GetCrittersDistantion(cr,pet);
+			if(dist<=(8))
+			{
+				return true;
+			}
+			if(dist>(8)&&dist<(40))
+			{
+				uint16 x=cr.HexX;
+				uint16 y=cr.HexY;
+				if(GetFreeHex(mapCr,2,x,y))
+				{
+					AddWalkPlane(pet,0,x,y,Random(0,5),true,0);
+					return true;
+				}
+			}
+		}
+	}
+	
+	return false;
+}  
+
+bool UseItem(Critter&cr,Critter&whoUse,Item&item)
+{
+	return false;
+}    
+
+void _BoxInit(Item&item,bool firstTime)
+{
+	if(item.Val1>0)
+	{
+		Critter@pet=GetCritter(item.Val1);
+		if((@pet!=null))
+		DeleteNpc(pet);
+	}
+	item.SetEvent((2),"_BoxUse");
+}
+
+bool _BoxUse(Item&item,Critter&cr,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	if(!(@onCritter!=null)&&!(@onItem!=null)&&!(@onScenery!=null))
+	{
+		Critter@pet;
+		if(item.Val1>0)
+		{
+			@pet=GetCritter(item.Val1);
+			item.Val1=0;
+			if((@pet!=null))
+			{
+				DeleteNpc(pet);
+				return true;
+			}
+		}
+		Map@map=cr.GetMap();
+		if((@map!=null)&&item.Val2>0)
+		{
+			uint16 x=cr.HexX;
+			uint16 y=cr.HexY;
+			if(GetFreeHex(map,2,x,y))
+			{
+				int[]params={(89),(765567),(92),cr.Id,(91),__FullSecond};
+				@pet=map.AddNpc(item.Val2,x,y,GetDirection(x,y,cr.HexX,cr.HexY),params,null,"_PetInit");
+				if((@pet!=null))
+				{
+					item.Val1=pet.Id;
+					pet.StatBase[(92)]=cr.Id;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+void AddPetBox(Critter&cr,int boxPid,int petPid,int)
+{
+	Item@box=cr.AddItem(boxPid,1);
+	if((@box!=null))
+	{
+		box.Val2=petPid;
+		(box.Flags=(box.Flags)|((0x10000000)));
+		box.Update();
+		box.SetScript("_BoxInit");
+	}
+}

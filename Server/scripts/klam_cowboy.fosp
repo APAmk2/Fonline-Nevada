@@ -1,0 +1,531 @@
+              
+
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";
+import uint GetNearFullSecond(uint16 year,uint16 month,uint16 day,uint16 hour,uint16 minute,uint16 second)from"time";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+uint GetTimeSpawn(){return Random(30,40)*60;}
+uint GetMobLevel(uint playerLevel)
+{
+	playerLevel*=0.5;
+	return(((playerLevel)>(30))?(30):(((playerLevel)<(2))?(2):(playerLevel)));
+}
+uint GetMobCount(uint playerLevel){return playerLevel/3+3;}
+uint GetExp(uint cowDead)
+{
+	uint bonus=0;
+	if(cowDead==0)
+	bonus=200;
+	return uint(500*(1-double(cowDead)/double((6))))+bonus;
+} 
+
+uint MobsCount;
+uint8 CowsDeadCount; 
+
+uint FinishEventNum; 
+
+void InitCowboy(Map&map,bool firstTime)
+{
+	CreateTimeEvent(GetNearFullSecond(0,0,0,(24),0,0),"e_StartAtack",map.Id,false);
+	
+	FinishEventNum=0;
+	CowsDeadCount=0;
+	
+	Critter@[]Cows;
+	GetNpc(map,Cows,(10),(0x0F));
+	for(uint i=0;i<Cows.length();i++)
+	{
+		Cows[i].SetEvent((2),"_CowDead");
+		if(Cows[i].IsDead())
+		CowsDeadCount++;
+	}
+	
+	Critter@[]Dogs;
+	GetNpc(map,Dogs,(11),(0x0F));
+	for(uint i=0;i<Dogs.length();i++)
+	Dogs[i].SetEvent((4),"_DogSeeMob");
+	
+	Critter@[]Mobs;
+	GetNpc(map,Mobs,(239),(0x03));
+	for(uint i=0;i<Mobs.length();i++)
+	{
+		Mobs[i].SetEvent((0),"_MobIdle");
+		Mobs[i].SetEvent((2),"_MobDead");
+		Mobs[i].SetEvent((4),"_MobSeeCritter");
+	}
+	MobsCount=Mobs.length();
+}   
+
+uint e_StartAtack(uint[]@values)
+{
+	if(GetQuestGlobalState()<=0)
+	return GetNearFullSecond(0,0,0,(24),0,0)-__FullSecond;
+	
+	Map@map=GetMap(values[0]);
+	if(not(@map!=null))
+	{
+		Log("ERROR: map not valid ");
+		return 0;
+	} 
+	
+	CowsDeadCount=0;
+	Critter@[]Cows;
+	GetNpc(map,Cows,(10),(0x04));
+	for(uint i=0;i<Cows.length();i++)
+	{
+		if(not Cows[i].IsDead())
+		continue;
+		uint[]param={Cows[i].Id,0};
+		CreateTimeEvent(__FullSecond+60,"e_CowToLife",param,true);
+	}
+	
+	FinishEventNum=CreateTimeEvent(GetNearFullSecond(0,0,0,(5),0,0),"e_FinishQuest",true);
+	CreateTimeEvent(__FullSecond+GetTimeSpawn(),"e_SpawnMobsLoop",values[0],true);
+	SetQuestState(2);
+	
+	return GetNearFullSecond(0,0,0,(24),0,0)-__FullSecond;
+}  
+
+uint e_SpawnMobsLoop(uint[]@values)
+{
+	if(GetQuestGlobalState()<=0)
+	return 0;
+	
+	Map@map=GetMap(values[0]);
+	if(not(@map!=null))
+	{
+		Log("ERROR: map not valid");
+		return 0;
+	} 
+	
+	Critter@[]Dogs;
+	GetNpc(map,Dogs,(11),(0x03));
+	for(uint i=0;i<Dogs.length();i++)
+	{
+		Dogs[i].StatBase[(90)]=0;
+		CreateTimeEvent(__FullSecond+Random(1,3)*60,"e_DogAlert",Dogs[i].Id,false);
+	}
+	
+	uint16 playerLevel=GetPlayerLevel(); 
+	
+	uint[]params={values[0]};
+	params=SelectEntsAndMobs(params);
+	params.resize(params.length()+4);
+	params[params.length()-4]=GetMobLevel(playerLevel);
+	params[params.length()-3]=GetMobCount(playerLevel);
+	params[params.length()-2]=0;
+	params[params.length()-1]=0;
+	CreateTimeEvent(__FullSecond+10*60,"e_SpawnMobs",params,true);
+	
+	return GetTimeSpawn();
+}    
+
+uint e_SpawnMobs(uint[]@values)
+{
+	if(GetQuestGlobalState()<=0)
+	return 0;
+	
+	Map@map=GetMap(values[0]);
+	if(not(@map!=null))
+	{
+		Log("ERROR: map not valid");
+		return 0;
+	}
+	
+	uint entGroup=values[1];
+	uint npcPid=values[2];
+	uint dialogId=values[3];
+	uint mobLevel=values[4];
+	uint maxCount=values[5];
+	uint mobsSpawnCount=values[6];
+	uint limit=values[7];
+	
+	uint entCount=map.CountEntire(entGroup);
+	for(uint i=0;i<entCount;i++)
+	{
+		limit++;
+		if(limit>=maxCount*2)
+		return 0;
+		if(MobsCount>=(64))
+		return 0;
+		
+		Critter@mob=SpawnMob(map,entGroup,i,npcPid,2,dialogId,mobLevel);
+		if(not(@mob!=null))
+		continue;
+		
+		mobsSpawnCount++;
+		if(mobsSpawnCount>=maxCount)
+		return 0;
+	}
+	
+	values[6]=mobsSpawnCount;
+	values[7]=limit;
+	
+	CreateTimeEvent(__FullSecond+60,"e_SpawnMobs",values,true);
+	return 0;
+}  
+
+uint e_DogAlert(uint[]@values)
+{
+	Critter@dog=GetCritter(values[0]);
+	if(not(@dog!=null))
+	{
+		Log("ERROR: critter not valid");
+		return 0;
+	}
+	if(not dog.IsNoPlanes())
+	return Random(1,3);
+	
+	dog.MoveRandom();
+	dog.Wait(Random(2000,4000));
+	uint[]msg={2500,2501,2502,2503,2504,2505,2506,2507};
+	dog.SayMsg((2),(0),msg[Random(0,msg.length()-1)]);
+	
+	dog.StatBase[(90)]++;
+	if(dog.StatBase[(90)]>=3)
+	return 0;
+	return Random(1,3)*60;
+}  
+
+uint e_FinishQuest(uint[]@values)
+{
+	FinishQuest((0));
+	return 0;
+}  
+
+uint e_DeleteMobs(uint[]@values)
+{
+	Critter@mob=GetCritter(values[0]);
+	if(not(@mob!=null))
+	{
+		Log("ERROR: critter not valid");
+		return 0;
+	}
+	
+	if(mob.Stat[(89)]!=(239))
+	return 0;
+	DeleteNpc(mob);
+	return 0;
+}    
+
+uint e_CowToLife(uint[]@values)
+{
+	Critter@cow=GetCritter(values[0]);
+	if(not(@cow!=null))
+	{
+		Log("ERROR: critter not valid");
+		return 0;
+	}
+	Map@map=cow.GetMap();
+	if(not(@map!=null))
+	{
+		Log("ERROR: map not valid");
+		return 0;
+	}
+	
+	if(map.IsHexPassed(cow.HexX,cow.HexY))
+	{
+		cow.ToLife();
+		return 0;
+	}
+	
+	values[1]++; 
+	
+	if(values[1]>=10)
+	{
+		CowsDeadCount=map.GetNpcCount((10),(0x04));
+		return 0;
+	}
+	
+	CreateTimeEvent(__FullSecond+60,"e_CowToLife",values,true);
+	return 0;
+} 
+
+void _MobDead(Critter&mob,Critter@killer)
+{
+	CreateTimeEvent(__FullSecond+GetTimeSpawn(),"e_DeleteMobs",mob.Id,true);
+	MobsCount--;
+} 
+
+void _MobIdle(Critter&mob)
+{
+	if(GetQuestGlobalState()<=0)
+	{
+		AddWalkPlane(mob,(20),mob.StatBase[(92)],mob.StatBase[(93)],Random(0,5),true,Random(0,1));
+		AddMiscPlane(mob,(10),0,"klam_cowboy@plane_GoodByeMob");
+	}
+	else
+	{
+		Map@map=mob.GetMap();
+		if(not(@map!=null))
+		{
+			Log("ERROR: map not valid");
+			return;
+		}
+		
+		MobSetAtackPlane(map,mob);
+	}
+}
+
+void _CowDead(Critter&cow,Critter@killer)
+{
+	if(GetQuestGlobalState()<=0)
+	return;
+	
+	CowsDeadCount++;
+	
+	if(CowsDeadCount>=(6))
+	FinishQuest((1));
+}
+
+void _MobSeeCritter(Critter&mob,Critter&showCrit)
+{
+	if(showCrit.Stat[(89)]==(239))
+	return;
+	
+	mob.AddEnemyInStack(showCrit.Id);
+}
+
+void _DogSeeMob(Critter&dog,Critter&mob)
+{
+	if(mob.Stat[(89)]!=(239))
+	return;
+	
+	dog.AddEnemyInStack(mob.Id);
+}  
+
+bool d_VerifyTime(Critter&master,Critter@slave,int val)
+{
+	bool result=VerifyTime((8),(22));
+	if(val==0)
+	return not result;
+	else
+	return result;
+}  
+
+void r_StartQuest(Critter&master,Critter@slave,int val)
+{
+	if(not(@slave!=null))
+	return;
+	if(master.IsNpc())
+	return;
+	
+	SetQuestGlobalState(master.Id);
+	SetQuestState(1);
+	SetPlayerLevel(master.Stat[(77)]);
+}
+
+void r_AddExperience(Critter&master,Critter@slave)
+{
+	if(not(@slave!=null))
+	return;
+	if(master.IsNpc())
+	return;
+	
+	GameVar@var=GetLocalVar((3213),master.Id);
+	if(not(@var!=null))
+	{
+		Log("ERROR: not valid GameVar №"+(3213));
+		return;
+	}
+	int16 cowDeadCount=var.GetValue()-4;
+	if(cowDeadCount<0||cowDeadCount>(6))
+	{
+		Log("WARNING: quest var bad value");
+		return;
+	}
+	
+	master.StatBase[(76)]+=GetExp(cowDeadCount);
+	var=0;
+} 
+
+void plane_GoodByeMob(Critter&mob)
+{
+	if(mob.Stat[(89)]!=(239))
+	return;
+	DeleteNpc(mob);
+}  
+
+Critter@SpawnMob(Map&map,uint8 entGroup,uint8 entNum,uint16 npcPid,uint8 dir,uint dialog,uint level)
+{
+	uint16 x=0,y=0;
+	if(not map.GetEntireCoords(entGroup,entNum,x,y))
+	{
+		Log("ERROR: GetEntireCoords "+entGroup+":"+entNum);
+		return null;
+	}
+	
+	int[]params=
+	{
+		(104),dialog,(106),(24),(107),(1),(77),level,
+		(92),x,(93),y,(89),(239),(84),-1
+	};
+	Critter@mob=map.AddNpc(npcPid,x,y,dir,params,null,null);
+	if(not(@mob!=null))
+	{
+		Log("ERROR: critter not valid");
+		return null;
+	}
+	
+	MobSetAtackPlane(map,mob);
+	mob.SetEvent((0),"_MobIdle");
+	mob.SetEvent((2),"_MobDead");
+	mob.SetEvent((4),"_MobSeeCritter");
+	MobsCount++;
+	
+	return mob;
+} 
+
+void MobSetAtackPlane(Map&map,Critter&mob)
+{
+	uint count=map.GetNpcCount((10),(0x03));
+	if(count==0)
+	{
+		FinishQuest((1));
+		return;
+	}
+	
+	Critter@cow=map.GetNpc((10),(0x03),Random(0,count-1));
+	if(not(@cow!=null))
+	{
+		Log("ERROR: critter not valid");
+		return;
+	}
+	AddAttackPlane(mob,(50),cow);
+} 
+
+uint[]SelectEntsAndMobs(uint[]arr)
+{
+	arr.resize(arr.length()+3);
+	uint8[]ent={10,11,12,13};
+	uint16[]pid={(82),(110),(6),(81)};
+	uint[]dialog={(5054),(5002),(5011),(5020)};
+	uint mobsTypeNum=Random(0,pid.length()-1);
+	arr[arr.length()-3]=ent[Random(0,ent.length()-1)];
+	arr[arr.length()-2]=pid[mobsTypeNum];
+	arr[arr.length()-1]=dialog[mobsTypeNum];
+	return arr;
+} 
+
+uint GetNpc(Map@map,Critter@[]@arr,int npcRole,int findType)
+{
+	uint findCount=0;
+	uint count=map.GetNpcCount(npcRole,findType);
+	for(uint i=0;i<count;i++)
+	{
+		Critter@cr=map.GetNpc(npcRole,findType,i);
+		if(not(@cr!=null))
+		{
+			Log("ERROR: critter not valid");
+			continue;
+		}
+		findCount++;
+		arr.resize(arr.length()+1);
+		@arr[arr.length()-1]=cr;
+	}
+	return findCount;
+} 
+
+bool VerifyTime(uint8 timeStart,uint8 timeFinish)
+{
+	if(timeStart==timeFinish)
+	return true;
+	if(timeStart==24)
+	timeStart=0;
+	if(timeFinish==24)
+	timeFinish=0;
+	uint8 hour=__Hour;
+	if(timeStart>timeFinish)
+	{
+		timeFinish+=24;
+		if(timeStart>hour)
+		hour+=24;
+	}
+	
+	if((hour>=timeStart)&&(hour<timeFinish))
+	return true;
+	
+	return false;
+} 
+
+void FinishQuest(uint8 state)
+{
+	if(GetQuestGlobalState()<=0)
+	return;
+	
+	switch(state)
+	{
+		case(1):
+		if(FinishEventNum!=0)
+		EraseTimeEvent(FinishEventNum);
+		SetQuestState(3);
+		break;
+		case(0):
+		SetQuestState(4+CowsDeadCount);
+		break;
+	}
+	
+	FinishEventNum=0;
+	SetQuestGlobalState(0);
+}
+
+void SetQuestGlobalState(int status)
+{
+	GameVar@quest=GetGlobalVar((139));
+	if(not(@quest!=null))
+	{
+		Log("ERROR: not valid GameVar №"+(139));
+		return;
+	}
+	quest=status;
+}
+
+int GetQuestGlobalState()
+{
+	GameVar@quest=GetGlobalVar((139));
+	if(not(@quest!=null))
+	{
+		Log("ERROR: not valid GameVar №"+(139));
+		return-1;
+	}
+	return quest.GetValue();
+}
+
+void SetQuestState(uint state)
+{
+	uint playerId=GetQuestGlobalState();
+	if(playerId<=0)
+	return;
+	GameVar@var=GetLocalVar((3213),playerId);
+	if(not(@var!=null))
+	{
+		Log("ERROR: not valid GameVar №"+(3213));
+		return;
+	}
+	
+	var=state;
+}
+
+void SetPlayerLevel(uint16 level)
+{
+	uint16[]param={level};
+	if(not SetAnyData(("KlamCowboy"),param))
+	Log("WARNING: set any data fail");
+}
+
+uint16 GetPlayerLevel()
+{
+	uint16[]param;
+	if(not GetAnyData(("KlamCowboy"),param))
+	{
+		Log("WARNING: get any data fail");
+		return(5);
+	}
+	if(param.length()==0)
+	{
+		Log("WARNING: array length == 0");
+		return(5);
+	}
+	return param[0];
+}

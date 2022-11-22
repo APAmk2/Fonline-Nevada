@@ -1,0 +1,141 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+uint QuestAllowTime=0;    
+
+bool d_QuestCheck(Critter&player,Critter@npc)
+{ 
+	
+	if(QuestAllowTime<__FullSecond)
+	return true;
+	return false;
+	
+} 
+
+bool d_QuestNotCheck(Critter&player,Critter@npc)
+{ 
+	
+	if(!d_QuestCheck(player,npc))
+	return true;
+	return false;
+	
+}  
+
+bool d_ArmorCheck(Critter&player,Critter@npc)
+{
+	
+	Item@[]PlayerArmor;
+	if(player.GetItems((3),PlayerArmor)<=0)
+	return false;
+	if(PlayerArmor.length()==1)
+	{
+		if(!(@PlayerArmor[0]!=null))
+		return false;
+		if(PlayerArmor[0].GetProtoId()==(348)||PlayerArmor[0].GetProtoId()==(349))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return false;
+	
+}  
+
+bool d_ArmorNotCheck(Critter&player,Critter@npc)
+{
+	
+	if(!d_ArmorCheck(player,npc))
+	return true;
+	return false;
+	
+}  
+
+void r_AddEgg(Critter&player,Critter@npc)
+{
+	
+	Item@Egg=player.AddItem((327),1);
+	if(!(@Egg!=null))
+	return;
+	Egg.SetScript("q_item_v13_egg@_EggInit");
+	Egg.Val4=player.Id;
+	Egg.Update();    
+	
+	QuestAllowTime=__FullSecond+(60*60*24*(1));
+	
+} 
+
+void r_StartDclawRebirth(Critter&player,Critter@prof)
+{
+	
+	if(!(@prof!=null))
+	return;
+	Map@map=prof.GetMap();
+	uint[]args={map.Id,0};
+	
+	GameVar@DclawKids=GetGlobalVar((1814));
+	if((@DclawKids!=null))
+	{
+		switch(DclawKids.GetValue())
+		{
+			case 0:
+			DclawKids=1;
+			args[1]=251;
+			CreateTimeEvent(__FullSecond+(60*60*24*Random(7,9)),"e_DclawKidBorn",args,true);
+			break;
+			case 1:
+			DclawKids=2;
+			args[1]=252;
+			CreateTimeEvent(__FullSecond+(60*60*24*Random(7,9)),"e_DclawKidBorn",args,true);
+			break;
+			case 2:
+			DclawKids=3;
+			args[1]=253;
+			CreateTimeEvent(__FullSecond+(60*60*24*Random(7,9)),"e_DclawKidBorn",args,true);
+			break;
+			
+			default:
+			break;
+		}
+	}
+	return;
+	
+} 
+
+uint e_DclawKidBorn(uint[]@values)
+{
+	
+	if(!(@values!=null))
+	return 0;
+	if(values.length()<2)
+	return 0;
+	
+	Map@map=GetMap(values[0]);
+	if(!(@map!=null))
+	return 0;
+	DclawKid(map,values[1]);
+	return 0;
+	
+} 
+
+Critter@DclawKid(Map&map,uint EntSpawn)
+{
+	
+	uint16 x=0,y=0;
+	
+	if(!map.GetEntireCoords(EntSpawn,0,x,y))
+	{
+		return null;
+	}
+	
+	int[]params=
+	{
+		(104),(5032),(107),(1),(84),60*24*7,
+		(7),180,(8),8,(4),8,(66),100
+	};
+	
+	Critter@cr=map.AddNpc((244),x,y,Random(1,4),params,null,null);    
+	
+	return cr;
+}

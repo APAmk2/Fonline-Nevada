@@ -1,0 +1,56 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+import string ElectronicLockerCode(int varNum)from"electronic_lock";
+
+void _BallInit(Item&item,bool firstTime)
+{
+	item.SetEvent((2),"_BallUse");
+}
+
+bool _BallUse(Item&item,Critter&cr,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	_BallSkill(item,cr,(-1));
+	return false;
+}
+bool _BallSkill(Item&item,Critter&cr,int skill)
+{
+	if(skill!=(-1))
+	return false;
+	uint lastStr=3899;
+	switch(cr.Stat[(6)])
+	{
+		case 10:
+		lastStr=3942;
+		break;
+		case 9:
+		lastStr=3941;
+		break;
+		case 8:
+		lastStr=3935;
+		break;
+		case 7:
+		lastStr=3932;
+		break;
+		case 6:
+		lastStr=3919;
+		break;
+		case 5:
+		lastStr=3919;
+		break;
+		default:
+		lastStr=3908;
+		break;
+	}
+	lastStr=Random(3899,lastStr);
+	if(lastStr==(3942))
+	{
+		string lexems="$code"+ElectronicLockerCode((4441));
+		cr.SayMsg((5),(0),lastStr,lexems);
+		return true;
+	}
+	else
+	{
+		cr.SayMsg((5),(0),lastStr);
+		return true;
+	}
+}

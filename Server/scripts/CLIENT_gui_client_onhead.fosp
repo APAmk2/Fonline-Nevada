@@ -1,0 +1,129 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                        
+
+import int GUI_GetActiveMainScreen()from"client_gui";    
+
+uint GUI_OnHead_Mod; 
+
+void Init_GUI_OnHead()
+{
+	GUI_OnHead_Mod=0;
+}
+void Draw_GUI_OnHead()
+{
+	
+	if(GUI_GetActiveMainScreen()!=(5))
+	return;
+	
+	CritterCl@cr=GetChosen();
+	CritterCl@[]crs;
+	GetCritters(0,(0x0F),crs);
+	switch(GUI_OnHead_Mod)
+	{
+		case 0:
+		__ShowPlayerNames=false;
+		break;
+		case 1:
+		{
+			int color_b=0;
+			int color_g=0;
+			int color_r=0;
+			int hp_proc=0;
+			string name;
+			string hp;
+			for(uint i=0,imax=crs.length();i<imax;i++)
+			{
+				color_g=(255*crs[i].Param[(72)])/crs[i].Param[(7)];
+				hp_proc=crs[i].Param[(72)]*100/crs[i].Param[(7)];
+				if(color_g<0)
+				color_g=0;
+				color_r=255-color_g;
+				if(crs[i].IsPlayer())
+				{
+					name="\n"+"|"+(cr.Param[(106)]!=crs[i].Param[(106)]?((uint((0xFF<<24)|(((0xC8)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF)))):((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((0xC8)&0xFF)<<8)|((0)&0xFF)))))+" "+crs[i].Name;
+					crs[i].ContourColor=(cr.Param[(106)]!=crs[i].Param[(106)]?((uint((0xFF<<24)|(((150)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF)))):((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((150)&0xFF)<<8)|((0)&0xFF)))));
+				}
+				else name=" ";
+				if(crs[i].IsNpc()&&crs[i].Param[(72)]>-19)
+				{
+					if(cr.PerkBase[301]!=0)
+					{
+						hp="|"+(uint((0xFF<<24)|(((color_r)&0xFF)<<16)|(((color_g)&0xFF)<<8)|((color_b)&0xFF)))+" "+crs[i].Param[(72)]+"/"+crs[i].Param[(7)];
+					}
+					else if(hp_proc>0)
+					{
+						hp="|"+(uint((0xFF<<24)|(((color_r)&0xFF)<<16)|(((color_g)&0xFF)<<8)|((color_b)&0xFF)))+" "+hp_proc+"%";
+					}
+					else
+					{
+						hp="|"+(uint((0xFF<<24)|(((color_r)&0xFF)<<16)|(((color_g)&0xFF)<<8)|((color_b)&0xFF)))+" "+"«пм»";
+					}
+				}
+				else hp=" ";
+				crs[i].NameOnHead=hp+name;
+			}
+		}
+		__ShowPlayerNames=true;
+		break;
+		case 2:
+		{
+			int color_b=0;
+			int color_g=0;
+			int color_r=0;
+			int hp_proc=0;
+			string name;
+			string hp;
+			for(uint i=0,imax=crs.length();i<imax;i++)
+			{
+				color_g=(255*crs[i].Param[(72)])/crs[i].Param[(7)];
+				hp_proc=crs[i].Param[(72)]*100/crs[i].Param[(7)];
+				if(color_g<0)
+				color_g=0;
+				color_r=255-color_g;
+				if(crs[i].IsPlayer())
+				{
+					name="\n"+"|"+(cr.Param[(106)]!=crs[i].Param[(106)]?((uint((0xFF<<24)|(((0xC8)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF)))):((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((0xC8)&0xFF)<<8)|((0)&0xFF)))))+" "+crs[i].Name;
+					crs[i].ContourColor=(cr.Param[(106)]!=crs[i].Param[(106)]?((uint((0xFF<<24)|(((150)&0xFF)<<16)|(((0)&0xFF)<<8)|((0)&0xFF)))):((uint((0xFF<<24)|(((0)&0xFF)<<16)|(((150)&0xFF)<<8)|((0)&0xFF)))));
+				}
+				else name=" ";
+				
+				if(crs[i].Param[(72)]>-19)
+				{
+					if(cr.PerkBase[301]!=0)
+					{
+						hp="|"+(uint((0xFF<<24)|(((color_r)&0xFF)<<16)|(((color_g)&0xFF)<<8)|((color_b)&0xFF)))+" "+crs[i].Param[(72)]+"/"+crs[i].Param[(7)];
+					}
+					else if(hp_proc>0)
+					{
+						hp="|"+(uint((0xFF<<24)|(((color_r)&0xFF)<<16)|(((color_g)&0xFF)<<8)|((color_b)&0xFF)))+" "+hp_proc+"%";
+					}
+					else
+					{
+						hp="|"+(uint((0xFF<<24)|(((color_r)&0xFF)<<16)|(((color_g)&0xFF)<<8)|((color_b)&0xFF)))+" "+"«пм»";
+					}
+				}
+				else hp=" ";
+				crs[i].NameOnHead=hp+name;
+			}
+		}
+		
+		break;
+	}
+}
+
+void Change_GUI_OnHead()
+{
+	GUI_OnHead_Mod=(GUI_OnHead_Mod+1)%3;
+}
+
+void ShowNPC_GUI_OnHead()
+{
+	__ShowNpcNames=!__ShowNpcNames;
+}

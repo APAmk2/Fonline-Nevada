@@ -1,0 +1,61 @@
+Logging with time.
+(47)Starting FOMapper...
+(47)
+Mapper Initialization...
+(47)Create Direct3D...(62)SpriteManager Initialization...
+(140)CSpriteManager Initialization complete.
+(140)DInput init...
+(156)DInput init OK
+(156)ResourceMngr Initialization...
+(156)ResourceMngr Initialization complete
+(156)SoundManager Init.
+(187)SoundManager Init Success.
+(187)Init iface
+(187)Load data
+(203)Init iface success
+(203)Loading All MSG...
+(203)End loading All MSG.
+(203)Object manager init...
+(203)Clear protos, Type: All
+(203)Object manager init Ok
+(203)Loading of prototypes of objects from a new format in <.\data\proto\foobj\proto.fopro>
+(219)<7484> prototypes are successfully loaded
+(219)Clear protos, Type: All
+(219)Parse prototype objects, count: 7484
+(219)Parsing of prototype objects is complete
+(219)Hashes of prototype:
+		CRC32 of protos Armor: <4221804708>
+		CRC32 of protos Drug: <572407196>
+		CRC32 of protos Weapon: <2963492830>
+		CRC32 of protos Ammo: <774255681>
+		CRC32 of protos Misc: <1918163283>
+		CRC32 of protos Misc2: <2132234955>
+		CRC32 of protos Key: <1050152917>
+		CRC32 of protos Container: <2356221321>
+		CRC32 of protos Door: <1913128712>
+		CRC32 of protos Grid: <3388952507>
+		CRC32 of protos Generic: <1898486939>
+		CRC32 of protos Wall: <603298278>
+		CRC32 of protos Tile: <1259500259>
+(219)Critter Manager Init...(234)Critter Manager Init Success
+(265)Loaded <483> / <483> critter prototype
+(265)CHexField Initialization...
+(265)CHexField Initialization complete
+(265)FEngine Initialization complete
+(8719)Refresh proto map, pid<65535>, name<VAULT8_out>...(8719)CProtoMap::ReadObjectsOld - proto not find, pid<3893>
+(8719)Cannot read Objects.
+(8719)Proto map init fail
+(144750)Mapper Finish...
+(144750)ResourceMngr Finish...
+(144750)ResourceMngr Finish complete
+(144750)CHexField Clear...
+(144765)CHexField Clear complete
+(144765)SpriteManager Clear...
+(144765)SpriteManager Clear complete.
+(144765)SoundManager Clear.(144765).(144765).(144765).
+(144765)SoundManager Clear Complete.
+(144765)Critter manager finish...
+(144765)Critter manager finish Ok
+(144765)Mapper Finish complete
+(144765)
+FOMapper Closed

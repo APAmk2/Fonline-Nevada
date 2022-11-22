@@ -1,0 +1,121 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+import bool AddPickPlane(Critter&npc,uint priority,Item@item,uint useItemId,bool toOpen)from"npc_planes";
+
+void _CollectorInit(Critter&cr,bool firstTime)
+{
+	cr.SetEvent((0),"_CollectorIdle");
+	cr.SetEvent((36),"_CollectorPlaneEnd");
+	cr.StatBase[(90)]=__FullSecond+(((5)*__TimeMultiplier*60));
+}
+
+void _CollectorIdle(Critter&cr)
+{
+	if(uint(cr.Stat[(90)])<__FullSecond)
+	{
+		SearchForItems(cr);
+		cr.StatBase[(90)]=__FullSecond+(((5)*__TimeMultiplier*60));
+	}
+	else
+	{
+		MoveItemsToContainer(cr);
+	}
+} 
+
+void MoveItemsToContainer(Critter&cr)
+{
+	Item@[]items;
+	Item@[]containers;
+	Map@map=cr.GetMap();
+	if(cr.GetItems((0),items)>0&&(@map!=null))
+	{
+		uint entires=map.CountEntire((87));
+		if(entires>0)
+		{
+			uint16 hx=0;
+			uint16 hy=0;
+			if(map.GetEntireCoords((87),Random(0,entires-1),hx,hy))
+			{
+				if(map.GetItems(hx,hy,containers)>0)
+				{
+					for(uint i=0,l=containers.length();i<l;i++)
+					{
+						if(containers[i].GetType()==(8))
+						{
+							AddPickPlane(cr,(178),containers[i],0,true);
+							return;
+						}
+					}
+					@containers;
+				}
+				
+			}
+		}
+		
+		map.GetItemsByType((8),containers);
+		uint distMin=map.GetWidth();
+		uint distCur=0;
+		int ind=-1;
+		for(int i=0,l=containers.length();i<l;i++)
+		{
+			distCur=map.GetPathLength(cr.HexX,cr.HexY,containers[i].HexX,containers[i].HexY,1);
+			if(distCur>0&&distMin>distCur)
+			{
+				distMin=distCur;
+				ind=i;
+			}
+		}
+		if(ind>=0)
+		{
+			AddPickPlane(cr,(178),containers[ind],0,true);
+		}
+	}
+	
+}
+
+void SearchForItems(Critter&cr)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return;
+	Item@[]items;
+	if(map.GetItems(cr.HexX,cr.HexY,cr.Stat[(1)]*5,0,items)==0)
+	return;
+	int type;
+	Item@item;
+	for(uint i=0,l=items.length();i<l;i++)
+	{
+		@item=items[i];
+		if((@item!=null))
+		{
+			if((((item.Flags)&((0x00200000)))!=0))
+			continue;
+			type=item.GetType();
+			if(type>=(1)&&type<=(7)&&map.GetPathLength(cr,item.HexX,item.HexY,0)>0)
+			AddPickPlane(cr,0,item,0,true);
+		}
+	}
+}
+
+int _CollectorPlaneEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(plane.Type==(3)&&plane.Priority==(178))
+	{
+		Map@map=cr.GetMap();
+		Item@cont=map.GetItem(plane.Pick_HexX,plane.Pick_HexY,plane.Pick_Pid);
+		if((@cont!=null)&&reason==(30)&&cont.GetType()==(8))
+		{
+			Item@[]items;
+			if(cr.GetItems((0),items)>0)
+			MoveItems(items,cont,0);
+			
+		}
+	}
+	return(0);
+} 
+
+void AddCollector(Critter&cr,int,int,int)
+{
+	Critter@npc=cr.GetMap().AddNpc(1,cr.HexX,cr.HexY,3,null,null,null);
+	npc.SetScript("_CollectorInit");
+}

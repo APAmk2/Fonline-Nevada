@@ -1,0 +1,294 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+
+LetterInfo@GetRandomLetterInfo(uint startLoc)
+{
+	uint locPid=startLoc;
+	while(locPid==startLoc)
+	{
+		locPid=uint(Random((1),((17))));
+		if(!(((locPid)>=(1)&&(locPid)<=(19)&&(locPid)!=(11)&&(locPid)!=(12)&&(locPid)!=(8))||(locPid)==(44))||locPid==(15)||locPid==(9))
+		locPid=startLoc;
+	}
+	Location@loc=GetLocationByPid(locPid,0);
+	if(!(@loc!=null)||loc.GetMapCount()==0)
+	return null;
+	Map@[]maps;
+	loc.GetMaps(maps);
+	Map@map=maps[uint(Random(0,uint(maps.length()-1)))];
+	Critter@[]critters;
+	if(map.GetCritters(0,(0x01)|(0x20),critters)==0)
+	return null;
+	Critter@cr=critters[Random(0,critters.length()-1)];
+	if(cr.Stat[(104)]==0)
+	return null;
+	switch(cr.Stat[(67)])
+	{
+		case(0):
+		break;
+		case(1):
+		break;
+		case(2):
+		break;
+		case(3):
+		break;
+		case(4):
+		break;
+		default:
+		return null;
+	}
+	LetterInfo@li=LetterInfo();
+	li.NpcDidRec=uint(cr.Stat[(104)]);
+	li.LocPidRec=locPid;
+	li.MapPidRec=map.GetProtoId();
+	
+	return li;
+}   
+
+LetterInfo@GetNewLetterInfo(uint locPid,uint playerId)
+{
+	uint numTry;
+	numTry=10;
+	for(uint i=0;i<numTry;i++)
+	{
+		LetterInfo@li=GetRandomLetterInfo(locPid);
+		if((@li!=null))
+		{
+			li.PlayerID=playerId;
+			li.LocPidStart=locPid;
+			return li;
+		}
+	}
+	return null;
+} 
+
+class LetterInfo
+{
+	LetterInfo()
+	{}
+	
+	LetterInfo(Item&item)
+	{
+		this.LocPidStart=item.Val1;
+		this.LocPidRec=item.Val2;
+		this.MapPidRec=item.Val3;
+		this.NpcDidRec=item.Val4;
+		this.PlayerID=item.Val5;
+	}     
+	
+	LetterInfo(uint pidLocS,uint pidLocE,uint pidMapE,uint didNpcE,uint idPlayer)
+	{
+		this.LocPidStart=pidLocS;
+		this.LocPidRec=pidLocE;
+		this.MapPidRec=pidMapE;
+		this.NpcDidRec=didNpcE;
+		this.PlayerID=idPlayer;
+	}
+	
+	uint LocPidStart;
+	uint LocPidRec;
+	uint MapPidRec;
+	uint NpcDidRec;
+	uint PlayerID; 
+	
+	void SetItemLetterInfo(Item&item)
+	{
+		if(item.GetProtoId()!=(548))
+		{
+			return;
+		}
+		
+		item.Val1=this.LocPidStart;
+		item.Val2=this.LocPidRec;
+		item.Val3=this.MapPidRec;
+		item.Val4=this.NpcDidRec;
+		item.Val5=this.PlayerID;
+		item.SetLexems(this.GetLetterLexems());
+		item.Update();
+	} 
+	
+	string GetLetterLexems()
+	{
+		return"$reciever@msg DLG "+(((this.NpcDidRec)!=0?100000+(this.NpcDidRec)*1000+100:((1)*10)))+"@$location@msg GM "+((this.LocPidRec+100)*1000)+"@";
+	}   
+	
+	uint GetExperience(uint lvl,uint playerID)
+	{   
+		
+		uint baseXP=0;
+		switch(uint(lvl/10))
+		{
+			case 0:
+			baseXP=(500);
+			break;
+			case 1:
+			baseXP=(750);
+			break;
+			case 2:
+			baseXP=(950);
+			break;
+			default:
+			baseXP=0;
+			break;
+		}
+		if(lvl>29)
+		baseXP=(1200); 
+		
+		return uint((uint(baseXP*MeasureDist(this.LocPidStart,this.LocPidRec)/MeasureDist(uint(((9))),uint(((10)))))/100)*100);
+	}
+} 
+
+float MeasureDist(uint pidLocFrom,uint pidLocTo)
+{
+	Location@fromLoc=GetLocationByPid(pidLocFrom,0);
+	Location@toLoc=GetLocationByPid(pidLocTo,0);
+	if(!(@toLoc!=null)||!(@fromLoc!=null))
+	return 0;
+	return sqrt(((toLoc.WorldX-fromLoc.WorldX)*(toLoc.WorldX-fromLoc.WorldX))+((toLoc.WorldY-fromLoc.WorldY)*(toLoc.WorldY-fromLoc.WorldY)));
+} 
+
+bool _OnMailUseOnCritter(Item&item,Critter&cr,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	if(!(@onCritter!=null)||onCritter.IsDead())
+	return false;
+	LetterInfo@li=LetterInfo(item);
+	Map@map=onCritter.GetMap();
+	if(!(@map!=null))
+	return false;
+	Location@loc=map.GetLocation();
+	if(!(@loc!=null))
+	return false;
+	if(!(@li!=null)||uint(onCritter.StatBase[(104)])!=li.NpcDidRec||
+	!cr.IsPlayer()||onCritter.CheckEnemyInStack(cr.Id)||li.LocPidRec!=loc.GetProtoId())
+	return false;  
+	
+	GameVar@crVar=GetLocalVar((4249),cr.Id);
+	if(!(@crVar!=null))
+	{
+		return false;
+	}
+	
+	crVar=onCritter.Id;
+	
+	RunDialog(cr,(1052),onCritter.HexX,onCritter.HexY,false);
+	
+	return true;
+	
+} 
+
+void _OnItemDrop(Item&item,Critter&cr)
+{ 
+	
+	GameVar@qVar=GetLocalVar((4248),cr.Id);
+	if((@qVar!=null)&&qVar.GetValue()==1)
+	qVar=2;
+	LetterInfo@li=LetterInfo(item);
+	if(li.PlayerID==cr.Id)
+	{
+		li.PlayerID=0;
+		li.SetItemLetterInfo(item);
+	}
+} 
+
+void _LetterInit(Item&letter,bool firstTime)
+{
+	LetterInfo@li=LetterInfo(letter);
+	
+	letter.SetEvent((2),"_OnMailUseOnCritter");
+	letter.Update();
+}  
+
+void dlg_GenLetter2Postman(Critter&player,Critter@postman,string@lexems)
+{
+	if((not(@lexems!=null))or((@lexems!=null)&&lexems.length()>0))
+	return;
+	
+	postman.ModeBase[(511)]=1;
+	postman.ModeBase[(512)]=1;
+	postman.ModeBase[(523)]=1;
+	Item@item;
+	LetterInfo@li;
+	if(postman.CountItem((548))==0)
+	{
+		@item=postman.AddItem((548),1);
+		@li=GetNewLetterInfo(postman.GetMap().GetLocation().GetProtoId(),player.Id);
+		li.SetItemLetterInfo(item);
+		item.SetScript("ncr_postman@_LetterInit");
+	}
+	else
+	{
+		@item=postman.GetItem((548),-1);
+		@li=LetterInfo(item);
+	}
+	lexems=li.GetLetterLexems();
+}  
+
+void r_GiveLetter(Critter&player,Critter@postman)
+{
+	Item@letter=postman.GetItem((548),-1);
+	if(!(@letter!=null))
+	return;
+	MoveItem(letter,1,player);
+} 
+
+void r_GrantPlayer(Critter&player,Critter@npc_null,int needMoney)
+{
+	
+	GameVar@crVar=GetLocalVar((4249),player.Id);
+	if(!(@crVar!=null)||crVar.GetValue()==0)
+	return;
+	Critter@npc=GetCritter(crVar.GetValue());
+	crVar=0;
+	if(!(@npc!=null)||!npc.IsLife()||player.CountItem((548))==0)
+	return; 
+	
+	Item@[]items;
+	player.GetItems(-1,items);
+	for(uint i=0;i<items.length();i++)
+	{
+		Item@letter=items[i];
+		if(!(@letter!=null))
+		continue;
+		if(letter.GetProtoId()==(548))
+		{
+			LetterInfo@li=LetterInfo(letter);
+			if(!(@li!=null))
+			continue;
+			if(li.NpcDidRec==uint(npc.StatBase[(104)]))
+			{
+				
+				DeleteItem(letter); 
+				
+				if(li.PlayerID==player.Id)
+				{
+					GameVar@qVar=GetLocalVar((4248),player.Id);
+					if((@qVar!=null)&&qVar.GetValue()>0&&qVar.GetValue()<3)
+					qVar=3;
+				} 
+				
+				uint xp=li.GetExperience(player.Stat[(77)],player.Id);
+				player.StatBase[(76)]+=xp;
+				if(needMoney>0)
+				player.AddItem((41),xp!=0?(((uint(xp/2))>(2000))?(2000):(((uint(xp/2))<(0))?(0):(uint(xp/2)))):250);
+				return;
+			}
+		}
+	}
+}
+
+import bool d_RatchTimeOutCheck(Critter&player,Critter@npc,int v0)from"ncr_ratch";
+import void r_RatchTimeOutSet(Critter&player,Critter@npc,int v0,int v1)from"ncr_ratch"; 
+
+bool d_QTimeOutOK(Critter&player,Critter@postman)
+{
+	return d_RatchTimeOutCheck(player,postman,(4250));
+} 
+
+bool d_NotQTimeOutOK(Critter&player,Critter@postman)
+{
+	return!d_QTimeOutOK(player,postman);
+} 
+
+void r_SetQTimeOut(Critter&player,Critter@postman)
+{
+	r_RatchTimeOutSet(player,postman,(4250),int(((10-(8*player.Skill[(214)]/300))*60*24)));
+}

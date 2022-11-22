@@ -1,0 +1,138 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+
+import void _TraderInit(Critter&trader,bool firstTime)from"trader";
+import void _NpcInit(Critter&npc,bool firstTime)from"encounter_npc";
+import void _NpcDead(Critter&npc,Critter@killer)from"encounter_npc"; 
+
+void CountDeadSaboteurs(Critter&cr,Map@map,Critter@killer)
+{
+	if(!(@map!=null)||!(@killer!=null)||cr.IsPlayer())
+	return;
+	uint pid=cr.GetProtoId();
+	if(pid!=(252)&&pid!=(253))
+	return;
+	if(killer.IsNpc())
+	return;
+	Critter@[]grp;
+	Critter@leader=killer.GetFollowLeader();
+	if(!(@leader!=null))
+	@leader=killer;
+	grp.insertLast(@leader);
+	leader.GetFollowGroup((0x01),grp);
+	for(uint i=0,l=grp.length();i<l;i++)
+	{
+		Critter@player=grp[i];
+		if(!(@player!=null))
+		continue;
+		if(!player.IsPlayer())
+		continue;
+		
+		GameVar@qVar=GetLocalVar((3604),player.Id);
+		if(!(@qVar!=null))
+		continue;
+		if(qVar!=2)
+		continue;
+		GameVar@counter=GetLocalVar((3605),player.Id);
+		if(!(@counter!=null))
+		continue;
+		if(counter.GetValue()==39)
+		qVar=3;
+		
+		counter=counter.GetValue()+1;
+		player.SayMsg((11),(0),(5900),"$dead"+counter.GetValue());
+	}
+}
+
+void r_WriteHolodisk(Critter&player,Critter@npc)
+{
+	Item@holo=player.AddItem((58),1);
+	if(!(@holo!=null))
+	return;
+	holo.SetScript("broken_common@_HoloInit");
+}
+
+void _HoloInit(Item&holo,bool firstTime)
+{
+	holo.HolodiskNumber=(56);
+	holo.SetEvent((2),"_HoloUse");
+	holo.SetEvent((4),"_HoloSkill");
+	holo.Update();
+}
+
+bool _HoloSkill(Item&item,Critter&cr,int skill)
+{
+	return true;
+}
+
+bool _HoloUse(Item&item,Critter&cr,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	if((@onItem!=null)||(@onScenery!=null))
+	return true;
+	if(cr.Skill[(212)]>=(120))
+	{
+		cr.SayMsg((11),(0),(5902));
+		GameVar@check=GetLocalVar((3606),cr.Id);
+		if((@check!=null))
+		{
+			if(check==0)
+			check=1;
+		}
+	}
+	else
+	{
+		cr.SayMsg((11),(0),(5901));
+	}
+	return true;
+}
+
+void r_GrantPlayer(Critter&cr,Critter@npc)
+{
+	cr.StatBase[(30)]+=5;
+}
+
+void _GhoulTraderInit(Critter&cr,bool firstTime)
+{
+	_TraderInit(cr,firstTime);
+	cr.SetEvent((38),"_GhoulBarter");
+}
+
+bool _GhoulBarter(Critter&cr,Critter&player,bool attach,uint barterCount)
+{
+	bool setDisc=false;
+	if(attach)
+	{
+		if(barterCount<2)
+		{
+			GameVar@hasDiscount=GetLocalVar((3607),player.Id);
+			if((@hasDiscount!=null))
+			{
+				if(hasDiscount.GetValue()==1)
+				setDisc=true;
+			}
+		}
+	}
+	SedUraniumCost(cr,(setDisc?100-(25):100));
+	return true;
+}
+
+void SedUraniumCost(Critter&cr,uint8 percent)
+{
+	
+	Item@ore=cr.GetItem((486),-1);
+	if(!(@ore!=null))
+	return;
+	uint newCost=uint(ore.Proto.Cost*percent/100);
+	ore.Cost=newCost;
+}
+
+void _SaboteurInit(Critter&npc,bool firstTime)
+{
+	_NpcInit(npc,firstTime);
+	npc.SetEvent((2),"_SaboteurDead");
+}
+
+void _SaboteurDead(Critter&npc,Critter@killer)
+{
+	CountDeadSaboteurs(npc,npc.GetMap(),killer);
+	_NpcDead(npc,killer);
+}

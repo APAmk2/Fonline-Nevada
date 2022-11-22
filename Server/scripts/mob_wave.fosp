@@ -1,0 +1,1587 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+class Serializator
+{
+	Serializator()
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+	}
+	
+	Serializator(uint approxSize)
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+		GrowBuffer(approxSize);
+	}
+	
+	void GrowBuffer()
+	{
+		BufSize+=(128);
+		Array.resize(BufSize);
+	}
+	
+	void GrowBuffer(uint length)
+	{
+		BufSize+=length;
+		Array.resize(BufSize);
+	}
+	
+	bool Save(string&name)
+	{
+		if(DataSize==0)
+		return false;
+		bool result=SetAnyData(name,Array,DataSize);
+		Clear();
+		return result;
+	}
+	
+	bool Load(string&name)
+	{
+		Clear();
+		if(not GetAnyData(name,Array))
+		return false;
+		BufSize=Array.length();
+		DataSize=BufSize;
+		return true;
+	}
+	
+	void Clear()
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+	}
+	
+	Serializator@SetCurPos(uint pos)
+	{
+		if(pos>BufSize)
+		GrowBuffer(pos-BufSize+(128));
+		CurPos=pos;
+		return this;
+	}
+	
+	Serializator@Fill(uint8 value,uint length)
+	{
+		if(CurPos+length>BufSize)
+		GrowBuffer(CurPos+length-BufSize+(128));
+		for(uint i=0;i<length;i++)
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int64&value)
+	{
+		if(CurPos+8>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>56)&0xFF;
+		Array[CurPos++]=(value>>48)&0xFF;
+		Array[CurPos++]=(value>>40)&0xFF;
+		Array[CurPos++]=(value>>32)&0xFF;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int32&value)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int16&value)
+	{
+		if(CurPos+2>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int8&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint64&value)
+	{
+		if(CurPos+8>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>56)&0xFF;
+		Array[CurPos++]=(value>>48)&0xFF;
+		Array[CurPos++]=(value>>40)&0xFF;
+		Array[CurPos++]=(value>>32)&0xFF;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint32&value)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint16&value)
+	{
+		if(CurPos+2>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint8&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const bool&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value?1:0;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const string&value)
+	{
+		uint len=value.rawLength();
+		if(CurPos+len+1>BufSize)
+		GrowBuffer(CurPos+len+1-BufSize+(128));
+		for(uint i=0;i<len;i++)
+		Array[CurPos++]=value.rawGet(i);
+		Array[CurPos++]=0;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int64[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*8;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int32[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*4;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int16[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*2;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int8[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint64[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*8;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint32[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*4;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint16[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*2;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint8[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const bool[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const string[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		for(uint i=0,j=valuesLen;i<j;i++)
+		len+=values[i].length();
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const Critter&cr)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		uint value=cr.Id;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const Item&item)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		uint value=item.Id;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Get(int64&value)
+	{
+		value=0;
+		if(CurPos+8>DataSize)
+		return this;
+		value|=Array[CurPos++]<<56;
+		value|=Array[CurPos++]<<48;
+		value|=Array[CurPos++]<<40;
+		value|=Array[CurPos++]<<32;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int32&value)
+	{
+		value=0;
+		if(CurPos+4>DataSize)
+		return this;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int16&value)
+	{
+		value=0;
+		if(CurPos+2>DataSize)
+		return this;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int8&value)
+	{
+		value=0;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint64&value)
+	{
+		value=0;
+		if(CurPos+8>DataSize)
+		return this;
+		value|=Array[CurPos++]<<56;
+		value|=Array[CurPos++]<<48;
+		value|=Array[CurPos++]<<40;
+		value|=Array[CurPos++]<<32;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint32&value)
+	{
+		value=0;
+		if(CurPos+4>DataSize)
+		return this;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint16&value)
+	{
+		value=0;
+		if(CurPos+2>DataSize)
+		return this;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint8&value)
+	{
+		value=0;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(bool&value)
+	{
+		value=false;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++]==1?true:false;
+		return this;
+	}
+	
+	Serializator@Get(string&str)
+	{
+		uint len=0;
+		for(uint i=CurPos;;i++)
+		{
+			if(i==DataSize)
+			{
+				str="";
+				return this;
+			}
+			if(Array[i]==0)
+			{
+				len=i-CurPos;
+				break;
+			}
+		}
+		str.rawResize(len);
+		for(uint i=0;i<len;i++)
+		str.rawSet(i,Array[CurPos++]);
+		CurPos++;
+		return this;
+	}
+	
+	Serializator@Get(int64[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int32[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int16[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int8[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint64[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint32[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint16[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint8[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(bool[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(string[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(Critter@&cr)
+	{
+		@cr=null;
+		if(CurPos+4>DataSize)
+		return this;
+		uint id=0;
+		id|=Array[CurPos++]<<24;
+		id|=Array[CurPos++]<<16;
+		id|=Array[CurPos++]<<8;
+		id|=Array[CurPos++];
+		@cr=::GetCritter(id);
+		return this;
+	}
+	
+	Serializator@Get(Item@&item)
+	{
+		@item=null;
+		if(CurPos+4>DataSize)
+		return this;
+		uint id=0;
+		id|=Array[CurPos++]<<24;
+		id|=Array[CurPos++]<<16;
+		id|=Array[CurPos++]<<8;
+		id|=Array[CurPos++];
+		@item=::GetItem(id);
+		return this;
+	}
+	
+	uint8[]Array;
+	uint CurPos;
+	uint BufSize;
+	uint DataSize;
+};            
+
+const int[]TeamsTable=
+{  
+	
+	(5),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(5),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(1),(0),(0),(3),(0),(0),(0),(0),(4),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(3),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(2),(2),(0),(0),(0),(0),(4),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(6),(4),(0),(0),(0),(0),(5),(0),(0),(4),(0),(4),(1),(0),(0),(0),(0),(0),(0),(4),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(1),(1),(0),(0),(0),(5),(0),(0),(0),(0),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(4),(1),(0),(0),(0),(5),(0),(0),(0),(0),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(5),(5),(1),(1),(0),(0),(5),(1),(1),(4),(4),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(4),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(4),(0),(0),(0),(0),(5),(0),(0),(0),(0),(0),(4),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(4),(4),(0),(0),(0),(0),(1),(0),(0),(0),(0),(1),(5),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(4),(0),(0),(0),(0),(5),(1),(0),(0),(0),(1),(4),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(3),(4),(0),(0),(0),(0),(5),(0),(0),(4),(0),(1),(4),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(3),(1),(1),(0),(0),(0),(5),(0),(0),(0),(0),(5),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(1),(1),(1),(0),(0),(0),(1),(1),(1),(1),(1),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(3),(4),(4),(0),(0),(0),(5),(0),(0),(0),(0),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(3),(1),(1),(0),(0),(0),(5),(0),(0),(0),(0),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(1),(4),(4),(0),(0),(0),(5),(0),(0),(0),(0),(0),(4),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(4),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(3),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(6),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(3),(3),(5),(5),(1),(1),(0),(1),(0),(0),(0),(1),(1),(1),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),(0),
+	(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(0),(1),
+	
+};              
+
+int FindInArray(int[]&arr,int value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(int[]&arr,int id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+int FindInArray(uint[]&arr,uint value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(uint[]&arr,uint id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+int FindInArray(uint16[]&arr,uint16 value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}  
+
+int FindInArray(uint8[]&arr,uint8 value)
+{
+	uint count=arr.length();
+	for(uint i=0;i<count;i++)
+	{
+		if(arr[i]==value)
+		return i;
+	}
+	return-1;
+}
+
+bool FindInArray(uint8[]&arr,uint8 id,int&index)
+{
+	for(uint i=0;i<arr.length();i++)
+	{
+		if(id==arr[i])
+		{
+			index=i;
+			return true;
+		}
+	}
+	index=-1;
+	return false;
+}  
+
+bool Present(int what,int[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+bool Present(uint what,uint[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+bool Present(uint16 what,uint16[]&where)
+{
+	if(FindInArray(where,what)==-1)
+	return false;
+	else
+	return true;
+}
+
+void MergeArrays(uint16[]&arrayTo,uint16[]&arrayFrom)
+{
+	for(uint i=0,l=arrayFrom.length();i<l;i++)
+	{
+		arrayTo.insertLast(arrayFrom[i]);
+	}
+}
+
+void MergeArrays(int[]&arrayTo,int[]&arrayFrom)
+{
+	for(uint i=0,l=arrayFrom.length();i<l;i++)
+	{
+		arrayTo.insertLast(arrayFrom[i]);
+		arrayTo.insertLast(arrayFrom[i]);
+	}
+}            
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                                                                                             
+
+import bool AddAttackPlane(Critter&npc,uint priority,uint critId)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";     
+
+void _AddWave(int waveNum,uint mapId,bool attackNpc,bool attackPlayers,uint playerAttackPriority,uint npcAttackPriority)
+{
+	MobWave@mw=MobWave(waveNum);
+	mw.MapId=mapId;
+	mw.AttackPlayers=attackPlayers;
+	mw.AttackNpc=attackNpc;
+	mw.CurrentStep=0;
+	mw.PlayerAttackPriority=playerAttackPriority;
+	mw.NPCAttackPriority=npcAttackPriority;
+	mw.Save();
+}            
+
+void _AddStep(int waveNum,uint8 type,uint8 radius,uint timeNext,uint timeRepeat,bool search,bool clear,uint8 entire,uint16 x,uint16 y,int param)
+{
+	MobWave@mw=MobWave(waveNum);
+	mw.Load();
+	WaveStep@ws=WaveStep();
+	WavePoint@wp=WavePoint();
+	ws.Type=type;
+	ws.Radius=radius;
+	wp.Entire=entire;
+	wp.HexX=x;
+	wp.HexY=y;
+	wp.Type=(entire==0?(1):(0));
+	;
+	ws.Point=wp;
+	ws.TimeNext=timeNext;
+	ws.SearchForTargetsBefore=search;
+	ws.ClearTargetsBefore=clear;
+	ws.TimeRepeat=timeRepeat;
+	ws.Param=param;
+	mw._AddWaveStep(ws);
+	mw.Save();
+}
+
+void _AddStep(int waveNum,uint8 type,uint8 radius,uint timeNext,uint timeRepeat,bool search,bool clear,uint8 entire,uint16 x,uint16 y)
+{
+	_AddStep(waveNum,type,radius,timeNext,timeRepeat,search,clear,entire,x,y,0);
+}      
+
+void _AddMob(int waveNum,uint mobId,int[]@params,int[]@items,string@script,uint pid)
+{
+	MobWave@mw=MobWave(waveNum);
+	mw.Load();
+	MobInfo@mi=MobInfo();
+	;
+	mi.MobId=mobId;
+	;
+	if((@params!=null))
+	{
+		;
+		MergeArrays(mi.MobParams,params);
+	}
+	;
+	if((@items!=null))
+	MergeArrays(mi.MobItems,items);
+	;
+	if((@script!=null))
+	mi.Script=script;
+	mi.Pid=pid;
+	mw._AddMob2Wave(mi);
+	mw.Save();
+} 
+
+class MobInfo
+{
+	uint MobId;
+	int[]MobParams;
+	int[]MobItems;
+	string Script;
+	uint Pid;
+	
+	Critter@Mob()
+	{
+		return GetCritter(MobId);
+	}
+	
+	void Save(string key)
+	{
+		Serializator save;
+		save.Set(this.MobId);
+		save.Set(this.Script);
+		save.Set(this.Pid);
+		save.Set(this.MobParams);
+		save.Set(this.MobItems);
+		save.Save("MobInfo_"+key);
+	}
+	
+	void Load(string key)
+	{
+		Serializator load;
+		if(!load.Load("MobInfo_"+key))
+		{
+			Log("Can't load MobInfo. Key: MobInfo_"+key);
+			return;
+		}
+		;
+		load.Get(this.MobId);
+		load.Get(this.Script);
+		load.Get(this.Pid);
+		;
+		load.Get(this.MobParams);
+		load.Get(this.MobItems);
+	}
+}
+int _PE(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	;
+	return(0);
+}
+
+class TargetInfo
+{
+	uint TargetId;
+	uint Priority;
+	uint[]MobsAttack;
+	
+	void AttackTarget(Critter@mob)
+	{
+		if(!(@mob!=null))
+		return;
+		if(mob.IsDead()||mob.IsPlayer())
+		return;
+		AddAttackPlane(mob,this.Priority,this.TargetId);
+		mob.SetEvent((36),"_PE");
+		for(uint i=0,l=this.MobsAttack.length();i<l;i++)
+		{
+			if(this.MobsAttack[i]==mob.Id)
+			return;
+		}
+		this.MobsAttack.insertLast(mob.Id);
+		;
+	}
+	
+	uint CountTargetAttackers()
+	{
+		uint attackers=0;
+		for(uint i=0,l=this.MobsAttack.length();i<l;i++)
+		{
+			Critter@mob=GetCritter(this.MobsAttack[i]);
+			if(!(@mob!=null))
+			continue;
+			if(mob.IsDead())
+			continue;
+			attackers++;
+		}
+		return attackers;
+	}
+	
+	void Save(string key)
+	{
+		Serializator save;
+		save.Set(this.TargetId);
+		save.Set(this.Priority);
+		save.Set(this.MobsAttack);
+		save.Save("TargetInfo_"+key);
+	}
+	
+	void Load(string key)
+	{
+		Serializator load;
+		if(!load.Load("TargetInfo_"+key))
+		{
+			Log("Can't load TargetInfo. Key: TargetInfo_"+key);
+			return;
+		}
+		load.Get(this.TargetId);
+		load.Get(this.Priority);
+		load.Get(this.MobsAttack);
+	}
+} 
+
+class WavePoint
+{
+	uint8 Type;
+	uint8 Entire;
+	uint16 HexX;
+	uint16 HexY;
+	
+	void GetCoords(Map@map,uint16&hX,uint16&hY)
+	{
+		if(this.Type==(0))
+		{
+			if(!(@map!=null))
+			return;
+			uint entNum=map.CountEntire(this.Entire);
+			map.GetEntireCoords(this.Entire,Random(0,entNum-1),hX,hY);
+		}
+		else
+		{
+			hX=this.HexX;
+			hY=this.HexY;
+		}
+	}
+	
+	void Save(string key)
+	{
+		Serializator save;
+		save.Set(this.Type);
+		save.Set(this.Entire);
+		save.Set(this.HexX);
+		save.Set(this.HexY);
+		save.Save("WavePoint_"+key);
+	}
+	
+	void Load(string key)
+	{
+		Serializator load;
+		if(!load.Load("WavePoint_"+key))
+		{
+			Log("Can't load WavePoint. Key: WavePoint_"+key);
+			return;
+		}
+		load.Get(this.Type);
+		;
+		load.Get(this.Entire);
+		load.Get(this.HexX);
+		load.Get(this.HexY);
+	}
+} 
+
+class WaveStep
+{
+	uint8 Type;
+	uint8 Radius;
+	WavePoint Point;
+	uint TimeNext;
+	bool SearchForTargetsBefore;
+	bool ClearTargetsBefore;
+	uint TimeRepeat;
+	uint Param;
+	
+	void DoAction(MobInfo@mi,Map@map,TargetInfo@ti)
+	{
+		;
+		if(!(@mi!=null)||!(@map!=null))
+		return;
+		if(!(@this.Point!=null))
+		return;
+		switch(this.Type)
+		{
+			case(0):
+			_DoActionWait(mi,map);
+			break;
+			case(1):
+			if((@ti!=null))
+			{
+				_DoActionAttack(mi,ti);
+			}
+			break;
+			case(2):
+			_DoActionMove(mi,map);
+			break;
+			case(3):
+			_DoActionSpawn(mi,map);
+			break;
+			case(4):
+			_DoActionDeleteMob(mi);
+			break;
+			case(5):
+			_DoActionTransitToMap(mi);
+			break;
+		}
+	}
+	
+	void _DoActionSpawn(MobInfo&mi,Map&map)
+	{
+		;
+		uint16 x=0;
+		uint16 y=0;
+		this.Point.GetCoords(map,x,y);
+		Critter@mob;
+		;
+		if(GetFreeHex(map,this.Radius,x,y)&&mi.Pid>0)
+		{
+			@mob=map.AddNpc(mi.Pid,x,y,6,mi.MobParams,mi.MobItems,mi.Script);
+			mi.MobId=mob.Id;
+			;
+		}
+	}
+	
+	void _DoActionMove(MobInfo&mi,Map&map)
+	{
+		;
+		Critter@mob=mi.Mob();
+		if(!(@mob!=null))
+		return;
+		uint16 x=mob.HexX;
+		uint16 y=mob.HexY;
+		this.Point.GetCoords(map,x,y);
+		uint tries=0;
+		while(tries<20)
+		{
+			tries++;
+			if(GetFreeHex(map,this.Radius,x,y))
+			{
+				if(map.GetPathLength(mob,x,y,1)>0)
+				break;
+			}
+		}
+		AddWalkPlane(mob,0,x,y,6,true,1);
+		
+		mob.ModeBase[(517)]=1;
+		;
+	}
+	
+	void _DoActionWait(MobInfo&mi,Map&map)
+	{
+		;
+		Critter@mob=mi.Mob();
+		if(!(@mob!=null))
+		return;
+		mob.ModeBase[(517)]=0;
+		uint16 x=mob.HexX;
+		uint16 y=mob.HexY;
+		this.Point.GetCoords(map,x,y);
+		if(GetFreeHex(map,this.Radius,x,y))
+		{
+			mob.SetHomePos(x,y,Random(0,5));
+		}
+	}
+	
+	void _DoActionAttack(MobInfo&mi,TargetInfo&ti)
+	{
+		;
+		Critter@mob=mi.Mob();
+		if(!(@mob!=null))
+		return;
+		mob.ModeBase[(517)]=0;
+		ti.AttackTarget(mob);
+	}
+	
+	void _DoActionDeleteMob(MobInfo&mi)
+	{
+		;
+		Critter@mob=mi.Mob();
+		if(!(@mob!=null))
+		return;
+		CreateTimeEvent(__FullSecond+(30*60),"e_DeleteSpawnedMob",mob.Id,false);
+		;
+	}
+	
+	void _DoActionTransitToMap(MobInfo&mi)
+	{
+		;
+		Map@map=GetMap(this.Param);
+		if(!(@map!=null))
+		return;
+		Critter@mob=mi.Mob();
+		if(!(@mob!=null))
+		return;
+		uint16 x=0;
+		uint16 y=0;
+		this.Point.GetCoords(map,x,y);
+		mob.TransitToMap(map.Id,x,y,Random(0,5));
+		;
+	}
+	
+	void Save(string key)
+	{
+		Serializator save;
+		save.Set(this.Type);
+		save.Set(this.Radius);
+		save.Set(this.TimeNext);
+		save.Set(this.SearchForTargetsBefore);
+		save.Set(this.ClearTargetsBefore);
+		save.Set(this.TimeRepeat);
+		save.Set(this.Param);
+		this.Point.Save(key);
+		save.Save("WaveStep_"+key);
+	}
+	
+	void Load(string key)
+	{
+		Serializator load;
+		if(!load.Load("WaveStep_"+key))
+		{
+			Log("Can't load WaveStep. Key: WaveStep_"+key);
+			return;
+		}
+		load.Get(this.Type);
+		load.Get(this.Radius);
+		load.Get(this.TimeNext);
+		load.Get(this.SearchForTargetsBefore);
+		load.Get(this.ClearTargetsBefore);
+		load.Get(this.TimeRepeat);
+		load.Get(this.Param);
+		this.Point=WavePoint();
+		this.Point.Load(key);
+	}
+} 
+
+class MobWave
+{
+	int Number;
+	WaveStep[]Steps;
+	TargetInfo[]Targets;
+	MobInfo[]Mobs;
+	uint MapId;
+	bool AttackPlayers;
+	bool AttackNpc;
+	uint8 CurrentStep;
+	uint PlayerAttackPriority;
+	uint NPCAttackPriority;
+	
+	MobWave(int number)
+	{
+		this.Number=number;
+		this.CurrentStep=0;
+	}
+	
+	void Save()
+	{
+		Serializator save;
+		string key="MobWave_"+this.Number;
+		save.Set(this.Number);
+		uint len=this.Steps.length();
+		save.Set(len);
+		if(len>0)
+		{
+			for(uint i=0;i<len;i++)
+			{
+				this.Steps[i].Save(key+i);
+			}
+		}
+		len=this.Targets.length();
+		save.Set(len);
+		if(len>0)
+		{
+			for(uint i=0;i<len;i++)
+			{
+				this.Targets[i].Save(key+i);
+			}
+		}
+		len=this.Mobs.length();
+		save.Set(len);
+		if(len>0)
+		{
+			for(uint i=0;i<len;i++)
+			{
+				this.Mobs[i].Save(key+i);
+			}
+		}
+		save.Set(this.MapId);
+		save.Set(this.AttackPlayers);
+		save.Set(this.AttackNpc);
+		save.Set(this.CurrentStep);
+		save.Set(this.PlayerAttackPriority);
+		save.Set(this.NPCAttackPriority);
+		save.Save(key);
+	}
+	
+	void Load()
+	{
+		Serializator load;
+		string key="MobWave_"+this.Number;
+		if(!load.Load(key))
+		{
+			Log("Can't load WaveStep. Key: "+key);
+			return;
+		}
+		load.Get(this.Number);
+		uint len=0;
+		load.Get(len);
+		;
+		if(len>0)
+		{
+			for(uint i=0;i<len;i++)
+			{
+				WaveStep@ws=WaveStep();
+				ws.Load(key+i);
+				this.Steps.insertLast(ws);
+			}
+		}
+		;
+		load.Get(len);
+		if(len>0)
+		{
+			for(uint i=0;i<len;i++)
+			{
+				TargetInfo@ti=TargetInfo();
+				ti.Load(key+i);
+				this.Targets.insertLast(ti);
+			}
+		}
+		;
+		load.Get(len);
+		if(len>0)
+		{
+			for(uint i=0;i<len;i++)
+			{
+				MobInfo@mi=MobInfo();
+				mi.Load(key+i);
+				this.Mobs.insertLast(mi);
+			}
+		}
+		load.Get(this.MapId);
+		load.Get(this.AttackPlayers);
+		load.Get(this.AttackNpc);
+		load.Get(this.CurrentStep);
+		load.Get(this.PlayerAttackPriority);
+		load.Get(this.NPCAttackPriority);
+		;
+	}
+	
+	void _AddMob2Wave(Critter@mob)
+	{
+		if(!(@mob!=null))
+		return;
+		uint mobId=mob.Id;
+		for(uint i=0,l=this.Mobs.length();i<l;i++)
+		{
+			if(mobId==this.Mobs[i].MobId)
+			return;
+		}
+		MobInfo@mi=MobInfo();
+		mi.MobId=mobId;
+		this.Mobs.insertLast(mi);
+	}
+	
+	void _AddMob2Wave(MobInfo@mi)
+	{
+		if(!(@mi!=null))
+		return;
+		this.Mobs.insertLast(mi);
+	}
+	
+	void _AddTarget2Wave(Critter@target,uint priority)
+	{
+		if(!(@target!=null))
+		return;
+		uint targetId=target.Id;
+		int[]mobs={(24),(25),(26),(27),(28),(29),(30),(31),(32),(33)};
+		;
+		for(uint i=0,l=this.Mobs.length();i<l;i++)
+		{
+			Critter@mob=this.Mobs[i].Mob();
+			if((@mob!=null))
+			{
+				if(mob.Id==targetId)
+				return;
+				
+				if(Present(mob.Stat[(106)],mobs)&&Present(target.Stat[(106)],mobs))
+				return;
+				if((TeamsTable[(((mob.Stat[(106)])<51?(mob.Stat[(106)]):0)*51+((target.Stat[(106)])<51?(target.Stat[(106)]):0))])!=(0))
+				return;
+			}
+		}
+		;
+		for(uint i=0,l=this.Targets.length();i<l;i++)
+		{
+			if(targetId==this.Targets[i].TargetId)
+			return;
+		}
+		;
+		TargetInfo@ti=TargetInfo();
+		ti.TargetId=targetId;
+		ti.Priority=priority;
+		this.Targets.insertLast(ti);
+	}
+	
+	void _AddWaveStep(WaveStep&ws)
+	{
+		this.Steps.insertLast(ws);
+	}
+	
+	void RepeatStep()
+	{
+		WaveStep@ws=this.Steps[this.CurrentStep];
+		if(this.MapId==0)
+		return;
+		Map@map=GetMap(this.MapId);
+		if(!(@map!=null))
+		return;
+		if(ws.SearchForTargetsBefore)
+		{
+			Critter@[]critters;
+			uint16 x=0;
+			uint16 y=0;
+			ws.Point.GetCoords(map,x,x);
+			if(this.AttackPlayers)
+			{
+				map.GetCrittersHex(x,y,ws.Radius,(0x03)|(0x10),critters);
+			}
+			if(this.AttackNpc)
+			{
+				map.GetCrittersHex(x,y,ws.Radius,(0x03)|(0x20),critters);
+			}
+			for(uint i=0,l=critters.length();i<l;i++)
+			{
+				Critter@target=critters[i];
+				if((@target!=null))
+				{
+					this._AddTarget2Wave(target,target.IsNpc()?this.NPCAttackPriority:this.PlayerAttackPriority);
+				}
+			}
+		}
+		for(uint i=0,l=this.Mobs.length();i<l;i++)
+		{
+			TargetInfo@ti;
+			if(this.Targets.length()>0)
+			{
+				this.Targets[Random(0,Targets.length()-1)];
+			}
+			ws.DoAction(this.Mobs[i],map,ti);
+		}
+	}
+	
+	void DoStep()
+	{
+		;
+		WaveStep@ws=this.Steps[this.CurrentStep];
+		if(ws.ClearTargetsBefore)
+		{
+			this.Targets.resize(0);
+		}
+		if(this.MapId==0)
+		return;
+		Map@map=GetMap(this.MapId);
+		if(!(@map!=null))
+		return;
+		if(ws.SearchForTargetsBefore)
+		{
+			Critter@[]critters;
+			uint16 x=0;
+			uint16 y=0;
+			ws.Point.GetCoords(map,x,y);
+			if(this.AttackPlayers)
+			{
+				map.GetCrittersHex(x,y,ws.Radius,(0x03)|(0x10),critters);
+			}
+			if(this.AttackNpc)
+			{
+				map.GetCrittersHex(x,y,ws.Radius,(0x03)|(0x20),critters);
+			}
+			for(uint i=0,l=critters.length();i<l;i++)
+			{
+				Critter@target=critters[i];
+				if((@target!=null))
+				{
+					this._AddTarget2Wave(target,target.IsNpc()?this.NPCAttackPriority:this.PlayerAttackPriority);
+				}
+			}
+		}
+		for(uint i=0,l=this.Mobs.length();i<l;i++)
+		{
+			TargetInfo@ti;
+			if(this.Targets.length()>0)
+			{
+				;
+				@ti=this.Targets[Random(0,Targets.length()-1)];
+			}
+			ws.DoAction(this.Mobs[i],map,ti);
+		}
+		if(ws.TimeNext>0)
+		{
+			CreateTimeEvent(__FullSecond+ws.TimeNext*60,"e_NextWaveStep",this.Number,true);
+		}
+		if(ws.TimeRepeat>0)
+		{
+			;
+			uint[]values={this.Number,this.CurrentStep};
+			CreateTimeEvent(__FullSecond+ws.TimeNext*60,"e_RepeatStep",values,true);
+		}
+	}
+	
+	void NextStep()
+	{
+		uint8 next=this.CurrentStep+1;
+		if(next>=this.Steps.length())
+		{
+			next=0;
+		}
+		this.CurrentStep=next;
+	}
+}
+
+uint e_NextWaveStep(uint[]@values)
+{
+	MobWave mv=MobWave(values[0]);
+	mv.Load();
+	mv.NextStep();
+	mv.DoStep();
+	mv.Save();
+	return 0;
+}
+
+uint e_RepeatStep(uint[]@values)
+{
+	MobWave mv=MobWave(values[0]);
+	mv.Load();
+	if(values[1]!=mv.CurrentStep)
+	return 0;
+	mv.RepeatStep();
+	mv.Save();
+	return mv.Steps[values[1]].TimeRepeat*60;
+}
+
+uint e_DeleteSpawnedMob(uint[]@values)
+{
+	Critter@mob=GetCritter(values[0]);
+	if(!(@mob!=null))
+	return 0;
+	if(!mob.IsDead())
+	return 0;
+	DeleteNpc(mob);
+	return 0;
+}    
+
+void AddWave(int waveNum,int mapId,int type)
+{
+	MobWave@mw=MobWave(waveNum);
+	mw.Load();
+	mw.MapId=mapId;
+	if(type>0)
+	mw.AttackPlayers=true;
+	if(type>1)
+	mw.AttackNpc=true;
+	mw.Save();
+}
+
+void AddSpawnStep(int waveNum,uint8 radius,uint timeNext,uint x,uint y)
+{
+	_AddStep(waveNum,(3),radius,timeNext,0,false,false,0,x,y);
+}
+
+void AddMob(int waveNum,int pid,int team)
+{
+	int[]params={(106),team};
+	_AddMob(waveNum,0,params,null,null,pid);
+}
+
+void AddDeleteStep(int waveNum,uint8 radius,uint timeNext)
+{
+	_AddStep(waveNum,(4),radius,timeNext,0,false,true,0,0,0);
+}
+
+void AddMoveStep(int waveNum,uint8 radius,uint timeNext,uint x,uint y)
+{
+	_AddStep(waveNum,(2),radius,timeNext,0,false,true,0,x,y);
+}
+
+void AddAttackStep(int waveNum,uint8 radius,uint timeNext,uint timeRepeat,uint x,uint y)
+{
+	_AddStep(waveNum,(1),radius,timeNext,0,true,true,0,x,y);
+}
+
+void AddTransitStep(int waveNum,uint8 radius,uint timeNext,uint x,uint y,uint mapId)
+{
+	_AddStep(waveNum,(5),radius,timeNext,0,true,true,0,x,y,mapId);
+}
+
+void _StartWave(int waveNum)
+{
+	;
+	MobWave@mw=MobWave(waveNum);
+	mw.Load();
+	mw.DoStep();
+	mw.Save();
+}

@@ -1,0 +1,61 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+
+import bool AddPickPlane(Critter&npc,uint priority,Item@item,uint useItemId,bool toOpen)from"npc_planes";
+
+const uint[]EatPid=
+{
+	(71),(81),(103),(124),
+	(226),(227),(284),(295),(378),
+	(468),(539)
+};
+const uint EatPidCount=11;
+
+void _PoormanInit(Critter&poorman,bool firstTime)
+{
+	poorman.SetEvent((12),"_PoormanShowItemOnMap");
+	poorman.SetEvent((14),"_PoormanHideItemOnMap");
+	poorman.StatBase[(90)]=0;
+} 
+
+void _PoormanShowItemOnMap(Critter&poorman,Item&item,bool added,Critter@dropper)
+{
+	
+	if(poorman.StatBase[(90)]!=0)
+	return;
+	if(not poorman.IsNoPlanes())
+	return; 
+	
+	for(uint i=0;i<EatPidCount;i++)
+	{
+		if(item.GetProtoId()!=EatPid[i])
+		continue;
+		
+		poorman.Say((2),"Ням-ням, вкусняшка.");
+		AddPickPlane(poorman,0,item,0,true);
+		poorman.StatBase[(90)]=int(item.Id);
+	}
+} 
+
+void _PoormanHideItemOnMap(Critter&poorman,Item&item,bool deleted,Critter@picker)
+{
+	
+	if(uint(poorman.StatBase[(90)])!=item.Id)
+	return;
+	poorman.StatBase[(90)]=0;
+	if(not(@picker!=null))
+	return; 
+	
+	if(picker.Id!=poorman.Id)
+	{
+		poorman.ErasePlane((3),true);
+		poorman.Wait(3000);
+		poorman.Say((2),"Подлец.");
+	}
+	
+	else
+	{
+		poorman.DeleteItem(item.GetProtoId(),item.GetCount());
+		poorman.Say((2),"Ммм, вкусно!");
+		poorman.Wait(3000);
+	}
+}

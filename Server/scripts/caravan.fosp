@@ -1,0 +1,2958 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+
+bool _CanPlayerJoinCaravan(Critter&cr,CaravanInfo&crv)
+{
+	uint q=GetQuestState(cr,crv.CaravanId);
+	return(q==(11)||q==(0)||q==(1));
+}
+bool _GetPlayerQuestFailed(Critter&cr,CaravanInfo&crv)
+{
+	uint q=GetQuestState(cr,crv.CaravanId);
+	return(q>=(3)&&q<=(7));
+}     
+
+import void FindEncounter(Critter@[]&group,Item@car,uint x,uint y,uint&encounterDescriptor,bool&waitForAnswer,bool empty)from"worldmap";
+import void InviteToEncounter(Critter@[]&group,Item@car,uint encounterDescriptor,int combatMode,uint&mapId,uint16&hexX,uint16&hexY,uint8&dir)from"worldmap";
+import uint GetNearFullSecond(uint16 year,uint16 month,uint16 day,uint16 hour,uint16 minute,uint16 second)from"time";
+
+void SetQuestState(Critter&player,uint idCaravan,int state)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return;
+	GameVar@qVar=GetLocalVar(ci.QuestVarNum,player.Id);
+	if(!(@qVar!=null))
+	return;
+	
+	qVar=state;
+	
+}
+uint GetQuestState(Critter&player,uint idCaravan)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return 0;
+	GameVar@qVar=GetLocalVar(ci.QuestVarNum,player.Id);
+	if(!(@qVar!=null))
+	return 0;
+	return qVar.GetValue();
+}   
+
+class NpcPosition
+{
+	
+	NpcPosition(uint16 locPid,uint16 mapPid,uint16 hX,uint16 hY)
+	{
+		this.MapProtoId=mapPid;
+		this.HexX=hX;
+		this.HexY=hY;
+		this.LocPid=locPid;
+	}
+	
+	uint16 LocPid;
+	uint16 MapProtoId;
+	uint16 HexX;
+	uint16 HexY;
+	
+	NpcPosition@Copy()
+	{
+		return NpcPosition(this.LocPid,this.MapProtoId,this.HexX,this.HexY);
+	}
+	
+	Map@GetMap()
+	{
+		return GetMapByPid(this.MapProtoId,0);
+	} 
+	
+}
+
+void SwitchNpcPosition(NpcPosition&posA,NpcPosition&posB)
+{
+	NpcPosition@pos=posA.Copy();
+	
+	posA.LocPid=posB.LocPid;
+	posA.MapProtoId=posB.MapProtoId;
+	posA.HexX=posB.HexX;
+	posA.HexY=posB.HexY;
+	
+	posB.LocPid=pos.LocPid;
+	posB.MapProtoId=pos.MapProtoId;
+	posB.HexX=pos.HexX;
+	posB.HexY=pos.HexY;
+	
+}  
+
+class CaravanLeaderInfo
+{
+	CaravanLeaderInfo()
+	{
+		this.Virtue=(1);
+	}
+	uint CaravanId;
+	
+	NpcPosition@StartPos;
+	NpcPosition@EndPos; 
+	
+	uint DialogId;
+	uint NpcPid;
+	uint BagId;
+	uint TeamId;
+	uint AiPack;
+	uint CritterId;
+	uint8 Level;
+	int Virtue;
+	
+	bool CheckLeaderInPos(bool startPos)
+	{
+		NpcPosition@pos=(startPos?this.StartPos.Copy():this.EndPos.Copy());
+		
+		Critter@leader=this.GetLeader();
+		if(!(@leader!=null))
+		return false;
+		
+		Map@map=leader.GetMap();
+		if(!(@map!=null))
+		return false;
+		
+		;
+		if(map.GetProtoId()!=pos.MapProtoId)
+		return false;
+		
+		return(GetDistantion(leader.HexX,leader.HexY,pos.HexX,pos.HexY)<=(8));
+		
+	}
+	
+	bool TransitToPos(bool startPos)
+	{
+		
+		Map@map=(startPos?this.StartPos.GetMap():this.EndPos.GetMap());
+		if(!(@map!=null))
+		return false;
+		Critter@leader=this.GetLeader();
+		if(!(@leader!=null))
+		return false;
+		;
+		return leader.TransitToMap(map.Id,(startPos?this.StartPos.HexX:this.EndPos.HexX),(startPos?this.StartPos.HexY:this.EndPos.HexY),Random(0,5));
+		
+	}
+	
+	Critter@GetLeader()
+	{
+		return GetCritter(this.CritterId);
+	} 
+	
+	bool PlaceLeaderCritterToPos(NpcPosition&pos)
+	{
+		Map@map=pos.GetMap();
+		if(!(@map!=null))
+		return false;
+		uint16 x=pos.HexX;
+		uint16 y=pos.HexY;
+		if(!GetFreeHex(map,2,x,y))
+		return false;
+		int[]params={(104),DialogId,(106),TeamId,(105),AiPack,(107),BagId,(77),Level};
+		Critter@leader=map.AddNpc(this.NpcPid,x,y,Random(0,5),params,null,null);
+		if(!(@leader!=null))
+		return false;
+		leader.StatBase[(90)]=this.CaravanId;
+		this.CritterId=leader.Id;
+		;
+		return true;
+	} 
+	
+	void SetLeaderCritter(Critter&leader)
+	{
+		;
+		this.CritterId=leader.Id;
+		leader.StatBase[(106)]=this.TeamId;
+		leader.StatBase[(107)]=this.BagId;
+		leader.StatBase[(104)]=this.DialogId;
+		leader.StatBase[(105)]=this.AiPack;
+		leader.StatBase[(77)]=this.Level;
+		
+		leader.StatBase[(90)]=this.CaravanId;
+		this.CritterId=leader.Id;
+	}
+} 
+
+class CaravanLootItem
+{
+	CaravanLootItem()
+	{
+		this.ItemPid=0;
+		this.ItemMinAmount=0;
+		this.ItemMaxAmount=0;
+		this.ItemAppearChance=0;
+		this.IsReversedRouteItem=false;
+	}
+	uint ItemPid;
+	uint16 ItemMinAmount;
+	uint16 ItemMaxAmount;
+	uint8 ItemAppearChance;
+	bool IsReversedRouteItem;
+	
+	uint8 Amount()
+	{
+		if(this.ItemMinAmount==this.ItemMaxAmount)
+		{
+			return this.ItemMaxAmount;
+		}
+		
+		return this.ItemMinAmount<this.ItemMaxAmount?Random(this.ItemMinAmount,this.ItemMaxAmount):Random(this.ItemMaxAmount,this.ItemMinAmount);
+	}
+	
+	bool IsAppear()
+	{
+		return Random(1,100)<this.ItemAppearChance;
+	}
+} 
+
+class CaravanCabInfo
+{
+	CaravanCabInfo()
+	{
+		this.CabPid=Random((434),(435));
+	}
+	CaravanCabInfo(uint16 cabPid)
+	{
+		this.CabPid=cabPid;
+	}
+	CaravanLootItem[]CabItems;
+	uint16 CabPid; 
+	
+	void AddLoot(uint itemPid,uint16 minNum,uint16 maxNum,uint8 chanceAppear,bool isReversLoot)
+	{
+		CaravanLootItem@li=CaravanLootItem();
+		li.ItemPid=itemPid;
+		li.ItemMinAmount=minNum;
+		li.ItemMaxAmount=maxNum;
+		li.ItemAppearChance=chanceAppear;
+		li.IsReversedRouteItem=isReversLoot;
+		
+		this.CabItems.insertLast(li);
+		;
+	}
+	
+	Item@PlaceCabOnMap(Map&map,uint x,uint y,bool isReveresed)
+	{
+		;
+		Item@cab=map.AddItem(x,y,this.CabPid,1);
+		if(!(@cab!=null))
+		return null;
+		(cab.Flags=((cab.Flags)&(~((0x00000004)))));
+		;
+		
+		if(map.IsHexPassed(x,y+1))
+		map.AddNpc((10),x,y+1,1,null,null,null);
+		if(map.IsHexPassed(x-1,y-3))
+		map.AddNpc((10),x-1,y-3,1,null,null,null);
+		uint num=0;
+		;
+		for(uint i=0;i<this.CabItems.length();i++)
+		{
+			;
+			if(this.CabItems[i].IsReversedRouteItem==isReveresed)
+			{
+				num=this.CabItems[i].Amount();
+				if(this.CabItems[i].IsAppear()&&num>0)
+				{
+					;
+					cab.AddItem(this.CabItems[i].ItemPid,num,0);
+				}
+			}
+		}
+		cab.Update();
+		return cab;
+	}
+	
+} 
+
+class GlobalPoint
+{
+	uint X;
+	uint Y;
+	GlobalPoint(uint x,uint y)
+	{
+		this.X=x;
+		this.Y=y;
+	}
+} 
+
+class GlobalRouteCurve
+{
+	GlobalRouteCurve()
+	{}
+	
+	void AddPoint(GlobalPoint@point)
+	{
+		Points.insertLast(point);
+	} 
+	
+	GlobalPoint[]Points;
+	int nextPoint;
+	bool RouteEnded()
+	{
+		return(nextPoint==-1);
+	}
+	
+	void SetRouteDir(uint x,uint y,float&toX,float&toY)
+	{
+		
+		if(Points.length()==0)
+		{
+			nextPoint=-1;
+			return;
+		}
+		
+		if(nextPoint==-1)
+		{
+			return;
+		}
+		
+		if(x==Points[nextPoint].X&&y==Points[nextPoint].Y)
+		{
+			
+			if(nextPoint==(-1+Points.length()))
+			{
+				nextPoint=-1;
+				return;
+			}
+			else
+			{
+				nextPoint++;
+			}
+		}
+		toX=float(Points[nextPoint].X);
+		toY=float(Points[nextPoint].Y);
+		
+	}
+	
+	void ReverseRouteCurve()
+	{
+		GlobalPoint[]Points2(this.Points.length());
+		
+		for(uint i=0;i<this.Points.length();i++)
+		{
+			;
+			
+			Points2[i]=this.Points[i];
+		}
+		this.Points.resize(0);
+		for(int j=(Points2.length()-1);j>=0;j--)
+		{
+			;
+			this.AddPoint(Points2[j]);
+			if(j==0)
+			return;
+		}
+		;
+	}
+}
+
+class CaravanGuardInfo
+{
+	CaravanGuardInfo(uint idCaravan,uint16 pid,uint dialogId,string scriptId,uint aiPack,uint bagId,uint teamId,uint level,uint reaction,uint isNervous,uint8 chanceJoin,bool isUnique)
+	{
+		this.CaravanId=idCaravan;
+		this.Pid=pid;
+		this.DialogId=dialogId;
+		this.ScriptId=scriptId;
+		this.AiPack=aiPack;
+		
+		this.BagId=bagId;
+		this.TeamId=teamId;
+		this.Level=level;
+		this.ReactionNum=reaction;
+		this.IsNervous=isNervous;
+		this.ChanceToJoin=(((chanceJoin)>(100))?(100):(((chanceJoin)<(0))?(0):(chanceJoin)));
+		this.IsUnique=isUnique;
+	}
+	
+	uint CaravanId;
+	uint16 Pid;
+	uint DialogId;
+	string ScriptId;
+	uint AiPack;
+	uint BagId;
+	uint16 TeamId;
+	uint Level;
+	uint ReactionNum;
+	uint IsNervous;
+	uint8 ChanceToJoin;
+	bool IsUnique;   
+	
+	Critter@GetCritterGuard(Map&map,Critter&leader)
+	{
+		if(Random(1,100)>this.ChanceToJoin)
+		return null;
+		
+		uint16 hX=leader.HexX;
+		uint16 hY=leader.HexY;
+		if(!GetFreeHex(map,4,hX,hY))
+		return null;
+		
+		int[]params={(104),DialogId,(106),TeamId,(105),AiPack,(107),BagId,(77),Level,(91),ReactionNum,(92),IsNervous};
+		Critter@guard=map.AddNpc(this.Pid,hX,hY,Random(0,5),params,null,ScriptId);
+		if(!(@guard!=null))
+		return null;
+		
+		if(this.IsUnique)
+		this.ChanceToJoin=0;
+		guard.StatBase[(90)]=this.CaravanId;
+		
+		return guard;
+	}
+}  
+
+class CaravanNpcFollowerInfo
+{
+	CaravanNpcFollowerInfo()
+	{}
+	uint CaravanId;
+	uint16 Pid;
+	uint DialogId;
+	uint16 TeamId;
+	uint BagId; 
+	
+	bool _AddNpcNearItem(Map&map,Item&item,uint8 dist)
+	{
+		uint16 hX=item.HexX;
+		uint16 hY=item.HexY;
+		if(!GetFreeHex(map,dist,hX,hY))
+		return false;
+		
+		int[]params={(104),DialogId};
+		return(@map.AddNpc(this.Pid,hX,hY,Random(0,5),params,null,null)!=null);
+	} 
+	
+	void _AddNpcNearCritter(Map&map,Critter&cr,uint8 dist)
+	{
+		AddNpcNearCritter(map,cr,dist);
+	}
+	
+	Critter@AddNpcNearCritter(Map&map,Critter&cr,uint8 dist)
+	{
+		uint16 hX=cr.HexX;
+		uint16 hY=cr.HexY;
+		if(!GetFreeHex(map,dist,hX,hY))
+		return null;
+		
+		int[]params={(104),DialogId};
+		return map.AddNpc(this.Pid,hX,hY,Random(0,5),params,null,null);
+	}
+}
+
+class CaravanInfo
+{
+	CaravanInfo()
+	{
+		this.MaxPlayers=5;
+		this.MaxGroup=10;
+		this.IsReversed=false;
+		this.CaravanStatus=0;
+	}
+	
+	uint CaravanId;
+	uint8 Type;
+	uint8 CaravanStatus;
+	uint8 GlobalSpeedMultiplayer;
+	uint QuestVarNum;
+	uint MaxPlayers;
+	uint MaxGroup;
+	bool IsReversed;
+	
+	CaravanLeaderInfo@Leader;
+	CaravanCabInfo@[]Cabs;
+	GlobalRouteCurve CaravanRoute;
+	CaravanGuardInfo@[]CaravanGuards;
+	CaravanNpcFollowerInfo@[]Followers; 
+	
+	uint[]PlayersRequested;
+	uint[]Caravaneers; 
+	
+	void TerminateCaravan()
+	{
+		this.CaravanStatus=(5);
+		if((@this.Leader!=null))
+		{
+			Critter@leader=this.Leader.GetLeader();
+			if((@leader!=null))
+			{
+				;
+				DeleteNpc(leader);
+				this.Leader.CritterId=0;
+			}
+		}
+		for(uint i=0,l=this.Caravaneers.length();i<l;i++)
+		{
+			Critter@guard=GetCritter(this.Caravaneers[i]);
+			if((@guard!=null))
+			{
+				if(guard.IsNpc())
+				{
+					DeleteNpc(guard);
+					continue;
+				}
+			}
+		}
+		_SetQuestState(this,(4));
+		this.CaravanReset();
+	}
+	
+	void CaravanReset()
+	{
+		this.PlayersRequested.resize(0); 
+		
+		this.Caravaneers.resize(0);
+		this.CaravanStatus=(0);
+		this.CaravanRoute.nextPoint=0;
+	} 
+	
+	bool RemoveGuard(uint id)
+	{
+		;
+		for(uint i=0;i<this.Caravaneers.length();i++)
+		{
+			if(id==this.Caravaneers[i])
+			{
+				this.Caravaneers.removeAt(i);
+				return true;
+			}
+		}
+		for(uint i=0;i<this.PlayersRequested.length();i++)
+		{
+			if(id==this.PlayersRequested[i])
+			{
+				this.PlayersRequested.removeAt(i);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	bool PlayerIsGuard(uint playerId)
+	{
+		for(uint i=0;i<this.Caravaneers.length();i++)
+		{
+			if(playerId==this.Caravaneers[i])
+			{
+				return true;
+			}
+		}
+		return false;
+	}  
+	
+	void RequstedToGuard(uint id)
+	{
+		for(uint i=0;i<this.Caravaneers.length();i++)
+		{
+			
+			if(id==this.Caravaneers[i])
+			return;
+		}
+		this.Caravaneers.insertLast(id);
+	}
+	
+	CaravanCabInfo@GetCab(int8 idx)
+	{
+		;
+		if(!(@this.Cabs!=null))
+		return null;
+		if(this.Cabs.length()==0)
+		return null;
+		;
+		if(idx<0)
+		{
+			return this.Cabs[Random(0,this.Cabs.length()-1)];
+		}
+		else
+		{
+			if(this.Cabs.length()<=uint8(idx))
+			return this.Cabs[0];
+			return this.Cabs[uint8(idx)];
+		}
+	} 
+	
+	void AddRoutePoint(uint x,uint y)
+	{
+		this.CaravanRoute.AddPoint(GlobalPoint(x,y));
+		this.CaravanRoute.nextPoint=0;
+	}
+}       
+
+bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)
+{
+	if(hx==0||hy==0||hx>=(map.GetWidth()-radius)||hy>=(map.GetHeight()-radius))
+	return false;
+	int numTry=10;
+	int xDelta=0;
+	int yDelta=0;
+	
+	for(int i=0;i<numTry;i++)
+	{
+		xDelta=Random(0,radius*2)-radius;
+		yDelta=Random(0,radius*2)-radius;
+		if(map.IsHexPassed(hx+xDelta,hy+yDelta))
+		{
+			hx+=xDelta;
+			hy+=yDelta;
+			return true;
+		}
+	}
+	return false;
+} 
+
+uint GetCrittersByDialogId(Map@map,int dialog,uint pid,Critter@[]@critters)
+{
+	if(!(@map!=null))
+	return 0;
+	if(dialog==0)
+	return 0;
+	Critter@[]foundCrits;
+	if(map.GetCritters(pid,(0x0F)|(0x20),foundCrits)==0)
+	return 0;
+	uint num=0;
+	for(uint i=0;i<foundCrits.length();i++)
+	{
+		if(foundCrits[i].StatBase[(104)]==dialog)
+		{
+			num++;
+			critters.insertLast(@foundCrits[i]);
+		}
+	}
+	return num;
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool AddAttackPlane(Critter&npc,uint priority,uint critId)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,int identifier,uint identifierExt,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";       
+
+bool _SayNervous(Critter&guard,uint msgID,uint boost)
+{
+	;
+	if(Random(guard.StatBase[(92)]+boost,6)>=5)
+	{
+		guard.SayMsg((2),(1),(1000000000+(guard.Stat[(104)])*100000+(msgID)));
+		return true;
+	}
+	return false;
+}
+
+void _MoveToCaravanLeader(Critter&guard,Critter&leader,uint radius)
+{
+	uint16 hx=leader.HexX;
+	uint16 hy=leader.HexY;
+	Map@map=guard.GetMap();
+	if(!(@map!=null))
+	return;
+	
+	if(GetFreeHex(map,radius,hx,hy))
+	{
+		bool run=false;
+		if((Random(1,3))==1)
+		{
+			run=true;
+		}
+		AddWalkPlane(guard,(20),(405),0,hx,hy,Random(1,5),run,1);
+	}
+}  
+
+void _GuardIdle(Critter&guard)
+{
+	CaravanInfo@ci=_GetCaravan(guard.StatBase[(90)]); 
+	
+	if((@ci!=null))
+	{
+		if(ci.CaravanStatus==(0)||ci.CaravanStatus==(1)||ci.CaravanStatus==(5))
+		{
+			;
+			DeleteNpc(guard);
+			return;
+		}
+	}
+	if((@guard.GetMap()!=null))
+	{
+		
+		if(guard.StatBase[(93)]>=20)
+		{
+			;
+			if(_SayNervous(guard,(2),3))
+			{
+				guard.StatBase[(93)]=0;
+				guard.SendMessage((211),guard.Id,(2));
+				
+				return;
+			}
+		}
+		guard.StatBase[(93)]+=guard.StatBase[(92)];
+		guard.StatBase[(93)]+=1;
+		return;
+		
+	}
+	else
+	{
+		
+		if(guard.StatBase[(93)]>0)
+		{
+			guard.StatBase[(93)]=0;
+		}
+		
+	}
+}
+
+void _GuardOnMessage(Critter&guard,Critter&fromCr,int message,int value)
+{
+	if(message==(212))
+	{
+		if((fromCr.StatBase[(89)]==(118))&&(fromCr.StatBase[(90)]==guard.StatBase[(90)]))
+		{
+			
+			guard.StatBase[(93)]=0;
+			AddMiscPlane(guard,(10),guard.StatBase[(91)]*60,"caravan@plane_MiscGoHomePos");
+			
+		}
+	}
+	
+} 
+
+int _GuardPlaneEnd(Critter&guard,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	
+	if(plane.Identifier==(405)&&reason==(30))
+	{
+		guard.SetHomePos(guard.HexX,guard.HexY,Random(1,5));
+	} 
+	
+	else if(plane.Identifier==(405))
+	{
+		if(reason==(31)||
+		reason==(32)||
+		reason==(33)||
+		reason==(34)||
+		reason==(35)||
+		reason==(36)||
+		reason==(37))
+		{
+			AddMiscPlane(guard,(10),guard.StatBase[(91)]*60,"caravan@plane_MiscGoHomePos");
+		}
+	}
+	
+	return(0);
+} 
+
+void _SomeCritterDead(Critter&guard,Critter&fromCrit,Critter@killer)
+{
+	if(!(@killer!=null))
+	{
+		return;
+	}
+	if(killer.Id==guard.Id)
+	{
+		guard.SayMsg((2),(1),(1000000000+(guard.Stat[(104)])*100000+((7))));
+		
+		return;
+	}
+}
+
+bool _GuardAttacked(Critter&guard,Critter&attacker)
+{
+	
+	if(guard.StatBase[(72)]*3<guard.Stat[(7)])
+	{
+		_SayNervous(guard,(6),3);
+	}
+	else
+	{
+		_SayNervous(guard,(5),0);
+	}
+	
+	return false;
+} 
+
+void _GuardStealing(Critter&cr,Critter&thief,bool success,Item&item,uint count)
+{
+	if(success&&thief.IsPlayer())
+	{
+		AddAttackPlane(cr,0,thief);
+		if(!cr.CheckEnemyInStack(thief.Id))
+		cr.AddEnemyInStack(thief.Id);
+	}
+} 
+
+void _VCPatrolDead(Critter&cr,Critter@killer)
+{
+	CaravanInfo@ci=_GetCaravan(cr.StatBase[(90)]);
+	if((@ci!=null))
+	{
+		if(ci.CaravanStatus==(4))
+		{
+			for(uint i=0,l=ci.Caravaneers.length();i<l;i++)
+			{
+				Critter@player=GetCritter(ci.Caravaneers[i]);
+				if((@player!=null)&&player.IsPlayer())
+				{
+					GameVar@counter=GetLocalVar((8828),player.Id);
+					if((@counter!=null))
+					counter=counter.GetValue()+1;
+				}
+			}
+		}
+	}
+} 
+
+void e_VasyaIdle(Critter&guard)
+{
+	if(guard.IsNoPlanes())
+	{
+		if(guard.StatBase[(93)]%3==1&&guard.IsFree())
+		{
+			
+			guard.SendMessage((211),guard.Id,(2));
+		}
+		
+	}
+	
+	_GuardIdle(guard);
+} 
+
+void plane_MiscGoHomePos(Critter&guard)
+{
+	
+	guard.SendMessage((211),guard.Id,(2));
+	
+} 
+
+void _DefaultGuardInit(Critter&guard,bool firstTime)
+{
+	if(guard.IsDead())
+	{
+		DeleteNpc(guard);
+		return;
+	}
+	if(!firstTime)
+	{
+		if(!(@guard.GetMap()!=null))
+		{
+			;
+			uint mapId=0;
+			uint16 x=0;
+			uint16 y=0;
+			uint8 dir=0;
+			guard.GetHomePos(mapId,x,y,dir);
+			guard.TransitToMap(mapId,x,y,dir);
+			DeleteNpc(guard);
+			return;
+		}
+	}
+	
+	guard.SetEvent((18),"_GuardOnMessage");
+	guard.SetEvent((36),"_GuardPlaneEnd");
+	guard.SetEvent((26),"_SomeCritterDead");
+	guard.SetEvent((16),"_GuardAttacked");
+	guard.SetEvent((0),"_GuardIdle");
+	guard.SetEvent((2),"_GuardDead"); 
+	
+	guard.ModeBase[(511)]=1;
+	
+	guard.ModeBase[(512)]=1;
+	guard.ModeBase[(532)]=0;
+	
+	guard.StatBase[(84)]=-1;
+}
+
+void _GuardDead(Critter&cr,Critter@killer)
+{
+	if(cr.IsNpc())
+	{
+		cr.AddTimeEvent("cte_DeleteCaravanGuard",((5)*__TimeMultiplier*60),0);
+	}
+}
+uint cte_DeleteCaravanGuard(Critter&cr,int identifier,uint&rate)
+{
+	if(cr.IsNpc())
+	DeleteNpc(cr);
+	return 0;
+}
+
+void _DefaultGuardInitUnlimAmmo(Critter&guard,bool firstTime)
+{
+	guard.ModeBase[(522)]=1;
+	_DefaultGuardInit(guard,firstTime);
+}
+
+void _VCPatrolInit(Critter&guard,bool firstTime)
+{
+	guard.ModeBase[(522)]=1;
+	_DefaultGuardInit(guard,firstTime);
+	guard.SetEvent((2),"_VCPatrolDead");
+} 
+
+void _NcrRangerPatrolInit(Critter&guard,bool firstTime)
+{
+	GameVar@qVar=GetLocalVar((4292),guard.Id);
+	if((@qVar!=null))
+	{
+		qVar=2;
+	}
+	
+	guard.StatBase[(7)]=Random(150,250);
+	guard.StatBase[(72)]=guard.Stat[(7)];
+	guard.StatBase[(29)]=Random(50,90);
+	guard.StatBase[(23)]=Random(20,50);
+	guard.ModeBase[(522)]=1;
+	_DefaultGuardInit(guard,firstTime);
+}
+
+void _BomberInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{
+		
+		Item@item=guard.AddItem((25),14);
+		
+		guard.SetFavoriteItem((1),(25));
+		
+		guard.AddItem((40),10);
+		
+		guard.AddItem((20),1);
+		
+		guard.AddItem((51),1);
+		
+		Item@item1=guard.AddItem((1),1);
+		guard.SetFavoriteItem((3),(1));
+		guard.MoveItem(item1.Id,1,(3));
+	}
+	
+	guard.SkillBase[(205)]=300; 
+	
+	_DefaultGuardInit(guard,firstTime);
+	
+	guard.ModeBase[(512)]=0;
+	guard.ModeBase[(522)]=1;
+}
+void _AnaferonInit(Critter&guard,bool firstTime)
+{
+	
+	if(firstTime)
+	{
+		
+		Item@item=guard.AddItem((10),1);
+		guard.SetFavoriteItem((1),(10)); 
+		
+		guard.AddItem((34),50);
+		
+		guard.AddItem((236),1);
+		
+		Item@item1=guard.AddItem((1),1);
+		guard.MoveItem(item1.Id,1,(3));
+		guard.SetFavoriteItem((3),(1));
+		
+		guard.AddItem((273),6);
+		
+		guard.AddItem((40),2);
+	}   
+	
+	_DefaultGuardInit(guard,firstTime);
+	guard.ModeBase[(522)]=1;
+}
+void _VasyaInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{
+		
+		Item@item=guard.AddItem((23),1);
+		
+		guard.SetFavoriteItem((1),(23));
+		
+		guard.AddItem((234),1);
+		
+		guard.AddItem((35),100);
+		
+		guard.AddItem((259),10);
+		
+		guard.AddItem((40),5);
+		
+		guard.AddItem((124),1);
+		
+		guard.AddItem((125),1);
+		
+		Item@item1=guard.AddItem((2),1);
+		guard.SetFavoriteItem((3),(2));
+		guard.MoveItem(item1.Id,1,(3));
+		
+		guard.AddItem((101),1);
+		
+		guard.AddItem((541),1);
+	}
+	
+	_DefaultGuardInit(guard,firstTime);
+	
+	guard.ModeBase[(512)]=0;
+	guard.SetEvent((0),"e_VasyaIdle");
+}
+void _KillerInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{
+		
+		guard.AddItem((15),1);
+		
+		Item@item=guard.AddItem((233),1);
+		guard.MoveItem(item.Id,0,(2));
+		guard.SetFavoriteItem((1),(233));  
+		
+		guard.AddItem((406),1);
+		
+		guard.AddItem((115),1);
+		
+		guard.AddItem((38),100);
+		
+		guard.AddItem((39),100);
+		
+		Item@item1=guard.AddItem((381),1);
+		guard.SetFavoriteItem((3),(381)); 
+		
+		guard.AddItem((144),15);
+		
+		guard.AddItem((259),4);
+		
+		guard.AddItem((110),2);
+		
+	}
+	guard.SkillBase[(202)]=280;
+	guard.SkillBase[(204)]=200;
+	guard.PerkBase[(322)]=Random(0,1);
+	guard.PerkBase[(325)]=1;
+	guard.ModeBase[(532)]=0;  
+	
+	_DefaultGuardInit(guard,firstTime);
+}
+void _ZombieInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{
+		
+		Item@item=guard.AddItem((9),1);
+		guard.SetFavoriteItem((1),(522));
+		guard.SetFavoriteItem((2),(522));
+		
+		guard.AddItem((29),5);
+		
+		Item@item1=guard.AddItem((522),2); 
+		
+		guard.AddItem((110),10);
+		
+		guard.AddItem((259),10);
+		
+		guard.AddItem((40),10);
+	}
+	
+	guard.StatBase[(23)]=100;
+	guard.StatBase[(24)]=100;
+	guard.StatBase[(25)]=100;
+	guard.StatBase[(26)]=100;
+	guard.StatBase[(27)]=100;
+	guard.StatBase[(28)]=100;
+	guard.SkillBase[(204)]=300;
+	guard.PerkBase[(324)]=1;
+	guard.PerkBase[(322)]=1; 
+	
+	_DefaultGuardInit(guard,firstTime);
+}
+void _MazzyInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{
+		
+		Item@item=guard.AddItem((234),1);
+		guard.SetFavoriteItem((1),(234));
+		guard.MoveItem(item.Id,0,(1));
+	} 
+	
+	_DefaultGuardInit(guard,firstTime);
+}
+void _RatInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{
+		
+		Item@item=guard.AddItem((353),1);
+		guard.SetFavoriteItem((1),(353)); 
+		
+		guard.AddItem((35),50);
+		
+		guard.AddItem((241),1);
+		
+		guard.AddItem((34),30);
+		
+		guard.AddItem((391),1);
+		
+		guard.AddItem((359),50);
+		
+		guard.AddItem((40),5);
+		
+		guard.AddItem((289),1);
+		
+		guard.AddItem((144),1);
+		
+		Item@item1=guard.AddItem((380),1);
+		guard.SetFavoriteItem((3),(380));
+		guard.MoveItem(item1.Id,1,(3));
+	} 
+	
+	_DefaultGuardInit(guard,firstTime);
+}
+void _PetreskuInit(Critter&guard,bool firstTime)
+{
+	if(firstTime)
+	{    
+		
+		Item@item=guard.AddItem((18),1); 
+		
+		guard.AddItem((144),10);
+		guard.AddItem((259),10);
+		Item@item1=guard.AddItem((113),1);
+		guard.SetFavoriteItem((3),(113));
+		guard.MoveItem(item1.Id,1,(3));
+	}
+	guard.PerkBase[(303)]=1;
+	guard.PerkBase[(398)]=1;
+	guard.PerkBase[(326)]=1;
+	guard.PerkBase[(324)]=1;
+	guard.PerkBase[(322)]=1;
+	guard.StatBase[(14)]=120;
+	guard.SkillBase[(203)]=300;
+	guard.StatBase[(0)]=10;
+	
+	_DefaultGuardInit(guard,firstTime);
+}
+void _BHCaravanGuardInit(Critter&guard,bool firstTime)
+{
+	_DefaultGuardInitUnlimAmmo(guard,firstTime);
+	
+	guard.ModeBase[(511)]=0;
+	guard.ModeBase[(532)]=0;
+	guard.SetEvent((17),"_GuardStealing");
+} 
+
+void _AmplifyCaravaneer(Critter&cr)
+{
+	;
+	_AmplifyCaravaneer(cr,uint(cr.Stat[(77)]/6));
+}
+void _AmplifyCaravaneer(Critter&cr,uint lvl)
+{
+	;
+	cr.StatBase[(5)]=(((cr.StatBase[(5)]+lvl*1)>(10))?(10):(((cr.StatBase[(5)]+lvl*1)<(5))?(5):(cr.StatBase[(5)]+lvl*1)));
+	cr.StatBase[(7)]=(((50*lvl)>(780))?(780):(((50*lvl)<(100))?(100):(50*lvl)));
+	cr.StatBase[(72)]=cr.Stat[(7)];
+	cr.StatBase[(24)]=(((cr.StatBase[(24)]+lvl*20)>(250))?(250):(((cr.StatBase[(24)]+lvl*20)<(30))?(30):(cr.StatBase[(24)]+lvl*20)));
+	cr.StatBase[(25)]=(((cr.StatBase[(25)]+lvl*20)>(250))?(250):(((cr.StatBase[(25)]+lvl*20)<(30))?(30):(cr.StatBase[(25)]+lvl*20)));
+	cr.StatBase[(26)]=(((cr.StatBase[(26)]+lvl*20)>(250))?(250):(((cr.StatBase[(26)]+lvl*20)<(30))?(30):(cr.StatBase[(26)]+lvl*20)));
+	cr.StatBase[(27)]=(((cr.StatBase[(27)]+lvl*20)>(250))?(250):(((cr.StatBase[(27)]+lvl*20)<(30))?(30):(cr.StatBase[(27)]+lvl*20)));
+	cr.StatBase[(29)]=(((cr.StatBase[(29)]+lvl*20)>(250))?(250):(((cr.StatBase[(29)]+lvl*20)<(30))?(30):(cr.StatBase[(29)]+lvl*20)));
+	cr.StatBase[(23)]=(((cr.StatBase[(27)]+lvl*20)>(250))?(250):(((cr.StatBase[(27)]+lvl*20)<(30))?(30):(cr.StatBase[(27)]+lvl*20)));
+}
+
+void _SetEvents(Critter&cr,uint model)
+{
+	switch(model)
+	{
+		
+		case(1):
+		cr.StatBase[(105)]=(184);
+		cr.SetEvent((16),"e_CowardAttacked");
+		break;
+		default:
+		break;
+	}
+}
+
+bool e_CowardAttacked(Critter&cr,Critter&attacker)
+{ 
+	
+	if(cr.StatBase[(7)]*75>cr.StatBase[(72)]*100)
+	{
+		
+		uint16 hx=cr.HexX;
+		uint16 hy=cr.HexY;
+		cr.ErasePlane(-1,true);
+		
+		if(GetFreeHex(cr.GetMap(),25,hx,hy))
+		{
+			AddWalkPlane(cr,(20)*10,hx,hy,Random(1,5),true,1);
+			AddMiscPlane(cr,(20)*10-1,__FullSecond+Random(0,1)*60,"caravan@plane_MiscWaitInAttack");
+		} 
+		
+		return true;
+	}
+	return false;
+}
+
+void plane_MiscWaitInAttack(Critter&cr)
+{}       
+
+const uint[]crvCosts=
+{  
+	
+	(0),0,(3602),5000,1000,1000,2000,6000,
+	(1),(4300),(4304),5000,1000,1000,3000,5000,
+	(2),(4301),(4304),6000,2000,3000,4000,7000,
+	(3),(4302),(4304),10000,1000,3000,2000,15000,
+	(4),(4244),(4290),5000,3000,3000,3000,7000,
+	(5),(3600),(3601),4000,4000,1000,2000,10000,
+	(8),(1807),(4708),5000,1000,1000,2000,6000,
+	(9),(1808),(4708),6000,3000,2000,4000,8000,
+	(10),(1809),(4708),7000,4000,1000,3000,12000
+};      
+
+uint RowIndex(uint caravanId)
+{
+	
+	for(uint i=0;i<(9);i++)
+	{
+		if((crvCosts[(i<(9)?i:0)*(8)+(0<(8)?0:0)])==caravanId)
+		{
+			return i;
+		}
+	}
+	
+	return 0;
+}     
+
+uint GetCrvResetCost(int crvId,Critter&player)
+{
+	if(!CanResetCaravan(crvId,player)||!NeedResetCaravanStatus(crvId,player))
+	return 0;
+	
+	GameVar@status=GetLocalVar((crvCosts[(RowIndex(crvId)<(9)?RowIndex(crvId):0)*(8)+(1<(8)?1:0)]),player.Id);
+	if(!(@status!=null))
+	return 0;
+	
+	return(crvCosts[(RowIndex(crvId)<(9)?RowIndex(crvId):0)*(8)+(status.GetValue()<(8)?status.GetValue():0)]);
+}
+
+bool CanResetCaravan(int crvId,Critter&player)
+{
+	GameVar@status=GetLocalVar((crvCosts[(RowIndex(crvId)<(9)?RowIndex(crvId):0)*(8)+(2<(8)?2:0)]),player.Id);
+	if(!(@status!=null))
+	return false;
+	
+	return status.GetValue()>0;
+} 
+
+bool NeedResetCaravanStatus(int crvId,Critter&player)
+{
+	GameVar@status=GetLocalVar((crvCosts[(RowIndex(crvId)<(9)?RowIndex(crvId):0)*(8)+(1<(8)?1:0)]),player.Id);
+	if(!(@status!=null))
+	return false; 
+	
+	return(status.GetValue()>=(3)&&status.GetValue()<=(7));
+} 
+
+bool d_CanResetCaravanStatus(Critter&player,Critter@npc,int crvId)
+{
+	return CanResetCaravan(crvId,player);
+}
+bool d_CanNotResetCaravanStatus(Critter&player,Critter@npc,int crvId)
+{
+	return!d_CanResetCaravanStatus(player,npc,crvId);
+}
+
+bool d_NeedResetCaravanStatus(Critter&player,Critter@npc,int crvId)
+{
+	return NeedResetCaravanStatus(crvId,player);
+}  
+
+void dlg_GenResetCaravanText(Critter&player,Critter@npc,string@lexems)
+{
+	if((not(@lexems!=null))or((@lexems!=null)&&lexems.length()>0))
+	{
+		return;
+	}
+	if(!(@npc!=null))
+	return;
+	GameVar@crv=GetUnicumVar((3603),npc.Id,player.Id);
+	if(!(@crv!=null))
+	return;
+	
+	uint crvId=crv.GetValue();
+	crv=0;
+	
+	CaravanInfo@ci=_GetCaravan(crvId);
+	if(!(@ci!=null))
+	return;
+	
+	CaravanLeaderInfo@li=ci.Leader;
+	if(!(@ci!=null))
+	return;
+	
+	uint cost=GetCrvResetCost(crvId,player);
+	
+	lexems="$leader@msg DLG "+((li.DialogId)!=0?100000+(li.DialogId)*1000+100:((0)*10))+"@$money "+cost;
+	
+}  
+
+void r_SetSelectedCaravan(Critter&player,Critter@npc,int crvId)
+{
+	if(!(@npc!=null))
+	return;
+	GameVar@crv=GetUnicumVar((3603),npc.Id,player.Id);
+	if(!(@crv!=null))
+	return;
+	
+	crv=crvId;
+}
+bool d_CheckHasEnoughMoney(Critter&player,Critter@npc,int crvId)
+{
+	uint cost=GetCrvResetCost(crvId,player);
+	if(cost==0)
+	return false;
+	
+	uint money=player.CountItem((41));
+	return(money>=cost);
+}
+
+void r_ResetCaravanStatus(Critter&player,Critter@npc,int crvId)
+{
+	uint cost=GetCrvResetCost(crvId,player);
+	if(cost==0)
+	return;
+	
+	uint money=player.CountItem((41));
+	if(money<cost)
+	return;
+	Item@item=player.GetItem((41),-1);
+	if(!(@item!=null))
+	return;
+	do{if(item.GetCount()>(cost)) item.SetCount(item.GetCount()-(cost));else DeleteItem(item);}while(false);
+	
+	GameVar@questVar=GetLocalVar((crvCosts[(RowIndex(crvId)<(9)?RowIndex(crvId):0)*(8)+(1<(8)?1:0)]),player.Id);
+	GameVar@status=GetLocalVar((crvCosts[(RowIndex(crvId)<(9)?RowIndex(crvId):0)*(8)+(2<(8)?2:0)]),player.Id);
+	if(!(@status!=null)||!(@questVar!=null))
+	return;
+	
+	status=status.GetValue()-1;
+	questVar=0;
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
+CaravanInfo@[]Caravans;
+
+void CaravansInit()
+{ 
+	
+	_SetupCaravan((1),(2),2,(4300),5);
+	_SetupCaravanLeader((1),(1330),(92),(67),(14),(14),8);
+	_SetupCaravanLiderPosition((1),(13),(62),61,52,true);
+	_SetupCaravanLiderPosition((1),(4),(15),116,62,false);
+	_AddRoutePoint((1),675,525);
+	_AddRoutePoint((1),617,578);
+	_AddRoutePoint((1),457,464);
+	_AddRoutePoint((1),520,208);
+	_AddRoutePoint((1),578,138);
+	_AddRoutePoint((1),932,138);
+	_AddRoutePoint((1),969,205);
+	_AddRoutePoint((1),1045,210);
+	_AddRoutePoint((1),1084,249);
+	_AddRoutePoint((1),1175,240);
+	_AddRoutePoint((1),1228,277);
+	_AddRoutePoint((1),1225,325);
+	_AddGuardInfo((1),(222),(4199),"caravan@_DefaultGuardInit",(124),(192),(14),10,0,0,15,true);
+	_AddGuardInfo((1),(459),(4199),"caravan@_DefaultGuardInit",(124),(67),(14),10,0,0,45,false);
+	_AddGuardInfo((1),(460),(4199),"caravan@_DefaultGuardInit",(124),(25),(14),10,0,0,100,false);
+	_AddGuardInfo((1),(460),(4199),"caravan@_DefaultGuardInit",(124),(25),(14),50,0,0,5,false);
+	_AddGuardInfo((1),(223),(4198),"caravan@_DefaultGuardInit",(124),(194),(14),10,0,0,40,true);
+	_AddGuardInfo((1),(461),(4199),"caravan@_DefaultGuardInit",(124),(67),(14),10,0,0,75,false);
+	_SetupCaravanCabs((1),Random(2,3));
+	
+	_AddLootToCaravanCabs((1),-1,(41),200,1000,100,false);
+	_AddLootToCaravanCabs((1),-1,(41),100,200,35,false);
+	_AddLootToCaravanCabs((1),-1,(41),1000,2000,10,false);
+	_AddLootToCaravanCabs((1),-1,(423),10,20,100,false);
+	_AddLootToCaravanCabs((1),-1,(423),3,5,100,false);
+	_AddLootToCaravanCabs((1),-1,(423),4,7,100,false);
+	_AddLootToCaravanCabs((1),0,(79),1,3,100,false);
+	_AddLootToCaravanCabs((1),2,(79),1,3,100,false);
+	_AddLootToCaravanCabs((1),1,(79),1,3,100,false);
+	_AddLootToCaravanCabs((1),-1,(420),10,30,50,false);
+	_AddLootToCaravanCabs((1),-1,(494),1,20,50,false);
+	
+	_AddLootToCaravanCabs((1),-1,(41),200,400,100,true);
+	_AddLootToCaravanCabs((1),-1,(40),2,5,100,true);
+	_AddLootToCaravanCabs((1),-1,(80),1,2,30,true);
+	_AddLootToCaravanCabs((1),-1,(40),1,4,50,true);
+	_AddLootToCaravanCabs((1),-1,(144),1,2,100,true);
+	_AddLootToCaravanCabs((1),-1,(260),1,1,10,true);
+	_AddLootToCaravanCabs((1),-1,(48),1,2,45,true);
+	_AddLootToCaravanCabs((1),-1,(40),2,3,90,true);
+	
+	_SheduleCaravan((1),0,9,0,12);  
+	
+	_SetupCaravan((2),(2),1,(4301),6);
+	_SetupCaravanLeader((2),(1327),(36),(20),(14),(13),15);
+	_SetupCaravanLiderPosition((2),(13),(62),37,101,true);
+	_SetupCaravanLiderPosition((2),(7),(54),75,124,false);
+	_AddRoutePoint((2),675,525);
+	_AddRoutePoint((2),682,668);
+	_AddRoutePoint((2),721,730);
+	_AddRoutePoint((2),756,913);
+	_AddRoutePoint((2),925,925);
+	_AddGuardInfo((2),(189),(4197),"caravan@_DefaultGuardInitUnlimAmmo",(124),(192),(14),20,2,0,25,true);
+	_AddGuardInfo((2),(36),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(165),(14),10,0,0,80,false);
+	_AddGuardInfo((2),(36),(4199),"caravan@_DefaultGuardInit",(124),(174),(14),10,0,0,80,false);
+	_AddGuardInfo((2),(37),(4198),"caravan@_DefaultGuardInit",(124),(165),(14),10,0,0,65,false);
+	_AddGuardInfo((2),(35),(4198),"caravan@_DefaultGuardInit",(124),(182),(14),10,0,0,35,false);
+	
+	_AddGuardInfo((2),(30),(4205),"caravan@_BomberInit",(5),(1),(14),12,1,3,5,true);
+	
+	_AddGuardInfo((2),(203),(4206),"caravan@_AnaferonInit",(55),(1),(14),8,2,0,5,true);
+	
+	_AddGuardInfo((2),(30),(4207),"caravan@_VasyaInit",(124),(1),(14),8,3,1,5,true);
+	
+	_AddGuardInfo((2),(261),(4208),"caravan@_KillerInit",(124),(1),(14),30,1,2,5,true);
+	
+	_SetupCaravanCabs((2),Random(1,2));
+	
+	_AddLootToCaravanCabs((2),-1,(41),200,1000,100,false);
+	_AddLootToCaravanCabs((2),-1,(41),100,200,35,false);
+	_AddLootToCaravanCabs((2),-1,(41),1000,2000,10,false);
+	_AddLootToCaravanCabs((2),-1,(423),10,20,100,false);
+	_AddLootToCaravanCabs((2),-1,(423),3,5,100,false);
+	_AddLootToCaravanCabs((2),-1,(423),4,7,50,false);
+	_AddLootToCaravanCabs((2),0,(79),5,7,100,false);
+	_AddLootToCaravanCabs((2),-1,(420),10,30,50,false);
+	_AddLootToCaravanCabs((2),-1,(494),1,20,50,false);
+	
+	_AddLootToCaravanCabs((2),-1,(41),200,1000,100,true);
+	_AddLootToCaravanCabs((2),-1,(53),1,3,35,true);
+	_AddLootToCaravanCabs((2),-1,(110),3,4,35,true);
+	_AddLootToCaravanCabs((2),-1,(259),3,35,45,true);
+	_AddLootToCaravanCabs((2),-1,(259),10,12,100,true);
+	_AddLootToCaravanCabs((2),-1,(259),1,2,35,true);
+	
+	_SheduleCaravan((2),0,10,0,15);  
+	
+	_SetupCaravan((3),(2),2,(4302),8);
+	_SetupCaravanLeader((3),(1328),(44),(24),(14),(12),21);
+	_SetupCaravanLiderPosition((3),(13),(62),28,79,true);
+	_SetupCaravanLiderPosition((3),(10),(45),35,82,false);
+	_AddRoutePoint((3),675,525);
+	_AddRoutePoint((3),663,573);
+	_AddRoutePoint((3),631,592);
+	_AddRoutePoint((3),668,640);
+	_AddRoutePoint((3),735,1188);
+	_AddRoutePoint((3),841,1329);
+	_AddRoutePoint((3),1006,1397);
+	_AddRoutePoint((3),1125,1425);
+	
+	_AddGuardInfo((3),(222),(4199),"caravan@_DefaultGuardInit",(124),(192),(14),15,0,0,100,false);
+	_AddGuardInfo((3),(223),(4198),"caravan@_DefaultGuardInit",(124),(194),(14),15,0,0,80,false);
+	_AddGuardInfo((3),(222),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(165),(14),18,0,0,25,false);
+	
+	_SetupCaravanCabs((3),Random(1,2));
+	
+	_AddLootToCaravanCabs((3),-1,(41),200,1000,100,false);
+	_AddLootToCaravanCabs((3),-1,(41),100,200,35,false);
+	_AddLootToCaravanCabs((3),-1,(41),1000,2000,10,false);
+	_AddLootToCaravanCabs((3),-1,(423),10,20,100,false);
+	_AddLootToCaravanCabs((3),-1,(423),3,5,100,false);
+	_AddLootToCaravanCabs((3),-1,(423),4,7,50,false);
+	_AddLootToCaravanCabs((3),0,(79),5,7,100,false);
+	_AddLootToCaravanCabs((3),-1,(420),10,30,50,false);
+	_AddLootToCaravanCabs((3),-1,(494),1,20,50,false);
+	
+	_AddLootToCaravanCabs((3),-1,(41),2200,3000,100,true);
+	_AddLootToCaravanCabs((3),-1,(449),10,15,100,true);
+	_AddLootToCaravanCabs((3),-1,(449),5,7,80,true);
+	_AddLootToCaravanCabs((3),-1,(539),12,15,100,true);
+	_AddLootToCaravanCabs((3),-1,(539),3,5,55,true);
+	_AddLootToCaravanCabs((3),-1,(284),22,25,100,true);
+	_AddLootToCaravanCabs((3),-1,(284),2,4,25,true);
+	_AddLootToCaravanCabs((3),-1,(377),1,5,25,true);
+	_AddLootToCaravanCabs((3),-1,(89),1,1,2,true);
+	_AddLootToCaravanCabs((3),-1,(533),8,25,100,true);
+	_AddLootToCaravanCabs((3),-1,(533),3,4,44,true);
+	_SheduleCaravan((3),0,5,0,8);  
+	
+	_SetupCaravan((4),(3),2,(4244),10);
+	_SetupCaravanLeader((4),(1068),(166),(20),(14),(22),21);
+	_SetupCaravanLiderPosition((4),(10),(42),154,80,true);
+	_SetupCaravanLiderPosition((4),(13),(62),73,86,false);
+	_AddRoutePoint((4),1125,1425);
+	_AddRoutePoint((4),1006,1397);
+	_AddRoutePoint((4),841,1329);
+	_AddRoutePoint((4),735,1188);
+	_AddRoutePoint((4),668,640);
+	_AddRoutePoint((4),631,592);
+	_AddRoutePoint((4),663,573);
+	_AddRoutePoint((4),675,525);
+	_AddGuardInfo((4),(222),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(192),(14),10,0,0,100,false);
+	_AddGuardInfo((4),(223),(4198),"caravan@_DefaultGuardInit",(124),(194),(14),10,0,0,80,false);
+	_AddGuardInfo((4),(222),(4199),"caravan@_DefaultGuardInit",(124),(165),(14),10,0,0,80,false);
+	
+	for(uint i=0;i<15;i++)
+	{
+		_AddFollowerInfo((4),(404),0,(14),(1));
+	} 
+	
+	_AddGuardInfo((4),(278),(4203),"caravan@_PetreskuInit",(73),(1),(14),20,2,0,25,true);
+	
+	_AddGuardInfo((4),(256),(4204),"caravan@_MazzyInit",(78),(1),(14),9,3,0,15,true);
+	
+	_AddGuardInfo((4),(30),(4205),"caravan@_BomberInit",(5),(1),(14),12,1,3,15,true);
+	
+	_AddGuardInfo((4),(203),(4206),"caravan@_AnaferonInit",(55),(1),(14),8,2,0,15,true);
+	
+	_AddGuardInfo((4),(30),(4207),"caravan@_VasyaInit",(124),(1),(14),8,3,1,15,true);
+	
+	_AddGuardInfo((4),(261),(4208),"caravan@_KillerInit",(124),(1),(14),30,1,2,15,true);
+	
+	_AddGuardInfo((4),(258),(4209),"caravan@_ZombieInit",(77),(1),(14),15,4,0,15,true);
+	
+	_AddGuardInfo((4),(31),(4210),"caravan@_RatInit",(69),(1),(14),12,1,0,22,true);
+	_SheduleCaravan((4),0,10,0,14); 
+	
+	_SetupCaravan((5),(4),2,(3600),5);
+	_SetupCaravanLeader((5),(642),(36),(67),(14),(124),11);
+	_SetupCaravanLiderPosition((5),(6),(115),239,114,true);
+	_SetupCaravanLiderPosition((5),(5),(31),57,31,false);
+	_AddRoutePoint((5),1175,875);
+	_AddRoutePoint((5),1304,615);
+	_AddRoutePoint((5),1306,490);
+	_AddRoutePoint((5),1341,446);
+	_AddRoutePoint((5),1313,342);
+	_AddRoutePoint((5),1265,296);
+	_AddRoutePoint((5),1275,225);
+	
+	_AddGuardInfo((5),(203),(4206),"caravan@_AnaferonInit",(55),(1),(14),8,2,0,25,true);
+	_AddGuardInfo((5),(30),(4207),"caravan@_VasyaInit",(124),(1),(14),8,3,1,25,true);
+	_AddGuardInfo((5),(258),(4209),"caravan@_ZombieInit",(77),(1),(14),15,4,0,25,true);
+	_AddGuardInfo((5),(36),(4199),"caravan@_BHCaravanGuardInit",(124),(67),(14),10,0,0,100,false);
+	_AddGuardInfo((5),(37),(4198),"caravan@_BHCaravanGuardInit",(124),(67),(14),10,0,0,65,false); 
+	
+	_AddFollowerInfo((5),(258),(643),(14),(1));
+	_AddFollowerInfo((5),(258),(643),(14),(1));
+	_AddFollowerInfo((5),(258),(643),(14),(1));
+	_AddFollowerInfo((5),(258),(643),(14),(1));
+	
+	_SetupCaravanCabs((5),1);
+	_AddLootToCaravanCabs((5),-1,(41),200,1000,100,false);
+	_AddLootToCaravanCabs((5),-1,(41),100,200,35,false);
+	_AddLootToCaravanCabs((5),-1,(426),2,5,100,false);
+	_AddLootToCaravanCabs((5),-1,(426),1,3,25,false);
+	_AddLootToCaravanCabs((5),-1,(34),12,100,25,false);
+	_AddLootToCaravanCabs((5),-1,(34),15,50,25,false);
+	_AddLootToCaravanCabs((5),-1,(34),1,200,25,false);
+	_AddLootToCaravanCabs((5),-1,(34),1,300,25,false);
+	_AddLootToCaravanCabs((5),-1,(95),35,100,75,false);
+	_AddLootToCaravanCabs((5),-1,(95),15,50,25,false);
+	_AddLootToCaravanCabs((5),-1,(95),1,200,25,false);
+	_AddLootToCaravanCabs((5),-1,(539),3,5,55,false);
+	_AddLootToCaravanCabs((5),-1,(284),22,25,100,false);
+	_SheduleCaravan((5),0,6,0,10); 
+	
+	_SetupCaravan((6),(4),2,(4292),7);
+	_SetupCaravanLeader((6),(1071),(489),(192),(14),(124),150);
+	_SetupCaravanLiderPosition((6),(10),(45),119,79,true);
+	_SetupCaravanLiderPosition((6),(10),(45),119,79,false);
+	_AddRoutePoint((6),1125,1425);
+	_AddRoutePoint((6),1225,1425);
+	_AddRoutePoint((6),1143,1308);
+	_AddRoutePoint((6),1058,1436);
+	_AddRoutePoint((6),1038,1488);
+	_AddRoutePoint((6),1207,1475);
+	_AddRoutePoint((6),1219,1335);
+	_AddRoutePoint((6),1125,1425);
+	_AddGuardInfo((6),(222),(1072),"caravan@_NcrRangerPatrolInit",(124),(192),(14),15,0,0,100,false);
+	_SheduleCaravan((6),0,21,0,22); 
+	
+	_SetupCaravan((7),(4),2,(8826),5);
+	_SetupCaravanLeader((7),(454),(489),(243),(14),(18),50);
+	_SetupCaravanLiderPosition((7),(4),(15),58,86,true);
+	_SetupCaravanLiderPosition((7),(4),(15),58,86,false);
+	_AddRoutePoint((7),1225,325);
+	_AddRoutePoint((7),1207,383);
+	_AddRoutePoint((7),1154,303);
+	_AddRoutePoint((7),1186,263);
+	_AddRoutePoint((7),1253,245);
+	_AddRoutePoint((7),1279,309);
+	_AddRoutePoint((7),1265,414);
+	_AddRoutePoint((7),1225,325);
+	_AddGuardInfo((7),(506),(455),"caravan@_VCPatrolInit",(18),(192),(14),15,0,0,100,false);
+	_SheduleCaravan((7),0,1,0,23); 
+	
+	_SetupCaravan((8),(2),2,1807,6);
+	_SetupCaravanLeader((8),1680,211,131,(14),(18),20);
+	_SetupCaravanLiderPosition((8),(16),(4),64,73,true);
+	_SetupCaravanLiderPosition((8),(4),(15),135,108,false);
+	_AddRoutePoint((8),175,125);
+	_AddRoutePoint((8),400,265);
+	_AddRoutePoint((8),571,138);
+	_AddRoutePoint((8),934,138);
+	_AddRoutePoint((8),964,212);
+	_AddRoutePoint((8),1043,210);
+	_AddRoutePoint((8),1207,270);
+	_AddRoutePoint((8),1225,325);
+	_SetupCaravanCabs((8),2);
+	_AddLootToCaravanCabs((8),-1,(378),1,2,15,false);
+	_AddLootToCaravanCabs((8),-1,(284),6,13,50,false);
+	_AddLootToCaravanCabs((8),-1,(539),5,8,50,false);
+	_AddLootToCaravanCabs((8),-1,(533),12,25,100,false);
+	_AddLootToCaravanCabs((8),-1,(449),1,23,100,false);
+	_AddLootToCaravanCabs((8),-1,(276),1,32,100,false);
+	_AddLootToCaravanCabs((8),-1,(41),2200,3000,100,true);
+	_AddLootToCaravanCabs((8),-1,(40),5,9,100,true);
+	_AddLootToCaravanCabs((8),-1,(525),1,1,10,true);
+	_AddLootToCaravanCabs((8),-1,(53),2,3,50,true);
+	_AddLootToCaravanCabs((8),-1,(47),1,2,75,true);
+	_AddLootToCaravanCabs((8),-1,(409),1,1,100,true);
+	_AddGuardInfo((8),(278),(4203),"caravan@_PetreskuInit",(73),(1),(14),20,2,0,25,true);
+	_AddGuardInfo((8),(256),(4204),"caravan@_MazzyInit",(78),(1),(14),9,3,0,15,true);
+	_AddGuardInfo((8),(30),(4205),"caravan@_BomberInit",(5),(1),(14),12,1,3,15,true);
+	_AddGuardInfo((8),(203),(4206),"caravan@_AnaferonInit",(55),(1),(14),8,2,0,15,true);
+	_AddGuardInfo((8),(30),(4207),"caravan@_VasyaInit",(124),(1),(14),8,3,1,15,true);
+	_AddGuardInfo((8),(261),(4208),"caravan@_KillerInit",(124),(1),(14),30,1,2,15,true);
+	_AddGuardInfo((8),(258),(4209),"caravan@_ZombieInit",(77),(1),(14),15,4,0,15,true);
+	_AddGuardInfo((8),(31),(4210),"caravan@_RatInit",(69),(1),(14),12,1,0,32,true);
+	_AddGuardInfo((8),(222),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(192),(14),10,0,0,100,false);
+	_SheduleCaravan((8),0,12,0,14);
+	
+	_SetupCaravan((9),(2),2,1808,9);
+	_SetupCaravanLeader((9),1678,217,131,(14),(12),40);
+	_SetupCaravanLiderPosition((9),(16),(4),63,76,true);
+	_SetupCaravanLiderPosition((9),(14),(137),118,95,false);
+	_AddRoutePoint((9),175,125);
+	_AddRoutePoint((9),430,499);
+	_AddRoutePoint((9),580,619);
+	_AddRoutePoint((9),562,696);
+	_AddRoutePoint((9),568,892);
+	_AddRoutePoint((9),534,899);
+	_AddRoutePoint((9),612,1216);
+	_AddRoutePoint((9),599,1401);
+	_AddRoutePoint((9),580,1429);
+	_AddRoutePoint((9),475,1325);
+	_SetupCaravanCabs((9),2);
+	_AddLootToCaravanCabs((9),-1,(276),1,32,100,false);
+	_AddLootToCaravanCabs((9),-1,(284),6,13,50,false);
+	_AddLootToCaravanCabs((9),-1,(539),5,8,50,false);
+	_AddLootToCaravanCabs((9),-1,(533),12,25,100,false);
+	_AddLootToCaravanCabs((9),-1,(449),1,23,100,false);
+	_AddLootToCaravanCabs((9),-1,(276),1,32,100,false);
+	_AddLootToCaravanCabs((9),-1,(41),100,3000,100,false);
+	_AddLootToCaravanCabs((9),-1,(38),100,500,100,true);
+	_AddLootToCaravanCabs((9),-1,(39),12,100,100,true);
+	_AddLootToCaravanCabs((9),-1,(77),1,2,75,true);
+	_AddLootToCaravanCabs((9),-1,(75),1,2,75,true);
+	_AddLootToCaravanCabs((9),-1,(377),10,30,100,true);
+	_AddGuardInfo((9),(222),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(192),(14),35,0,0,100,false);
+	_AddGuardInfo((9),(261),(4208),"caravan@_KillerInit",(124),(1),(14),30,1,2,15,true);
+	_AddGuardInfo((9),(258),(4209),"caravan@_ZombieInit",(77),(1),(14),55,4,0,15,true);
+	_AddGuardInfo((9),(31),(4210),"caravan@_RatInit",(69),(1),(14),55,1,0,12,true);
+	_AddGuardInfo((9),(222),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(192),(14),35,0,0,100,false);
+	_SheduleCaravan((9),0,17,0,19);
+	
+	_SetupCaravan((10),(2),2,1809,10);
+	_SetupCaravanLeader((10),1679,212,29,(14),(12),45);
+	_SetupCaravanLiderPosition((10),(16),(4),63,72,true);
+	_SetupCaravanLiderPosition((10),(10),(45),77,84,false);
+	_AddRoutePoint((10),175,125);
+	_AddRoutePoint((10),434,501);
+	_AddRoutePoint((10),582,594);
+	_AddRoutePoint((10),656,941);
+	_AddRoutePoint((10),795,1343);
+	_AddRoutePoint((10),1017,1408);
+	_AddRoutePoint((10),1125,1425);
+	_SetupCaravanCabs((10),3);
+	_AddLootToCaravanCabs((10),-1,(276),1,32,100,false);
+	_AddLootToCaravanCabs((10),-1,(284),6,13,50,false);
+	_AddLootToCaravanCabs((10),-1,(539),5,8,50,false);
+	_AddLootToCaravanCabs((10),-1,(533),12,25,100,false);
+	_AddLootToCaravanCabs((10),-1,(449),1,23,100,false);
+	_AddLootToCaravanCabs((10),-1,(276),1,32,100,false);
+	_AddLootToCaravanCabs((10),-1,(41),100,3000,100,false);
+	_AddLootToCaravanCabs((10),-1,(91),1,2,100,true);
+	_AddLootToCaravanCabs((10),-1,(89),1,1,100,true);
+	_AddLootToCaravanCabs((10),-1,(574),5,10,100,true);
+	_AddLootToCaravanCabs((10),-1,(307),2,3,100,true);
+	_AddLootToCaravanCabs((10),-1,(364),1,2,100,true);
+	_AddLootToCaravanCabs((10),-1,(15),1,2,75,true);
+	_AddLootToCaravanCabs((10),-1,(402),1,2,50,true);
+	_AddLootToCaravanCabs((10),-1,(565),5,12,75,true);
+	_AddGuardInfo((10),(261),(4208),"caravan@_KillerInit",(124),(1),(14),30,1,2,15,true);
+	_AddGuardInfo((10),(258),(4209),"caravan@_ZombieInit",(77),(1),(14),55,4,0,15,true);
+	_AddGuardInfo((10),(31),(4210),"caravan@_RatInit",(69),(1),(14),55,1,0,11,true);
+	_AddGuardInfo((10),(222),(4199),"caravan@_DefaultGuardInitUnlimAmmo",(124),(192),(14),45,0,0,100,false);
+	_SheduleCaravan((10),0,6,0,10);
+	
+	_SetupCaravan((11),(4),1,3315,6);
+	_SetupCaravanLeader((11),323,71,102,(14),(12),22);
+	_SetupCaravanLiderPosition((11),(3),(18),114,90,true);
+	_SetupCaravanLiderPosition((11),(5),(31),59,32,false);
+	_AddRoutePoint((11),925,275);
+	_AddRoutePoint((11),973,210);
+	_AddRoutePoint((11),1024,226);
+	_AddRoutePoint((11),1216,265);
+	_AddRoutePoint((11),1275,225);
+	for(uint i=0;i<20;i++)
+	_AddFollowerInfo((11),(404),0,(14),(1));
+	_AddGuardInfo((11),(256),(4204),"caravan@_MazzyInit",(78),(1),(14),9,3,0,15,true);
+	_AddGuardInfo((11),(30),(4205),"caravan@_BomberInit",(5),(1),(14),12,1,3,15,true);
+	_AddGuardInfo((11),(36),(4199),"caravan@_BHCaravanGuardInit",(124),(67),(14),10,0,0,100,false);
+	_AddGuardInfo((11),(37),(4198),"caravan@_BHCaravanGuardInit",(124),(67),(14),10,0,0,65,false);
+	_SheduleCaravan((11),0,8,0,12); 
+	
+}  
+
+CaravanInfo@_GetCaravan(uint idCaravan)
+{
+	if(!(@Caravans!=null))
+	return null;
+	if(Caravans.length()==0)
+	return null;
+	
+	for(uint i=0;i<Caravans.length();i++)
+	{
+		if(Caravans[i].CaravanId==idCaravan)
+		{
+			return Caravans[i];
+		}
+	}
+	return null;
+}      
+
+void _SetupCaravan(uint idCaravan,uint8 crvType,uint8 speed,uint16 qVar,uint8 maxGrp)
+{ 
+	
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if((@ci!=null))
+	{
+		ci.CaravanReset();
+	}
+	else
+	{
+		@ci=CaravanInfo();
+		Caravans.insertLast(@ci);
+		ci.CaravanId=idCaravan;
+	}
+	ci.Type=crvType;
+	ci.GlobalSpeedMultiplayer=speed;
+	ci.QuestVarNum=qVar;
+	ci.MaxGroup=maxGrp;
+}      
+
+void _SetupCaravanLeader(uint idCaravan,uint dialog,uint pid,uint bag,uint team,uint ai,uint level)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return; 
+	
+	@ci.Leader=CaravanLeaderInfo();
+	;
+	ci.Leader.DialogId=dialog;
+	ci.Leader.NpcPid=pid;
+	ci.Leader.BagId=bag;
+	ci.Leader.TeamId=team;
+	ci.Leader.AiPack=ai;
+	;
+	ci.Leader.Level=level;
+	;
+	ci.Leader.CaravanId=idCaravan;
+}   
+
+void _SetupCaravanLeader(uint idCaravan,Critter&leader)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return;
+	@ci.Leader=CaravanLeaderInfo();
+	;
+	ci.Leader.DialogId=leader.StatBase[(104)];
+	ci.Leader.NpcPid=leader.GetProtoId();
+	ci.Leader.BagId=leader.StatBase[(107)];
+	ci.Leader.TeamId=leader.StatBase[(106)];
+	ci.Leader.AiPack=leader.StatBase[(105)];
+	ci.Leader.CaravanId=idCaravan;
+	ci.Leader.CritterId=leader.Id;
+	;
+	leader.StatBase[(90)]=idCaravan;
+}      
+
+void _SetupCaravanLiderPosition(uint idCaravan,uint16 locPid,uint16 mapPid,uint16 x,uint16 y,bool isStartPos)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	
+	if(!(@ci!=null))
+	return;
+	if(!(@ci.Leader!=null))
+	return;
+	
+	if(isStartPos)
+	{
+		@ci.Leader.StartPos=NpcPosition(locPid,mapPid,x,y);
+	}
+	else
+	{
+		@ci.Leader.EndPos=NpcPosition(locPid,mapPid,x,y);
+	}
+}   
+
+void _SetupCaravanCabs(uint idCaravan,uint8 numCabs)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	
+	if(!(@ci!=null))
+	return;
+	ci.Cabs.resize(0);
+	
+	for(uint8 i=0;i<numCabs;i++)
+	{
+		ci.Cabs.insertLast(@CaravanCabInfo());
+	}
+}       
+
+void _AddLootToCaravanCabs(uint idCaravan,int8 cabNum,uint itemPid,uint minNum,uint maxNum,uint8 chanceAppear,bool isReverseRouteLoot)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return;
+	
+	CaravanCabInfo@cab=ci.GetCab(cabNum);
+	if(!(@cab!=null))
+	return;
+	
+	cab.AddLoot(itemPid,minNum,maxNum,chanceAppear,isReverseRouteLoot);
+}    
+
+void _AddRoutePoint(uint idCaravan,uint x,uint y)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return;
+	ci.AddRoutePoint(x,y);
+}             
+
+void _AddGuardInfo(uint idCaravan,uint16 pid,uint dialogId,string scriptId,uint aiPack,uint bagId,uint teamId,uint level,uint reaction,uint isNervous,uint8 chanceJoin,bool isUnique)
+{
+	
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return;
+	ci.CaravanGuards.insertLast(@CaravanGuardInfo(idCaravan,pid,dialogId,scriptId,aiPack,bagId,teamId,level,reaction,isNervous,chanceJoin,isUnique));
+	
+}      
+
+void _AddFollowerInfo(uint idCaravan,uint16 pid,uint dialog,uint team,uint bag)
+{
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	return;
+	
+	CaravanNpcFollowerInfo@f=CaravanNpcFollowerInfo();
+	if(!(@f!=null))
+	return;
+	
+	f.CaravanId=idCaravan;
+	f.Pid=pid;
+	f.DialogId=dialog;
+	f.TeamId=team;
+	f.BagId=bag;
+	
+	ci.Followers.insertLast(f);
+	
+}        
+
+bool _SheduleCaravan(uint idCaravan,uint prepareDay,uint prepareHour,uint startDay,uint startHour)
+{
+	uint[]values;
+	
+	values.insertLast(idCaravan);
+	values.insertLast(prepareDay);
+	values.insertLast(prepareHour);
+	values.insertLast(startDay);
+	values.insertLast(startHour);
+	
+	uint time=GetNearFullSecond(0,0,prepareDay,prepareHour,0,0);
+	;
+	return(CreateTimeEvent(time,"e_PrepareCaravan",values,false)>0);
+	
+}
+
+uint e_PrepareCaravan(uint[]@values)
+{
+	if(values.length()==0)
+	{
+		Log("Shedule caravan error");
+		return 0;
+	}
+	uint idCaravan=values[0];
+	uint prepareDay=values[1];
+	uint prepareHour=values[2];
+	uint startDay=values[3];
+	uint startHour=values[4];
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	{
+		Log("Can not found CaravanInfo Id="+idCaravan);
+		return 0;
+	}
+	if(!(@ci.Leader!=null))
+	{
+		Log("Invalid LeaderInfo CaravanId="+idCaravan);
+		return 0;
+	}
+	;
+	if(ci.Leader.CritterId!=0)
+	{
+		Critter@leader=ci.Leader.GetLeader();
+		if((@leader!=null))
+		{
+			if(leader.IsDead())
+			{
+				return 60*60*4;
+			}
+		}
+	}
+	
+	uint time=GetNearFullSecond(0,0,startDay,startHour,0,0);
+	if(CreateTimeEvent(time,"e_BeginCaravan",values,false)==0)
+	{
+		Log("Create BeginCaravan time event fail...");
+		return 0;
+	}
+	PrepareCaravan(idCaravan);
+	
+	return 0;
+	
+}
+
+uint e_BeginCaravan(uint[]@values)
+{
+	if(values.length()<5)
+	{
+		Log("Shedule caravan error");
+		return 0;
+	}
+	uint idCaravan=values[0];
+	uint prepareDay=values[1];
+	uint prepareHour=values[2];
+	uint startDay=values[3];
+	uint startHour=values[4];
+	CaravanInfo@ci=_GetCaravan(idCaravan);
+	if(!(@ci!=null))
+	{
+		Log("Can not found CaravanInfo Id="+idCaravan);
+		return 0;
+	}
+	if(!(@ci.Leader!=null))
+	{
+		Log("Invalid LeaderInfo CaravanId="+idCaravan);
+		return 0;
+	}
+	StartCaravan(idCaravan);
+	
+	uint time=GetNearFullSecond(0,0,prepareDay,prepareHour,0,0);
+	
+	CreateTimeEvent(time,"e_PrepareCaravan",values,false);
+	return 0;
+} 
+
+void _CaravanLeaderInit(Critter&leader,bool firstTime)
+{
+	
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	return;
+	
+	CaravanLeaderInfo@li=ci.Leader;
+	if((@li!=null))
+	{
+		li.CritterId=leader.Id;
+	}
+	
+	if(firstTime)
+	{
+		leader.StatBase[(77)]=ci.Leader.Level;
+		_AmplifyCaravaneer(leader);
+	}
+	leader.StatBase[(3)]=10;
+	leader.SetEvent((40),"_CaravanLeaderOnGlobal");
+	leader.SetEvent((2),"_CaravanLeaderOnDead");
+	leader.SetEvent((26),"_CaravanLeaderOnSeeSmthDead");
+	leader.SetEvent((41),"_CaravanLeaderOnInvite");
+	leader.SetEvent((18),"_CaravanLeaderOnMessage");
+	leader.SetEvent((31),"_CaravanLeaderOnSmthUseSkill");
+	leader.SetEvent((36),"_CaravanLeaderOnPlaneEnd");
+	_SetEvents(leader,ci.Leader.Virtue);
+}
+
+int _CaravanLeaderOnPlaneEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	Map@map=cr.GetMap();
+	if((@map!=null))
+	{
+		if(reason!=(30)&&plane.Type==(2)&&map.IsHexPassed(plane.Walk_HexX,plane.Walk_HexY))
+		{
+			plane.Walk_Cut--;
+		}
+	}
+	return(0);
+} 
+
+void _CancelEvents(Critter&leader)
+{
+	leader.SetEvent((1),"");
+	leader.SetEvent((40),"");
+	leader.SetEvent((2),"");
+	leader.SetEvent((26),"");
+	leader.SetEvent((41),"");
+	leader.SetEvent((18),"");
+	leader.SetEvent((31),"");
+} 
+
+void _CaravanLeaderOnSmthUseSkill(Critter&leader,Critter&fromCr,int skill,Critter@onCritter,Item@onItem,Scenery@onScenery)
+{
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	return;
+	
+	if(!(@onCritter!=null))
+	return;
+	if(skill==(210)&&ci.PlayerIsGuard(onCritter.Id))
+	{
+		{SetQuestState(fromCr,ci.CaravanId,(3));};
+		ci.RemoveGuard(fromCr.Id);
+		_PlayerToCaravanEnemy(fromCr,ci);
+	}
+	
+}
+
+const uint[]entires={243,244,0};
+void FindCabPlace(Map&map,uint[]&x,uint[]&y,uint maxCabs)
+{
+	
+	uint16 hX=0;
+	uint16 hY=0;
+	uint16 oX1=0;
+	uint16 oY1=0;
+	uint16 oX2=0;
+	uint16 oY2=0;     
+	
+	for(uint i=0,j=0,tries=0,l=map.CountEntire(entires[j]),ents=entires.length();i<l&&j<ents&&tries<30;i++)
+	{
+		tries++;
+		if(map.GetEntireCoords(entires[j],i,hX,hY))
+		{ 
+			
+			oX1=uint(hX-((6)/2));
+			oY1=uint(hY+((6)/2)*(1-Random(0,1)*2));
+			if(GetFreeHex(map,1,oX1,oY1))
+			{
+				
+				oX2=uint(hX+((6)/2));
+				oY2=uint(hY+((6)/2)*(1-Random(0,1)*2));
+				
+				if(GetFreeHex(map,1,oX2,oY2))
+				{ 
+					
+					x.insertLast(oX1);
+					y.insertLast(oY1);
+					x.insertLast(oX2);
+					y.insertLast(oY2);
+					if(maxCabs>0&&x.length()>maxCabs)
+					break;
+				}
+			}
+			
+		}
+		
+		if(i+1==l&&j+1<ents)
+		{
+			j++;
+			l=map.CountEntire(entires[j]);
+			i=0;
+		}
+	}
+} 
+
+void _CaravanLeaderOnMessage(Critter&leader,Critter&fromCr,int message,int value)
+{
+	if(message==(211))
+	{
+		_MoveToCaravanLeader(fromCr,leader,Random(2,10));
+	}
+} 
+
+bool _CaravanLeaderOnInvite(Critter&leader,Item@car,uint encounterDescriptor,int combatMode,uint&mapId,uint16&hexX,uint16&hexY,uint8&dir)
+{
+	Critter@[]@group=leader.GetGlobalGroup();
+	InviteToEncounter(group,null,encounterDescriptor,combatMode,mapId,hexX,hexY,dir);
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	return true;
+	
+	if(!_CheckHasPlayerInGroup(group))
+	{
+		if(ci.Type==(4)||ci.Type==(5))
+		{
+			ci.CaravanStatus==(5);
+			CreateTimeEvent(__FullSecond+(60*30),"e_DeleteLeader",leader.Id,true);
+			
+		}
+		ci.TerminateCaravan();
+		return true;
+	}
+	
+	Map@map=GetMap(mapId);
+	if(!(@map!=null))
+	{
+		Log("Invalid map");
+		return true;
+	}
+	
+	ci.CaravanStatus=(4);    
+	
+	uint[]x;
+	uint[]y;
+	FindCabPlace(map,x,y,100);
+	
+	Item@[]cabItems;
+	for(uint i=0,lx=x.length(),ly=y.length(),lc=ci.Cabs.length();i<lx&&i<ly&&i<lc;i++)
+	{
+		Item@cab=ci.Cabs[i].PlaceCabOnMap(map,x[i],y[i],ci.IsReversed);
+		
+		if((@cab!=null))
+		{
+			cabItems.insertLast(@cab);
+			cab.Val5=leader.Id;
+			cab.SetEvent((4),"_OnTryOpenCabs");
+			(cab.Flags=((cab.Flags)&(~((0x00000004)))));
+		}
+		
+	}
+	
+	if(cabItems.length()>0)
+	{
+		for(uint j=0;j<ci.Followers.length();j++)
+		{
+			ci.Followers[j]._AddNpcNearItem(map,cabItems[Random(0,(cabItems.length()-1))],8);
+		}
+		
+		leader.SetEvent((0),"_CaravanLeaderIdleOnEncounter");
+		leader.StatBase[(93)]=9;
+		
+	}
+	else
+	{
+		if(ci.Followers.length()>0)
+		{
+			Critter@firstFollower=ci.Followers[0].AddNpcNearCritter(map,leader,1);
+			if((@firstFollower!=null))
+			{
+				for(uint k=1;k<ci.Followers.length();k++)
+				{
+					ci.Followers[k]._AddNpcNearCritter(map,firstFollower,6);
+				}
+			}
+			else
+			{
+				for(uint k=1;k<ci.Followers.length();k++)
+				{
+					ci.Followers[k]._AddNpcNearCritter(map,leader,20);
+				}
+			}
+		}
+		
+	}
+	return true;
+}
+
+bool _OnTryOpenCabs(Item&item,Critter&cr,int skill)
+{
+	
+	Critter@leader=GetCritter(item.Val5);
+	if((@leader!=null))
+	{
+		if(leader.IsLife()==false)
+		{
+			return false;
+		}
+		leader.SayMsg((4),(0),(3500));
+		return true;
+		
+	}
+	else
+	{
+		
+		return false;
+	}
+} 
+
+void _CaravanLeaderIdleOnEncounter(Critter&leader)
+{
+	;
+	if(leader.StatBase[(93)]>9)
+	{
+		Item@[]cabs;
+		Map@map=leader.GetMap();
+		if(!(@map!=null))
+		return;
+		
+		if(map.GetItems(Random((434),(435)),cabs)>0)
+		{
+			
+			leader.StatBase[(93)]=0;
+			uint idx=Random(0,cabs.length()-1);
+			uint16 hx=cabs[idx].HexX;
+			uint16 hy=cabs[idx].HexY;
+			if(GetFreeHex(map,4,hx,hy))
+			{
+				AddWalkPlane(leader,(20),hx,hy,Random(0,5),(Random(0,5)==1?true:false),1);
+			}
+		}
+		
+	}
+	else
+	{
+		leader.StatBase[(93)]++;
+	}
+} 
+
+void _CaravanLeaderOnSeeSmthDead(Critter&leader,Critter&fromCrit,Critter@killer)
+{
+	;
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		
+		_CancelEvents(leader);
+		Log("Caravan error; CaravanInfo not found");
+		return;
+	}
+	if(!ci.PlayerIsGuard(fromCrit.Id))
+	return;
+	
+	if(fromCrit.IsPlayer())
+	{
+		{uint q=GetQuestState(fromCrit,ci.CaravanId);if(q==(2)||q==(9)) SetQuestState(fromCrit,ci.CaravanId,(5));};
+		return;
+	}
+	
+	if(!(@killer!=null))
+	return;
+	
+	if(killer.IsPlayer())
+	{
+		{SetQuestState(killer,ci.CaravanId,(3));};
+		_PlayerToCaravanEnemy(killer,ci);
+	}
+} 
+
+void _CaravanLeaderOnDead(Critter&leader,Critter@killer)
+{
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		
+		_CancelEvents(leader);
+		Log("Caravan error; CaravanInfo not found");
+		return;
+	}
+	if(ci.CaravanStatus>(1)&&ci.CaravanStatus<(5))
+	{
+		_SetQuestState(ci,(6));
+		if((@killer!=null))
+		{
+			if(killer.IsPlayer())
+			{
+				{SetQuestState(killer,ci.CaravanId,(7));};
+				_PlayerToCaravanEnemy(killer,ci);
+				ci.RemoveGuard(killer.Id);
+			}
+		}
+		
+	}
+	
+	if(ci.Type==(4)||ci.Type==(5))
+	{
+		CreateTimeEvent(__FullSecond+(60*30),"e_DeleteLeader",leader.Id,true);
+		
+	}
+} 
+
+bool _CaravanLeaderOnGlobal(Critter&leader,int type,Item@car,float&x,float&y,float&toX,float&toY,float&speed,uint&encounterDescriptor,bool&waitForAnswer)
+{
+	Critter@[]@group=leader.GetGlobalGroup();
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		
+		_CancelEvents(leader);
+		Log("Caravan error; CaravanInfo not found");
+		return false;
+	}
+	if(type==(0)||type==(5))
+	{
+		
+		if(!_CheckHasPlayerInGroup(group))
+		{
+			
+			ci.TerminateCaravan();
+			return true;
+		}
+	}
+	else
+	{
+		for(uint i=0;i<group.length();i++)
+		{
+			if(group[i].IsPlayer())
+			{uint q=GetQuestState(group[i],ci.CaravanId);if(q==(1)){{if(GetQuestState(group[i],ci.CaravanId)==(1)) SetQuestState(group[i],ci.CaravanId,(2));};}if(q==(11)){{uint q=GetQuestState(group[i],ci.CaravanId);if(q==(11)) SetQuestState(group[i],ci.CaravanId,(9));};}};
+		}
+	}
+	if(encounterDescriptor!=0)
+	{
+		return false;
+	}
+	
+	ci.CaravanRoute.SetRouteDir(x,y,toX,toY); 
+	
+	if(type!=(0))
+	{
+		
+		if(ci.CaravanRoute.RouteEnded())
+		{
+			Location@loc=GetLocationByPid(ci.Leader.EndPos.LocPid,0);
+			
+			uint endX=loc.WorldX;
+			uint endY=loc.WorldY;
+			
+			if((endX==uint(x))and(endY==uint(y)))
+			{
+				
+				if(_EndCaravan(leader))
+				{
+					return true;
+				}
+				else
+				{
+					
+					FindEncounter(group,null,x,y,encounterDescriptor,waitForAnswer,true);
+					Log("Can not end caravan");
+					return true;
+				}
+				
+			}
+			else
+			{ 
+				
+				toX=endX;
+				toY=endY;
+			}
+		}
+		speed=(2.4f)*ci.GlobalSpeedMultiplayer;
+		
+		return true;
+	}
+	waitForAnswer=false;
+	return false;
+}   
+
+void PrepareCaravan(uint CaravanId)
+{
+	CaravanInfo@ci=_GetCaravan(CaravanId);
+	if(!(@ci!=null))
+	return;
+	
+	ci.CaravanReset();
+	ci.CaravanStatus=(1);
+	
+	Critter@leader=ci.Leader.GetLeader();
+	if(!(@leader!=null))
+	{
+		Critter@[]critters;
+		if(GetCrittersByDialogId(ci.Leader.StartPos.GetMap(),ci.Leader.DialogId,ci.Leader.NpcPid,critters)>0)
+		{
+			@leader=critters[0];
+			ci.Leader.SetLeaderCritter(leader);
+		}
+		else
+		{
+			if(GetCrittersByDialogId(ci.Leader.EndPos.GetMap(),ci.Leader.DialogId,ci.Leader.NpcPid,critters)>0)
+			{
+				@leader=critters[0];
+				ci.Leader.SetLeaderCritter(leader);
+			}
+		}
+		if(!(@leader!=null))
+		{
+			if(!ci.Leader.PlaceLeaderCritterToPos(ci.Leader.StartPos))
+			return;
+		}
+	}
+	
+	if(!ci.Leader.CheckLeaderInPos(true))
+	{
+		if(!ci.Leader.TransitToPos(true))
+		return;
+	}
+	
+	@leader=ci.Leader.GetLeader();
+	if(!(@leader!=null))
+	return;
+	_SetEvents(leader,ci.Leader.Virtue);
+	
+} 
+
+void StartCaravan(uint CaravanId)
+{
+	CaravanInfo@ci=_GetCaravan(CaravanId);
+	if(!(@ci!=null))
+	return;
+	Critter@leader=ci.Leader.GetLeader();
+	if(!(@leader!=null))
+	return;
+	if(leader.IsDead())
+	return;
+	Map@map=leader.GetMap();
+	if(!(@map!=null))
+	return; 
+	
+	if(ci.PlayersRequested.length()==0)
+	{
+		ci.CaravanStatus=(0);
+		return;
+	}
+	uint curPlayersInGrp=0;
+	
+	Critter@[]caravanGroup;
+	caravanGroup.insertLast(@leader);
+	
+	for(uint i=0;i<ci.PlayersRequested.length();i++)
+	{
+		Critter@player=GetCritter(ci.PlayersRequested[i]);
+		if(!(@player!=null))
+		continue;
+		if(player.IsDead())
+		continue;
+		Map@playerMap=player.GetMap();
+		if(!(@player.GetMap()!=null))
+		continue;
+		if(GetDistantion(leader.HexX,leader.HexY,player.HexX,player.HexY)<=(8))
+		{
+			ci.RequstedToGuard(player.Id);
+			caravanGroup.insertLast(@player);
+			curPlayersInGrp++;
+		}
+		if(curPlayersInGrp>=ci.MaxPlayers)
+		break;
+	}
+	ci.PlayersRequested.resize(ci.MaxPlayers);
+	if(curPlayersInGrp==0)
+	{
+		return;
+	}
+	
+	uint numTry=0;
+	
+	uint idx=0;
+	
+	while(caravanGroup.length()<ci.MaxGroup&&ci.CaravanGuards.length()>0)
+	{
+		;
+		numTry++;
+		if(numTry>=20)
+		break;
+		Critter@guard=ci.CaravanGuards[idx].GetCritterGuard(map,leader);
+		idx=(idx+1<ci.CaravanGuards.length()?idx+1:0);
+		if((@guard!=null))
+		{
+			ci.Caravaneers.insertLast(guard.Id);
+			caravanGroup.insertLast(@guard);
+		}
+	} 
+	
+	leader.SetScript("_CaravanLeaderInit");
+	ci.CaravanStatus=(2);
+	
+	leader.TransitToGlobal(caravanGroup);
+} 
+
+void _ContinueCaravan(Critter&leader)
+{
+	;
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+leader.StatBase[(90)]);
+		return;
+	}
+	
+	Map@map_leader=leader.GetMap();
+	if(!(@map_leader!=null))
+	return;
+	
+	Critter@[]caravanGroup;
+	caravanGroup.insertLast(@leader);
+	;
+	uint[]deadGuardIds;
+	for(uint i=0;i<ci.Caravaneers.length();i++)
+	{
+		Critter@guard=GetCritter(ci.Caravaneers[i]);
+		if(!(@guard!=null))
+		{
+			deadGuardIds.insertLast(ci.Caravaneers[i]);
+			
+			continue;
+		}
+		
+		Map@map=guard.GetMap();
+		if(!(@map!=null))
+		{
+			deadGuardIds.insertLast(ci.Caravaneers[i]);
+			if(guard.IsPlayer())
+			{uint q=GetQuestState(guard,ci.CaravanId);if(q==(2)||q==(9)) SetQuestState(guard,ci.CaravanId,(4));};
+			continue;
+		}
+		if(guard.IsDead()||map.Id!=map_leader.Id)
+		{
+			deadGuardIds.insertLast(ci.Caravaneers[i]);
+			if(guard.IsPlayer())
+			{uint q=GetQuestState(guard,ci.CaravanId);if(q==(2)||q==(9)) SetQuestState(guard,ci.CaravanId,(4));};
+			continue;
+		}
+		
+		caravanGroup.insertLast(@guard);
+	}
+	for(uint j=0;j<deadGuardIds.length();j++)
+	{
+		ci.RemoveGuard(deadGuardIds[j]);
+	}
+	;
+	ci.CaravanStatus=(3);
+	if(_CheckHasPlayerInGroup(caravanGroup))
+	leader.TransitToGlobal(caravanGroup);
+}  
+
+bool _EndCaravan(Critter&leader)
+{
+	CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		_CancelEvents(leader);
+		Log("Error: CaravanInfo not found. Id = "+leader.StatBase[(90)]);
+		return false;
+	}
+	
+	for(uint i=0;i<ci.Caravaneers.length();i++)
+	{
+		Critter@player=GetCritter(ci.Caravaneers[i]);
+		if((@player!=null))
+		{
+			if(player.IsPlayer())
+			{
+				{if(GetQuestState(player,ci.CaravanId)==(2)) SetQuestState(player,ci.CaravanId,(8));};
+				{uint q=GetQuestState(player,ci.CaravanId);if(q==(9)) SetQuestState(player,ci.CaravanId,(10));};
+			}
+		}
+	}
+	
+	if(!(@ci.Leader!=null))
+	return false;
+	if(!(@ci.Leader.EndPos!=null))
+	return false;
+	Map@map=ci.Leader.EndPos.GetMap();
+	if(!(@map!=null))
+	return false;
+	uint16 hx=ci.Leader.EndPos.HexX;
+	uint16 hy=ci.Leader.EndPos.HexY;
+	if(!GetFreeHex(map,3,hx,hy))
+	return false;
+	if(!leader.TransitToMap(map.Id,0,true))
+	return false;
+	leader.SetHomePos(hx,hy,leader.Dir);
+	ci.CaravanStatus=(5); 
+	
+	for(uint j=0;j<ci.Caravaneers.length();j++)
+	{
+		Critter@guard=GetCritter(ci.Caravaneers[j]);
+		if((@guard!=null))
+		{
+			if(guard.IsNpc())
+			{
+				DeleteNpc(guard);
+			}
+		}
+	}
+	_CancelEvents(leader);
+	if(ci.Type==(2))
+	{
+		ci.CaravanRoute.ReverseRouteCurve();
+		SwitchNpcPosition(ci.Leader.StartPos,ci.Leader.EndPos);
+		ci.IsReversed=(ci.IsReversed?false:true);
+	}
+	if(ci.Type==(3))
+	{
+		CreateTimeEvent(__FullSecond+(60*60*2),"e_TransitToStartPos",leader.Id,false);
+	}
+	if(ci.Type==(4)||ci.Type==(5))
+	{
+		ci.CaravanStatus==(5);
+		CreateTimeEvent(__FullSecond+(60*30)+(60*60*2),"e_DeleteLeader",leader.Id,true);
+		
+	}
+	;
+	return true;
+}
+
+uint e_DeleteLeader(uint[]@values)
+{
+	;
+	Critter@leader=GetCritter(values[0]);
+	if((@leader!=null))
+	{
+		CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+		if((@ci!=null))
+		{
+			ci.CaravanReset();
+			CaravanLeaderInfo@li=ci.Leader;
+			if((@li!=null))
+			{
+				if(li.CritterId!=leader.Id)
+				{
+					Log("Wrong eader id");
+					return 0;
+				}
+			}
+		}
+		if(leader.IsNpc())
+		DeleteNpc(leader);
+	}
+	;
+	return 0;
+}
+
+uint e_TransitToStartPos(uint[]@values)
+{
+	Critter@leader=GetCritter(values[0]);
+	if((@leader!=null))
+	{
+		CaravanInfo@ci=_GetCaravan(leader.StatBase[(90)]);
+		if((@ci!=null))
+		{
+			if((@ci.Leader!=null))
+			ci.Leader.TransitToPos(true);
+		}
+	}
+	return 0;
+}  
+
+bool _CheckHasPlayerInGroup(Critter@[]&group)
+{
+	for(uint i=0;i<group.length();i++)
+	{
+		if(group[i].IsPlayer())
+		{
+			return true;
+		}
+	}
+	return false;
+} 
+
+void _PlayerToCaravanEnemy(Critter&player,CaravanInfo&ci)
+{
+	;
+	for(uint i=0;i<ci.Caravaneers.length();i++)
+	{
+		Critter@cr=GetCritter(ci.Caravaneers[i]);
+		if((@cr!=null))
+		{
+			if(cr.IsNpc()&&!cr.CheckEnemyInStack(player.Id))
+			{
+				cr.AddEnemyInStack(player.Id);
+			}
+		}
+	}
+}  
+
+void _SetQuestState(CaravanInfo&ci,int state)
+{
+	;
+	for(uint i=0;i<ci.Caravaneers.length();i++)
+	{
+		Critter@cr=GetCritter(ci.Caravaneers[i]);
+		if((@cr!=null))
+		{
+			if(cr.IsNpc())
+			{
+				continue;
+			}
+		}
+		
+		_SetQuestState(ci.QuestVarNum,state,ci.Caravaneers[i]);
+		
+	}
+}   
+
+void _SetQuestState(uint varNum,int state,uint crId)
+{
+	GameVar@qVar=GetLocalVar(varNum,crId);
+	if(!(@qVar!=null))
+	return;
+	if(qVar.GetValue()<(1))
+	return;
+	
+	qVar=state;
+}  
+
+bool d_IsFullParty(Critter&player,Critter@caravaneer)
+{
+	
+	CaravanInfo@ci=_GetCaravan(caravaneer.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+caravaneer.StatBase[(90)]);
+		return true;
+	}
+	
+	return(ci.PlayersRequested.length()>ci.MaxPlayers);
+	
+} 
+
+bool d_NotIsFullParty(Critter&player,Critter@caravaneer)
+{
+	return not d_IsFullParty(player,caravaneer);
+} 
+
+bool d_HasPlayerRequest(Critter&player,Critter@caravaneer)
+{
+	CaravanInfo@crv=_GetCaravan(caravaneer.StatBase[(90)]);
+	if(!(@crv!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+caravaneer.StatBase[(90)]);
+		return false;
+	}
+	for(uint i=0;i<crv.PlayersRequested.length();i++)
+	{
+		if(crv.PlayersRequested[i]==player.Id)
+		{
+			return true;
+		}
+	}
+	return false;
+} 
+
+bool d_NotHasPlayerRequest(Critter&player,Critter@caravaneer)
+{
+	return not d_HasPlayerRequest(player,caravaneer);
+} 
+
+bool d_CanJoin(Critter&player,Critter@caravaneer)
+{
+	CaravanInfo@crv=_GetCaravan(caravaneer.StatBase[(90)]);
+	if(!(@crv!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+caravaneer.StatBase[(90)]);
+		return false;
+	}
+	return _CanPlayerJoinCaravan(player,crv);
+} 
+
+void r_PutPlayerRequest2Info(Critter&player,Critter@caravaneer)
+{
+	CaravanInfo@crv=_GetCaravan(caravaneer.StatBase[(90)]);
+	if(!(@crv!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+caravaneer.StatBase[(90)]);
+		return;
+	}
+	if(!d_HasPlayerRequest(player,caravaneer))
+	{
+		crv.PlayersRequested.insertLast(player.Id);
+	}
+} 
+
+void r_ContinueCaravan(Critter&player,Critter@npc)
+{
+	if(!(@npc!=null))
+	return;
+	CaravanInfo@crv=_GetCaravan(npc.StatBase[(90)]);
+	if(!(@crv!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+npc.StatBase[(90)]);
+		return;
+	}
+	if(crv.CaravanStatus!=(4))
+	return;
+	if(d_HasPlayerRequest(player,npc))
+	{
+		_ContinueCaravan(npc);
+	}
+} 
+
+void r_StartCaravan(Critter&player,Critter@npc)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if((@ci!=null))
+	{
+		r_PutPlayerRequest2Info(player,npc);
+		;
+		StartCaravan(npc.StatBase[(90)]);
+	}
+} 
+
+bool d_IsCaravanStatus(Critter&player,Critter@npc,int status)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		
+		Log("Error: CaravanInfo not found. Id = "+npc.StatBase[(90)]);
+		if(status==0)
+		return true;
+		return false;
+	}
+	
+	return(ci.CaravanStatus==status);
+}
+
+bool d_NotIsCaravanStatus(Critter&player,Critter@npc,int status)
+{
+	return!d_IsCaravanStatus(player,npc,status);
+} 
+
+bool d_CaravanEndedOrNotStarted(Critter&player,Critter@npc)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		
+		return true;
+	}
+	
+	return(ci.CaravanStatus==(0)||ci.CaravanStatus==(5));
+} 
+
+bool d_PlayerHasNoCaravanFailures(Critter&player,Critter@npc)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		
+		return true;
+	}
+	return!_GetPlayerQuestFailed(player,ci);
+} 
+
+bool d_IsCaravanReversed(Critter&player,Critter@npc)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if(!(@ci!=null))
+	{
+		Log("Error: CaravanInfo not found. Id = "+npc.StatBase[(90)]);
+		return false;
+	}
+	return(ci.IsReversed);
+}
+
+bool d_NotIsCaravanReversed(Critter&player,Critter@npc)
+{
+	return!d_IsCaravanReversed(player,npc);
+}  
+
+bool d_PlayerHired(Critter&player,Critter@npc)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if((@ci!=null))
+	{
+		for(uint i=0;i<ci.PlayersRequested.length();i++)
+		{
+			if(ci.PlayersRequested[i]==player.Id)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool d_NotPlayerHired(Critter&player,Critter@npc)
+{
+	return!d_PlayerHired(player,npc);
+}
+
+bool d_HasFailures(Critter&player,Critter@npc)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if((@ci!=null))
+	{
+		return _GetPlayerQuestFailed(player,ci);
+	}
+	return false;
+}
+
+bool d_NotHasFailures(Critter&player,Critter@npc)
+{
+	return!d_HasFailures(player,npc);
+}
+
+bool d_Status(Critter&player,Critter@npc,int status)
+{
+	CaravanInfo@ci=_GetCaravan(npc.StatBase[(90)]);
+	if((@ci!=null))
+	{
+		return ci.CaravanStatus==status;
+	}
+	return false;
+}
+
+bool d_NotStatus(Critter&player,Critter@npc,int status)
+{
+	return!d_Status(player,npc,status);
+}
+
+void r_SaveCaravanId(Critter&player,Critter@npc,int caravanId)
+{
+	if((@npc!=null))
+	{
+		GameVar@crvId=GetUnicumVar((2032),player.Id,npc.Id);
+		if((@crvId!=null))
+		crvId=caravanId;
+	}
+}
+
+void dlg_WhereIsCaravaner(Critter&player,Critter@npc,string@lexems)
+{
+	if(!((@lexems!=null)&&lexems.length()==0))
+	return;
+	lexems="$nameэтот караванщик$whereчерт его знает куда. Не могу понять";
+	GameVar@crvId=GetUnicumVar((2032),player.Id,npc.Id);
+	if((@crvId!=null))
+	{
+		CaravanInfo@crv=_GetCaravan(crvId.GetValue());
+		if((@crv!=null))
+		{
+			if((@crv.Leader!=null))
+			{
+				Critter@cr=crv.Leader.GetLeader();
+				if((@cr!=null))
+				{
+					lexems="$name@msg DLG "+(100000+(cr.Stat[(104)])*1000+100)+"@";
+					uint16 worldX=cr.WorldX;
+					uint16 worldY=cr.WorldY;
+					Map@map=cr.GetMap();
+					if((@map!=null))
+					{
+						Location@loc=map.GetLocation();
+						if((@loc!=null)&&!loc.AutoGarbage)
+						{
+							lexems+="$where@msg GM "+(((loc.GetProtoId())+100)*1000+0)+"@";
+							return;
+						}
+					}
+					lexems+="$where Пустошь, их координаты: "+worldX+":"+worldY;
+				}
+			}
+		}
+	}
+}

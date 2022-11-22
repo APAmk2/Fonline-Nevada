@@ -1,0 +1,63 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+void r_SetKessArmourChange(Critter&player,Critter@npc,int val)
+{  
+	
+	GameVar@kess_status=GetGlobalVar((4233));
+	if(kess_status>0)
+	{
+		
+		return;
+	}
+	
+	if(CreateTimeEvent(__FullSecond+60*60*3,"e_KessRanger",npc.Id,false)==0)
+	{
+		Log("Time event e_EveryEvening create fail, "+GetLastError());
+		return;
+	}
+	kess_status=1;
+}
+
+uint e_KessRanger(uint[]@values)
+{
+	Critter@kess=GetCritter(values[0]);
+	
+	GameVar@kess_status=GetGlobalVar((4233));
+	if(kess_status==2)
+	{
+		
+		return 0;
+	} 
+	
+	if(CreateTimeEvent(__FullSecond+60*60*5,"e_KessPoliceman",kess.Id,false)==0)
+	{
+		Log("Time event e_EveryEvening create fail, "+GetLastError());
+		return 0;
+	}
+	
+	kess.ChangeCrType((10));
+	kess.StatBase[(112)]=(10);
+	
+	kess.SayMsg((4),(0),(1));
+	
+	kess_status=2;
+	return 0;
+}
+
+uint e_KessPoliceman(uint[]@values)
+{
+	Critter@kess=GetCritter(values[0]);
+	
+	GameVar@kess_status=GetGlobalVar((4233));
+	if(kess_status==0)
+	{
+		
+		return 0;
+	}
+	
+	kess.ChangeCrType((87));
+	
+	kess.StatBase[(112)]=(87);
+	kess_status=0;
+	return 0;
+}

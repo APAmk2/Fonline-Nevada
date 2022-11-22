@@ -1,0 +1,669 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+uint __GetColor(int r,int g,int b)
+{
+	r=(((r)>(255))?(255):(((r)<(0))?(0):(r)));
+	g=(((g)>(255))?(255):(((g)<(0))?(0):(g)));
+	b=(((b)>(255))?(255):(((b)<(0))?(0):(b)));
+	return(uint((0xFF<<24)|(((r)&0xFF)<<16)|(((g)&0xFF)<<8)|((b)&0xFF)));
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+uint GetNearFullSecond(uint16 year,uint16 month,uint16 day,uint16 hour,uint16 minute,uint16 second)
+{
+	int jump=0;
+	if(year==0)
+	{
+		year=__Year;
+		jump=1;
+	}
+	if(month==0)
+	{
+		month=__Month;
+		jump=2;
+	}
+	if(day==0)
+	{
+		day=__Day;
+		jump=3;
+	}
+	
+	uint fullSecond=::GetFullSecond(year,month,day,hour,minute,second);
+	while(fullSecond<=__FullSecond)
+	{
+		switch(jump)
+		{
+			case 0:
+			return __FullSecond+1;
+			case 1:
+			year++;
+			break;
+			case 2:
+			month++;
+			if(month>12)
+			{
+				month=1;
+				year++;
+			}
+			break;
+			case 3:
+			day++;
+			if(day>28&&day>GetDaysInMonth(year,month))
+			{
+				day=1;
+				month++;
+				if(month>12)
+				{
+					month=1;
+					year++;
+				}
+			}
+			break;
+			default:
+			break;
+		}
+		
+		fullSecond=::GetFullSecond(year,month,day,hour,minute,second);
+	}
+	return fullSecond;
+}
+
+uint GetDaysInMonth(uint16 year,uint16 month)
+{
+	switch(month)
+	{
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12:
+		return 31;
+		case 2:
+		if(year%400==0||(year%4==0&&year%100!=0))
+		return 29;
+		return 28;
+		default:
+		return 30;
+	}
+	return 0;
+}                                      
+
+string DateTimeToString(uint gameTime)
+{
+	uint16 year=0;
+	uint16 month=0;
+	uint16 dayOfWeek=0;
+	uint16 day=0;
+	uint16 hour=0;
+	uint16 minute=0;
+	uint16 second=0;
+	GetGameTime(gameTime,year,month,day,dayOfWeek,hour,minute,second);
+	return""+(day>9?(""+day):("0"+day))+"."+(month>9?(""+month):("0"+month))+"."+year+" "+(hour>9?(""+hour):("0"+hour))+":"+(minute>9?(""+minute):("0"+minute));
+}                       
+
+const uint[]Num_BoloInvaders={3,4,5,6,7,8,10,12,13,15};
+uint CurrentInvasionStage=0;
+
+import bool GetFreeHex(Map&map,uint radius,uint16&hx,uint16&hy)from"caravan";
+import bool GetNearEntire(Map&map,int number,uint16&hx,uint16&hy)from"entire";
+import bool AddAttackPlane(Critter&npc,uint priority,Critter&target)from"npc_planes";
+import bool AddMiscPlane(Critter&npc,uint priority,uint waitSecond,string@funcName)from"npc_planes";
+import bool AddWalkPlane(Critter&npc,uint priority,int identifier,uint identifierExt,uint16 hexX,uint16 hexY,uint8 dir,bool run,uint cut)from"npc_planes";
+import bool IsSandBag(uint pid)from"sandbag";
+import bool _SandBagSkill(Item&item,Critter&cr,int skill)from"sandbag";                                         
+
+void _MirelurkInit(Critter&cr,bool firstTime)
+{
+	cr.StatBase[(92)]=1;
+	cr.StatBase[(94)]=__FullSecond+(30*60);
+	cr.ModeBase[(517)]=1;
+	cr.SetEvent((0),"_MirelurkIdle");
+	cr.SetEvent((36),"_MirelurkPlaneEnd");
+	cr.SetEvent((2),"_Dead");
+}   
+
+void _MirelurkIdle(Critter&cr)
+{
+	
+	if(!IsPlayerOnMap(cr))
+	return;
+	
+	if(!cr.IsNoPlanes())
+	return;
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return;
+	
+	ChangeStageIfNeaded(cr);
+	
+	TryFoundAccessibleTarget(cr,map);
+	
+	if(cr.IsNoPlanes())
+	{
+		
+		if(Random(3-cr.StatBase[(92)],4)==4)
+		cr.MoveRandom();
+		
+		TryMoveOut(map,cr);
+	}
+}  
+
+int _MirelurkPlaneEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(reason==(42))
+	{
+		return(2);
+	}
+	if(plane.Identifier==(121)&&plane.Type==(2))
+	{
+		if(reason==(30))
+		{
+			DestroyBarricade(cr,plane.IdentifierExt);
+		}
+		else
+		{
+			return(2);
+		}
+	}
+	if(plane.Identifier==(122))
+	{
+		if(reason==(30))
+		{
+			
+			DeleteNpc(cr);
+			return(2);
+		}
+		return(0);
+	}
+	return(0);
+} 
+
+void ChangeStageIfNeaded(Critter&cr)
+{
+	if(cr.StatBase[(92)]<(3))
+	{
+		if(__FullSecond>uint(cr.StatBase[(94)]))
+		{
+			
+			cr.StatBase[(92)]++;
+			cr.SayMsg((5),(0),(5100));
+			cr.StatBase[(94)]=__FullSecond+(30*60)*cr.StatBase[(92)];
+		}
+	}
+} 
+
+void TryFoundAccessibleTarget(Critter&cr,Map&map)
+{
+	;
+	uint radius=(cr.StatBase[(92)]==1?(15):(cr.StatBase[(92)]==2?(25):(35)));
+	Critter@[]crits;
+	uint16 crX=cr.HexX;
+	uint16 crY=cr.HexY;
+	
+	map.GetCrittersHex(crX,crY,radius,(0x03)|(0x10),crits);
+	map.GetCrittersHex(crX,crY,radius,(0x03)|(0x20),crits);
+	Critter@target;
+	for(uint i=0,l=crits.length();i<l;i++)
+	{
+		@target=crits[i];
+		if(!(@target!=null))
+		continue;
+		if(cr.Id==target.Id)
+		continue;
+		
+		uint16 len=map.GetPathLength(cr,target.HexX,target.HexY,1+cr.GetMultihex());
+		;
+		if(len>0)
+		{
+			if(target.IsPlayer()||cr.Stat[(106)]!=target.Stat[(106)])
+			{
+				;
+				AddAttackPlane(cr,(target.IsPlayer()?((50)*3):(target.Stat[(106)]==(10)?((50)*2):((50)))),target);
+			}
+			
+		}
+	}
+	
+	if(!cr.IsNoPlanes()||cr.StatBase[(92)]<2)
+	return;
+	
+	if(uint(cr.StatBase[(93)])>=__FullSecond)
+	return;
+	cr.StatBase[(93)]=__FullSecond+Random(1,8)*60;
+	
+	if(cr.StatBase[(95)]>0)
+	{
+		Item@sb=map.GetItem(cr.StatBase[(95)]);
+		if((@sb!=null))
+		{
+			
+			AddDestroyBarricadePlane(cr,map,sb);
+			return;
+		}
+		else
+		{
+			
+			cr.StatBase[(95)]=0;
+		}
+	}
+	
+	Item@[]gagItems;
+	map.GetItems(crX,crY,radius,(580),gagItems);
+	map.GetItems(crX,crY,radius,(581),gagItems);
+	map.GetItems(crX,crY,radius,(582),gagItems);
+	map.GetItems(crX,crY,radius,(583),gagItems);
+	map.GetItems(crX,crY,radius,(584),gagItems);
+	uint16 counter=0;
+	;
+	Item@item;
+	for(uint i=0,l=crits.length();i<l&&counter<300;i++)
+	{
+		
+		@target=crits[i];
+		if(target.IsDead())
+		continue;
+		if(target.Id==cr.Id)
+		continue;
+		for(uint j=0,k=gagItems.length();j<k;j++)
+		{
+			if(counter>300)
+			{
+				;
+				break;
+			}
+			counter++;
+			@item=gagItems[j];
+			if(!(@target!=null)||!(@item!=null))
+			continue;
+			
+			;
+			if(map.GetPathLength(cr,item.HexX,item.HexY,1+cr.GetMultihex())==0)
+			continue;
+			
+			if(map.GetPathLength(target,item.HexX,item.HexY,1+cr.GetMultihex())==0)
+			continue;
+			AddDestroyBarricadePlane(cr,map,item);
+			return;
+		}
+	}
+} 
+
+bool AddDestroyBarricadePlane(Critter&cr,Map&map,Item&barricade)
+{
+	uint16 bX=barricade.HexX;
+	uint16 bY=barricade.HexY;
+	
+	uint16 crX=cr.HexX;
+	uint16 crY=cr.HexY;
+	uint16 x=bX;
+	uint16 y=bY;
+	for(uint8 dir=0;dir<6;dir++)
+	{
+		
+		map.MoveHexByDir(x,y,dir,1);
+		if(map.GetPathLength(cr,x,y,0+cr.GetMultihex())>0)
+		{
+			return AddWalkPlane(cr,(((50)*3)+1),(121),barricade.Id,x,y,GetDirection(x,y,bX,bY),false,0);
+			
+		}
+		x=bX;
+		y=bY;
+	}
+	;
+	return false;
+} 
+
+void TryMoveOut(Map&map,Critter&cr)
+{
+	if(cr.StatBase[(92)]<3)
+	return;
+	if(__FullSecond<uint(cr.StatBase[(94)]))
+	return;
+	uint16 x=cr.HexX;
+	uint16 y=cr.HexY;
+	bool pathFounded=false;
+	if(GetNearEntire(map,(160),x,y))
+	{
+		uint tries=0;
+		while(!map.IsHexPassed(x,y)&&tries<10)
+		{
+			cr.SayMsg((5),(0),(5101));
+			if(GetFreeHex(map,tries,x,y))
+			{
+				pathFounded=true;
+				break;
+			}
+			tries++;
+		}
+		if(pathFounded)
+		{
+			AddWalkPlane(cr,(((50)*2)-1),(122),0,x,y,Random(0,5),false,0);
+			return;
+		}
+	}
+}  
+
+bool IsPlayerOnMap(Critter&cr)
+{
+	Map@map=cr.GetMap();
+	if(!(@map!=null))
+	return false;
+	
+	return(map.GetCritters(0,(0x0F)|(0x10),null)>0);
+} 
+
+void DestroyBarricade(Critter&cr,uint itemId)
+{
+	
+	Item@sandbag=GetItem(itemId);
+	if((@sandbag!=null))
+	{
+		if(IsSandBag(sandbag.GetProtoId()))
+		{
+			cr.SayMsg((5),(0),(5100));
+			cr.StatBase[(95)]=sandbag.Id;
+			cr.SetDir(GetDirection(cr.HexX,cr.HexY,sandbag.HexX,sandbag.HexY));
+			cr.Animate(0,(28),null,true,true);
+			_SandBagSkill(sandbag,cr,(213));
+		}
+	}
+}  
+
+Critter@GetBoloInvader(Map&map)
+{
+	uint16 x=0;
+	uint16 y=0;
+	
+	;
+	if(!GetNearEntire(map,(126),x,y))
+	return null;
+	
+	;
+	if(!GetFreeHex(map,3,x,y))
+	return null;
+	int[]params={(106),(26)};
+	Critter@bolo=map.AddNpc((Random((487),(488))),x,y,Random(0,5),null,null,"sf_invasion@_MirelurkInit");
+	if(!(@bolo!=null))
+	return null;
+	
+	;
+	return bolo;
+}  
+
+uint _Num(Map&map,uint stage)
+{
+	uint num=Num_BoloInvaders[stage];
+	uint realNum=map.GetCritters((Random((487),(488))),(0x03)|(0x20),null);
+	
+	return((num+realNum)>(15)?((15)>realNum?(15)-realNum:0):num);
+} 
+
+void SpawnBolos(Map&map,uint stage)
+{
+	;
+	uint max=_Num(map,stage);
+	for(uint i=0;i<max;i++)
+	{
+		GetBoloInvader(map);
+	}
+} 
+
+void _DeadPaladinInit(Critter&cr,bool firstTime)
+{
+	if(firstTime)
+	{
+		GameVar@counter=GetGlobalVar((4405));
+		if(!(@counter!=null))
+		return;
+		
+		if(counter.GetValue()>0)
+		{
+			counter=counter.GetValue()-1;
+			;
+			cr.AddItem((3),1);
+			Item@tag=cr.AddItem((443),1);
+			if((@tag!=null))
+			{
+				tag.Info=2;
+				tag.Update();
+			}
+		}
+	}
+	if(not cr.IsDead())
+	{
+		cr.ToDead(Random((112),(117)),null);
+	}
+	cr.StatBase[(84)]=-1;
+}
+
+void SpawnSandBags(Map&map)
+{
+	uint entires=map.CountEntire((154));
+	uint16 x=0;
+	uint16 y=0;
+	for(uint i=0;i<entires;i++)
+	{
+		if(map.GetEntireCoords((154),i,x,y))
+		{
+			if(map.IsHexPassed(x,y))
+			{
+				map.AddItem(x,y,(582),1);
+			}
+		}
+	}
+}
+
+void SpawnBos(Map&map)
+{
+	uint16 x=0;
+	uint16 y=0;
+	uint entires=map.CountEntire((157));
+	if(map.GetCritters((132),(0x03)|(0x20),null)<1)
+	{
+		for(uint i=0;i<entires;i++)
+		{
+			if(map.GetEntireCoords((157),i,x,y))
+			{
+				if(GetFreeHex(map,2,x,y))
+				{
+					int[]params={(104),((1439)),(107),((225)),(106),(10)};
+					map.AddNpc((132),x,y,Random(0,5),params,null,"sf_invasion@_BosInit");
+				}
+			}
+		}
+	}
+	entires=map.CountEntire((158));
+	if(map.GetCritters(((190)),(0x03)|(0x20),null)<1)
+	{
+		for(uint i=0;i<entires;i++)
+		{
+			if(map.GetEntireCoords((158),i,x,y))
+			{
+				if(GetFreeHex(map,2,x,y))
+				{
+					int[]params={(104),((1440)),(107),((67)),(106),(10),(105),(124)};
+					map.AddNpc(((190)),x,y,Random(0,5),params,null,"sf_invasion@_BosInit");
+				}
+			}
+		}
+	}
+}
+
+void _Dead(Critter&cr,Critter@killer)
+{
+	CreateTimeEvent(__FullSecond+((10)*__TimeMultiplier*60),"e_DeleteCritter",cr.Id,true);
+	if((@killer!=null))
+	{
+		if(killer.IsNpc())
+		return;
+		uint pid=cr.GetProtoId();
+		if(pid==(487)||pid==(488))
+		{
+			GameVar@qVar=GetLocalVar((4409),killer.Id);
+			if((@qVar!=null)&&qVar>0&&qVar<6)
+			qVar=qVar+1;
+		}
+	}
+}
+
+uint e_DeleteCritter(uint[]@values)
+{
+	Critter@cr=GetCritter(values[0]);
+	if((@cr!=null))
+	DeleteNpc(cr);
+	return 0;
+	
+}
+void _BosInit(Critter&cr,bool firstTime)
+{
+	cr.SetEvent((2),"_Dead");
+	cr.SetEvent((36),"_BosPlaneEnd");
+	
+}
+
+int _BosPlaneEnd(Critter&cr,NpcPlane&plane,int reason,Critter@someCr,Item@someItem)
+{
+	if(reason==(42))
+	{
+		return(2);
+	}
+	return(0);
+}               
+
+void SheduleSFInvasion()
+{
+	CreateTimeEvent((GetNearFullSecond(0,1,1,0,0,0)),"e_FirstStage",true);
+	GameVar@counter=GetGlobalVar((4405));
+	counter=3;
+} 
+
+uint e_FirstStage(uint[]@values)
+{
+	;
+	GameVar@stage=GetGlobalVar((4404));
+	if((@stage!=null))
+	{
+		stage=1;
+	}
+	CreateTimeEvent((__FullSecond+1*30*24*60*60),"e_SecondStage",true);
+	CreateTimeEvent((__FullSecond+4*30*24*60*60),"e_EndInvasion",true);
+	return(GetNearFullSecond(0,1,1,0,0,0)-__FullSecond);
+}  
+
+uint e_SecondStage(uint[]@values)
+{
+	;
+	GameVar@stage=GetGlobalVar((4404));
+	if(!(@stage!=null))
+	return 0;
+	if(stage.GetValue()==0)
+	return 0;
+	if(stage.GetValue()==1)
+	{
+		stage=2;
+		
+	}
+	CreateTimeEvent((GetNearFullSecond(0,0,0,1,0,0)),"e_DockInvasion",true);
+	
+	return(1*30*24*60*60);
+} 
+
+uint e_DockInvasion(uint[]@values)
+{
+	;
+	if(CurrentInvasionStage>=Num_BoloInvaders.length())
+	{
+		CurrentInvasionStage=0;
+		return 0;
+	}
+	Map@map=GetMapByPid((136),0);
+	if(!(@map!=null))
+	return 0; 
+	
+	SpawnSandBags(map);
+	SpawnBos(map);
+	
+	SpawnBolos(map,CurrentInvasionStage);
+	
+	map.PlaySound("AIRSIREN.OGG");
+	
+	@map=GetMapByPid((137),0);
+	map.PlaySound("AIRSIREN.OGG");
+	CurrentInvasionStage++;
+	return(GetNearFullSecond(0,0,0,1,0,0)-__FullSecond);
+} 
+
+uint e_EndInvasion(uint[]@values)
+{
+	;
+	StopInvasion();
+	GameVar@status=GetGlobalVar((4404));
+	if(status.GetValue()!=0)
+	{
+		status=0;
+	}
+	return 0;
+}
+
+void r_Start(Critter&player,Critter@npc)
+{
+	Map@map=player.GetMap();
+	if((@map!=null))
+	{
+		map.PlaySound("AIRSIREN.OGG");
+	}
+	BeginInvasion();
+}
+void r_End(Critter&player,Critter@npc)
+{
+	StopInvasion();
+}
+
+void BeginInvasion()
+{
+	Map@map=GetMapByPid((136),0);
+	if(!(@map!=null))
+	return;
+	map.PlaySound("AIRSIREN.OGG");
+	SpawnSandBags(map);
+	SpawnBos(map);
+	SpawnBolos(map,4);
+}
+
+void StopInvasion()
+{
+	
+	Map@map=GetMapByPid((136),0);
+	if(!(@map!=null))
+	return;
+	
+	Critter@[]crits;
+	
+	map.GetCritters((487),(0x0F)|(0x20),crits);
+	map.GetCritters((488),(0x0F)|(0x20),crits);
+	map.GetCritters(((190)),(0x0F)|(0x20),crits);
+	map.GetCritters((132),(0x0F)|(0x20),crits);
+	
+	for(uint i=0,l=crits.length();i<l;i++)
+	{
+		Critter@npc=crits[i];
+		if((@npc!=null))
+		{
+			DeleteNpc(npc);
+		}
+	}
+	Item@[]items;
+	for(uint i=(580);i<=(584);i++)
+	{
+		map.GetItems(i,items);
+	}
+	for(uint i=0,l=items.length();i<l;i++)
+	{
+		Item@item=items[i];
+		if((@item!=null))
+		{
+			DeleteItem(item);
+		}
+	}
+}

@@ -1,0 +1,890 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
+class Serializator
+{
+	Serializator()
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+	}
+	
+	Serializator(uint approxSize)
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+		GrowBuffer(approxSize);
+	}
+	
+	void GrowBuffer()
+	{
+		BufSize+=(128);
+		Array.resize(BufSize);
+	}
+	
+	void GrowBuffer(uint length)
+	{
+		BufSize+=length;
+		Array.resize(BufSize);
+	}
+	
+	bool Save(string&name)
+	{
+		if(DataSize==0)
+		return false;
+		bool result=SetAnyData(name,Array,DataSize);
+		Clear();
+		return result;
+	}
+	
+	bool Load(string&name)
+	{
+		Clear();
+		if(not GetAnyData(name,Array))
+		return false;
+		BufSize=Array.length();
+		DataSize=BufSize;
+		return true;
+	}
+	
+	void Clear()
+	{
+		CurPos=0;
+		BufSize=0;
+		DataSize=0;
+	}
+	
+	Serializator@SetCurPos(uint pos)
+	{
+		if(pos>BufSize)
+		GrowBuffer(pos-BufSize+(128));
+		CurPos=pos;
+		return this;
+	}
+	
+	Serializator@Fill(uint8 value,uint length)
+	{
+		if(CurPos+length>BufSize)
+		GrowBuffer(CurPos+length-BufSize+(128));
+		for(uint i=0;i<length;i++)
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int64&value)
+	{
+		if(CurPos+8>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>56)&0xFF;
+		Array[CurPos++]=(value>>48)&0xFF;
+		Array[CurPos++]=(value>>40)&0xFF;
+		Array[CurPos++]=(value>>32)&0xFF;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int32&value)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int16&value)
+	{
+		if(CurPos+2>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int8&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint64&value)
+	{
+		if(CurPos+8>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>56)&0xFF;
+		Array[CurPos++]=(value>>48)&0xFF;
+		Array[CurPos++]=(value>>40)&0xFF;
+		Array[CurPos++]=(value>>32)&0xFF;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint32&value)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint16&value)
+	{
+		if(CurPos+2>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint8&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const bool&value)
+	{
+		if(CurPos+1>BufSize)
+		GrowBuffer();
+		Array[CurPos++]=value?1:0;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const string&value)
+	{
+		uint len=value.rawLength();
+		if(CurPos+len+1>BufSize)
+		GrowBuffer(CurPos+len+1-BufSize+(128));
+		for(uint i=0;i<len;i++)
+		Array[CurPos++]=value.rawGet(i);
+		Array[CurPos++]=0;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int64[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*8;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int32[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*4;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int16[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*2;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const int8[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint64[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*8;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint32[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*4;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint16[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen*2;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const uint8[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const bool[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const string[]&values)
+	{
+		uint valuesLen=values.length();
+		uint len=4+valuesLen;
+		for(uint i=0,j=valuesLen;i<j;i++)
+		len+=values[i].length();
+		if(CurPos+len>BufSize)
+		GrowBuffer(CurPos+len-BufSize);
+		Set(valuesLen);
+		for(uint i=0,j=valuesLen;i<j;i++)
+		Set(values[i]);
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const Critter&cr)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		uint value=cr.Id;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Set(const Item&item)
+	{
+		if(CurPos+4>BufSize)
+		GrowBuffer();
+		uint value=item.Id;
+		Array[CurPos++]=(value>>24)&0xFF;
+		Array[CurPos++]=(value>>16)&0xFF;
+		Array[CurPos++]=(value>>8)&0xFF;
+		Array[CurPos++]=value&0xFF;
+		if(CurPos>DataSize)
+		DataSize=CurPos;
+		return this;
+	}
+	
+	Serializator@Get(int64&value)
+	{
+		value=0;
+		if(CurPos+8>DataSize)
+		return this;
+		value|=Array[CurPos++]<<56;
+		value|=Array[CurPos++]<<48;
+		value|=Array[CurPos++]<<40;
+		value|=Array[CurPos++]<<32;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int32&value)
+	{
+		value=0;
+		if(CurPos+4>DataSize)
+		return this;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int16&value)
+	{
+		value=0;
+		if(CurPos+2>DataSize)
+		return this;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(int8&value)
+	{
+		value=0;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint64&value)
+	{
+		value=0;
+		if(CurPos+8>DataSize)
+		return this;
+		value|=Array[CurPos++]<<56;
+		value|=Array[CurPos++]<<48;
+		value|=Array[CurPos++]<<40;
+		value|=Array[CurPos++]<<32;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint32&value)
+	{
+		value=0;
+		if(CurPos+4>DataSize)
+		return this;
+		value|=Array[CurPos++]<<24;
+		value|=Array[CurPos++]<<16;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint16&value)
+	{
+		value=0;
+		if(CurPos+2>DataSize)
+		return this;
+		value|=Array[CurPos++]<<8;
+		value|=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(uint8&value)
+	{
+		value=0;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++];
+		return this;
+	}
+	
+	Serializator@Get(bool&value)
+	{
+		value=false;
+		if(CurPos+1>DataSize)
+		return this;
+		value=Array[CurPos++]==1?true:false;
+		return this;
+	}
+	
+	Serializator@Get(string&str)
+	{
+		uint len=0;
+		for(uint i=CurPos;;i++)
+		{
+			if(i==DataSize)
+			{
+				str="";
+				return this;
+			}
+			if(Array[i]==0)
+			{
+				len=i-CurPos;
+				break;
+			}
+		}
+		str.rawResize(len);
+		for(uint i=0;i<len;i++)
+		str.rawSet(i,Array[CurPos++]);
+		CurPos++;
+		return this;
+	}
+	
+	Serializator@Get(int64[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int32[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int16[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(int8[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint64[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint32[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint16[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(uint8[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(bool[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(string[]&values)
+	{
+		uint valuesLen=0;
+		Get(valuesLen);
+		values.resize(valuesLen);
+		for(uint i=0;i<valuesLen;i++)
+		Get(values[i]);
+		return this;
+	}
+	
+	Serializator@Get(Critter@&cr)
+	{
+		@cr=null;
+		if(CurPos+4>DataSize)
+		return this;
+		uint id=0;
+		id|=Array[CurPos++]<<24;
+		id|=Array[CurPos++]<<16;
+		id|=Array[CurPos++]<<8;
+		id|=Array[CurPos++];
+		@cr=::GetCritter(id);
+		return this;
+	}
+	
+	Serializator@Get(Item@&item)
+	{
+		@item=null;
+		if(CurPos+4>DataSize)
+		return this;
+		uint id=0;
+		id|=Array[CurPos++]<<24;
+		id|=Array[CurPos++]<<16;
+		id|=Array[CurPos++]<<8;
+		id|=Array[CurPos++];
+		@item=::GetItem(id);
+		return this;
+	}
+	
+	uint8[]Array;
+	uint CurPos;
+	uint BufSize;
+	uint DataSize;
+};                    
+
+ComputerRiddleInfo@GetRiddleInfo(Critter&player)
+{
+	GameVar@mapId=GetLocalVar(((2207)),player.Id);
+	GameVar@hexX=GetLocalVar(((2209)),player.Id);
+	GameVar@hexY=GetLocalVar(((2210)),player.Id);
+	GameVar@proto=GetLocalVar(((2208)),player.Id);
+	if(!(@mapId!=null)||
+	!(@proto!=null)||
+	!(@hexY!=null)||
+	!(@hexY!=null)||
+	mapId==0||
+	!(@player.GetMap()!=null)||
+	mapId!=player.GetMap().Id||
+	proto==0||
+	hexY==0||
+	hexY==0||
+	GetDistantion(player.HexX,player.HexY,hexX.GetValue(),hexY.GetValue())>3)
+	return null;
+	return GetRiddleInfo(mapId.GetValue(),proto.GetValue(),hexX.GetValue(),hexY.GetValue());
+}
+ComputerRiddleInfo@GetRiddleInfo(int mapId,int16 sceneryPid,int16 sceneryX,int16 sceneryY)
+{
+	string key=("CompRiddle_"+mapId+sceneryPid+sceneryX+sceneryY);
+	if(IsAnyData(key))
+	{
+		return ComputerRiddleInfo(key);
+	}
+	return null;
+	
+}
+class ComputerRiddleInfo
+{
+	ComputerRiddleInfo(string key)
+	{
+		this.Load(key);
+	}
+	
+	ComputerRiddleInfo(Map&map,Scenery&computor)
+	{
+		string key=("CompRiddle_"+map.Id+computor.ProtoId+computor.HexX+computor.HexY);
+		if(IsAnyData(key))
+		{
+			this.Load(key);
+		}
+		else
+		{
+			this.MapId=map.Id;
+			this.ComputorPid=computor.ProtoId;
+			this.HexX=computor.HexX;
+			this.HexY=computor.HexY;
+			GenerateCode();
+			this.Save(key);
+			uint[]values={this.MapId,this.ComputorPid,this.HexX,this.HexY};
+			CreateTimeEvent(__FullSecond+(60*60*24),"e_ResetRiddle",values,true);
+		}
+	}
+	
+	uint MapId;
+	uint16 ComputorPid;
+	uint16 HexX;
+	uint16 HexY;
+	uint[]Code;
+	uint8 TriesLeft;
+	
+	string SCode()
+	{
+		string code="";
+		for(uint i=0,l=this.Code.length();i<l;i++)
+		code+=this.Code[i];
+		return code;
+	} 
+	
+	void Save(string key)
+	{
+		Serializator save;
+		save.Set(this.MapId);
+		save.Set(this.ComputorPid);
+		save.Set(this.HexX);
+		save.Set(this.HexY);
+		save.Set(this.Code);
+		save.Set(this.TriesLeft);
+		save.Save(key);
+	}
+	
+	bool Load(string key)
+	{
+		Serializator load;
+		if(!IsAnyData(key)||!load.Load(key))
+		return false;
+		load.Get(this.MapId);
+		load.Get(this.ComputorPid);
+		load.Get(this.HexX);
+		load.Get(this.HexY);
+		load.Get(this.Code);
+		load.Get(this.TriesLeft);
+		return true;
+	}
+	
+	void Erase()
+	{
+		string key=("CompRiddle_"+this.MapId+this.ComputorPid+this.HexX+this.HexY);
+		if(IsAnyData(key))
+		EraseAnyData(key);
+	}
+	
+	void GenerateCode()
+	{
+		uint[]numbers={0,1,2,3,4,5,6,7,8,9};
+		uint index=0;
+		this.Code.resize(0);
+		while(this.Code.length()<(4))
+		{
+			index=Random(0,numbers.length()-1);
+			this.Code.insertLast(numbers[index]);
+			numbers.removeAt(index);
+		}
+		this.TriesLeft=(Random(4,6));
+	}     
+	
+	bool TrySolveRiddle(Critter&player,string codePlayer,string&codeAnswer)
+	{
+		if(TriesLeft<1)
+		{
+			player.SayMsg((11),(0),(401));
+			return false;
+		}
+		string charPlayer="";
+		string charReal="";
+		string codeReal=this.SCode();
+		bool charFound=false;
+		codeAnswer="";
+		
+		for(uint i=0,l=codePlayer.length();i<(4)&&i<l;i++)
+		{
+			charFound=false;
+			charPlayer=codePlayer[i];
+			for(uint j=0,len=codeReal.length();j<(4)&&j<len&&!charFound;j++)
+			{
+				charReal=codeReal[j];
+				if(charReal==charPlayer)
+				{
+					charFound=true;
+					if(i==j)
+					codeAnswer+=this.Code[j];
+					else
+					codeAnswer+="*";
+				}
+			}
+			if(!charFound)
+			codeAnswer+="-";
+		}
+		this.TriesLeft--;
+		this.Save(("CompRiddle_"+this.MapId+this.ComputorPid+this.HexX+this.HexY));
+		if(codeReal==codeAnswer)
+		{
+			this.TriesLeft=0;
+			this.Save(("CompRiddle_"+this.MapId+this.ComputorPid+this.HexX+this.HexY));
+			return true;
+		}
+		return false;
+	}
+}
+
+uint e_ResetRiddle(uint[]@values)
+{
+	ComputerRiddleInfo@riddle=GetRiddleInfo(values[0],values[1],values[2],values[3]);
+	if((@riddle!=null))
+	{
+		if((@GetMap(values[0])!=null))
+		{
+			riddle.GenerateCode();
+			riddle.Save(("CompRiddle_"+values[0]+values[1]+values[2]+values[3]));
+			return(60*60*24);
+		}
+		else
+		{
+			riddle.Erase();
+		}
+	}
+	return 0;
+}
+
+bool s_Use(Critter&player,Scenery&scenery,int skill,Item@item)
+{
+	if(skill==(212)&&!(@item!=null))
+	{
+		player.Wait(1000);
+		ComputerRiddleInfo@info=ComputerRiddleInfo(player.GetMap(),scenery);
+		GameVar@mapId=GetLocalVar(((2207)),player.Id);
+		GameVar@hexX=GetLocalVar(((2209)),player.Id);
+		GameVar@hexY=GetLocalVar(((2210)),player.Id);
+		GameVar@proto=GetLocalVar(((2208)),player.Id);
+		if(!(@info!=null)||!(@mapId!=null)||!(@hexX!=null)||!(@hexY!=null))
+		return false;
+		if(info.TriesLeft<1)
+		{
+			player.SayMsg((11),(0),(401));
+			return true;
+		}
+		else
+		{
+			player.SayMsg((11),(0),(400),"$num"+info.TriesLeft);
+		}
+		mapId=player.GetMap().Id;
+		hexX=scenery.HexX;
+		hexY=scenery.HexY;
+		proto=scenery.ProtoId;
+		player.ShowScreen((5),0,"answer_TrySolve");
+		player.SayMsg((39),(0),(403));
+		player.Say((40),"????");
+		return true;
+	}
+	return false;
+}
+
+void answer_TrySolve(Critter&player,uint answerI,string&answerS)
+{
+	ComputerRiddleInfo@info=GetRiddleInfo(player);
+	if((@info!=null))
+	{
+		string code="";
+		bool solved=info.TrySolveRiddle(player,answerS,code);
+		player.SayMsg((11),(0),(404),"$pcode"+answerS+"$code"+code);
+		if(solved)
+		{
+			player.SayMsg((11),(0),(402));
+			player.StatBase[(76)]+=(player.Skill[(212)]*player.Stat[(77)]/5);
+			player.SayMsg((11),(0),(405));
+			CreateTimeEvent(__FullSecond+((1)*__TimeMultiplier)/2,"e_ShowCamera",player.Id,false);
+		}
+	}
+}
+
+uint e_ShowCamera(uint[]@values)
+{
+	Critter@cr=GetCritter(values[0]);
+	if((@cr!=null))
+	{
+		Location@[]locations;
+		if(GetLocations(cr.WorldX,cr.WorldY,300,locations)>0)
+		{
+			Location@loc=locations[Random(0,locations.length()-1)];
+			if((@loc!=null))
+			{
+				Map@map=loc.GetMapByIndex(0);
+				if((@map!=null))
+				{
+					uint16 hx=0,hy=0;
+					if(map.GetEntireCoords(0,0,hx,hy))
+					{
+						cr.ViewMap(map,50,hx,hy,5);
+					}
+				}
+			}
+		}
+		
+	}
+	return 0;
+}
