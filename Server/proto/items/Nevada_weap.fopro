@@ -3,8 +3,8 @@
 [Proto]
 ProtoId=568
 Type=3
-PicMap=art\inven\nevada-items\club.frm
-PicInv=art\items\club.frm
+PicMap=art\items\club.frm
+PicInv=art\inven\nevada-items\club.frm
 Flags=30
 Material=1
 Weapon_Anim1=5
@@ -31,8 +31,8 @@ Weapon_Aim_1=1
 [Proto]
 ProtoId=569
 Type=3
-PicMap=art\inven\nevada-items\warmint.frm
-PicInv=art\items\rifle.frm
+PicMap=art\items\rifle.frm
+PicInv=art\inven\nevada-items\warmint.frm
 Weapon_Anim1=10
 Weapon_MaxAmmoCount=6
 Weapon_Caliber=5
