@@ -1,0 +1,127 @@
+#include "_defines.fos"
+#include "_client_defines.fos"
+#include "_colors.fos"
+import int GUI_GetActiveMainScreen() from "client_gui";
+#define GUI_ONHEAD_NB_MOD 3 //Переключение модов
+#define GUI_ONHEAD_EMPTY 0 //Ничего не показывает
+#define GUI_ONHEAD_NAME 1 //Показывает имя
+#define GUI_ONHEAD_DETAILS 2 //Показывает имя и здоровье
+//Глобальная переменая для смены мода
+uint  GUI_OnHead_Mod;
+ 
+//Изначально ничего не отображаем
+void Init_GUI_OnHead()
+{
+GUI_OnHead_Mod = GUI_ONHEAD_EMPTY;
+}
+void Draw_GUI_OnHead()
+{
+ 
+if( GUI_GetActiveMainScreen() != CLIENT_MAIN_SCREEN_GAME )
+return;
+ 
+CritterCl@ cr = GetChosen();
+CritterCl@[] crs;
+GetCritters( 0, FIND_ALL, crs );
+switch(GUI_OnHead_Mod)
+{
+case GUI_ONHEAD_EMPTY: // Ничего не показывает (0)
+__ShowPlayerNames = false;
+break;
+case GUI_ONHEAD_NAME: // Показывает только имя (1)
+{
+int color_b = 0;
+int color_g = 0;
+int color_r = 0;
+int  hp_proc = 0;
+string name;
+string hp;
+for(uint  i = 0, imax = crs.length(); i < imax; i ++)
+{
+color_g = (255*crs[i].Param[ST_CURRENT_HP])/crs[i].Param[ST_MAX_LIFE];
+hp_proc = crs[ i ].Param[ ST_CURRENT_HP ] * 100 / crs[i].Param[ ST_MAX_LIFE ];
+if(color_g < 0)
+color_g = 0;
+color_r = 255 - color_g;
+if( crs[i].IsPlayer() )
+{
+name = "\n" +  "|" + ( cr.Param[ ST_TEAM_ID ] != crs[i].Param[ ST_TEAM_ID ] ? COLOR_RED : COLOR_GREEN ) + " " + crs[ i ].Name;
+crs[i].ContourColor = ( cr.Param[ ST_TEAM_ID ] != crs[i].Param[ ST_TEAM_ID ] ? COLOR_CONTOUR_RED : COLOR_CONTOUR_GREEN ) ;
+}
+else name = " ";
+if( crs[i].IsNpc() && crs[i].Param[ ST_CURRENT_HP ] > -19 )
+{
+if( cr.PerkBase[ 301 ] != 0 )
+{
+hp = "|" + COLOR_RGB(color_r, color_g, color_b) + " " + crs[i].Param[ ST_CURRENT_HP ] + "/" + crs[i].Param[ ST_MAX_LIFE ];
+}
+else if( hp_proc > 0 )
+{
+hp = "|" + COLOR_RGB( color_r, color_g, color_b ) + " " + hp_proc + "%";
+}
+else
+{
+hp = "|" + COLOR_RGB( color_r, color_g, color_b ) + " " + "«пм»";
+   }
+}
+else hp = " ";
+crs[i].NameOnHead = hp + name;
+}
+}
+__ShowPlayerNames = true;
+break;
+case GUI_ONHEAD_DETAILS: // Показывает имя и здоровье (2)
+{
+int color_b = 0;
+int color_g = 0;
+int color_r = 0;
+int  hp_proc = 0;
+string name;
+string hp;
+for(uint  i = 0, imax = crs.length(); i < imax; i ++)
+{
+color_g = (255*crs[i].Param[ ST_CURRENT_HP ])/crs[i].Param[ ST_MAX_LIFE ];
+hp_proc = crs[ i ].Param[ ST_CURRENT_HP ] * 100 / crs[i].Param[ ST_MAX_LIFE ];
+if(color_g < 0)
+color_g = 0;
+color_r = 255 - color_g;
+if( crs[i].IsPlayer() )
+{
+name = "\n" +  "|" + ( cr.Param[ ST_TEAM_ID ] != crs[i].Param[ ST_TEAM_ID ] ? COLOR_RED : COLOR_GREEN ) + " " + crs[ i ].Name;
+crs[i].ContourColor = ( cr.Param[ ST_TEAM_ID ] != crs[i].Param[ ST_TEAM_ID ] ? COLOR_CONTOUR_RED : COLOR_CONTOUR_GREEN ) ;
+}
+else name = " ";
+ 
+if( crs[ i ].Param[ ST_CURRENT_HP ] > -19 )
+{
+if( cr.PerkBase[ 301 ] != 0 )
+{
+hp = "|" + COLOR_RGB(color_r, color_g, color_b) + " " + crs[i].Param[ ST_CURRENT_HP ] + "/" + crs[i].Param[ ST_MAX_LIFE ];
+}
+else if( hp_proc > 0 )
+{
+hp = "|" + COLOR_RGB( color_r, color_g, color_b ) + " " + hp_proc + "%";
+}
+else
+{
+hp = "|" + COLOR_RGB( color_r, color_g, color_b ) + " " + "«пм»";
+   }
+}
+else hp = " ";
+crs[ i ].NameOnHead = hp + name;
+}
+}
+ 
+break;
+}
+}
+//Called when we push F6
+void Change_GUI_OnHead()
+{
+GUI_OnHead_Mod = (GUI_OnHead_Mod + 1) % GUI_ONHEAD_NB_MOD;
+}
+//Called when we push F7
+void ShowNPC_GUI_OnHead()
+{
+__ShowNpcNames =  !__ShowNpcNames;
+}

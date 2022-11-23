@@ -1,0 +1,108 @@
+#include _client_defines.fos
+#include _colors.fos
+#include _defines.fos
+#define DAY_SEC 86400
+#define HOUR_SEC 3600
+#define MINUTE_SEC 60
+class Timeout
+{
+int coordX;
+int coordY;
+uint Indention;
+uint Font;
+uint FontFlags;
+uint NameColor;
+uint ValueColor;
+ 
+Timeout()
+{
+this.coordX=10;
+this.coordY=40;
+this.Indention=10;
+this.NameColor=COLOR_LGREEN;
+this.ValueColor=COLOR_LGREEN;
+this.Font= FONT_FALLOUT;
+this.FontFlags= FT_BORDERED;
+}
+}
+ 
+Timeout Timeouts;
+ 
+string spelling(uint value, string opt1, string opt2, string opt3)
+{
+string result;
+if(value==1(value%10==1 && value!=11))
+result = opt1;
+else if((value1 && value5)  (value20 && value%101 && value%105))
+result = opt2;
+else if((value4 && value21)  value%104  value%10==0)
+result = opt3;
+return result;
+}
+ 
+int draw_timeouts(CritterCl&critter,uint skill,string skillname,int x,int y)
+{
+int timeout = critter.Timeout[skill];
+timeout = __TimeMultiplier;
+ 
+if(timeout0)
+{
+string text=;
+ 
+uint day, hour, minute, second;
+string d=, h=, m=, s=;
+day = timeoutDAY_SEC;
+hour = timeout%DAY_SECHOUR_SEC;
+minute = timeout%DAY_SEC%HOUR_SECMINUTE_SEC;
+second = timeout%DAY_SEC%HOUR_SEC%MINUTE_SEC;
+if(second0)
+s=second+spelling(second,  секунда,  секунды,  секунд);
+if(minute0)
+m=minute+spelling(minute,  минута,  минуты,  минут)+(second0, );
+if(hour0)
+h=hour+spelling(hour,  час,  часа,  часов)+((minute0second0), );
+if(day0)
+d=day+spelling(day,  день,  дня,  дней)+((hour0minute0second0), );
+msg, __MouseX,__MouseY+20, 0, 0, 0,FONT_FALLOUT,FT_BORDERED
+ 
+text = d + h + m + s;
+if( skill == TO_BATTLE  skill == TO_SNEAK )
+DrawText( skillname+  +text,x,y,__ScreenWidth,10,COLOR_LRED,Timeouts.Font,Timeouts.FontFlags);
+else if( skill == TO_SK_DOCTOR  skill == TO_SK_FIRST_AID  skill == TO_SK_SCIENCE  skill == TO_SK_REPAIR )
+DrawText( skillname+  +text,x,y,__ScreenWidth,10,COLOR_LGREEN,Timeouts.Font,Timeouts.FontFlags);
+else if( skill == TO_REPLICATION )
+DrawText( skillname+  +text,x,y,__ScreenWidth,10,COLOR_LBLUE,Timeouts.Font,Timeouts.FontFlags);
+else
+DrawText( skillname+  +text,x,y,__ScreenWidth,10,Timeouts.ValueColor,Timeouts.Font,Timeouts.FontFlags);
+y+=Timeouts.Indention;
+}
+return(y);
+}
+ 
+void show_timeouts()
+{
+if( GetCurrentMapPid() == 0 )
+return;
+CritterCl@ critter = GetChosen();
+int x = Timeouts.coordX;
+int y = Timeouts.coordY;
+for( uint i = 0; i  9; ++i )
+{
+if(i==0&&critter.Timeout[TO_REPLICATION]0)
+y=draw_timeouts(critter,TO_REPLICATION,Репликация,x,y);
+if(i==1&&critter.Timeout[TO_SK_STEAL]0)
+y=draw_timeouts(critter,TO_SK_STEAL,Воровство,x,y);
+if(i==2&&critter.Timeout[TO_SK_LOCKPICK]0)
+y=draw_timeouts(critter,TO_SK_LOCKPICK,Взлом,x,y);
+if(i==3&&critter.Timeout[TO_SK_SCIENCE]0)
+y=draw_timeouts(critter,TO_SK_SCIENCE,Наука,x,y);
+if(i==4&&critter.Timeout[TO_SK_REPAIR]0)
+y=draw_timeouts(critter,TO_SK_REPAIR,Ремонт,x,y);
+if(i==5&&critter.Timeout[TO_SK_DOCTOR]0)
+y=draw_timeouts(critter,TO_SK_DOCTOR,Доктор,x,y);
+if(i==6&&critter.Timeout[TO_SK_FIRST_AID]0)
+y=draw_timeouts(critter,TO_SK_FIRST_AID,Санитар,x,y);
+if(i==7&&critter.Timeout[TO_BATTLE]0&&!IsTurnBased())
+y=draw_timeouts(critter,TO_BATTLE,Боевой,x,y);
+}
+}

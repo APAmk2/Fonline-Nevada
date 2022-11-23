@@ -22,6 +22,10 @@ import void GUI_MouseMove( int x, int y ) from "client_gui";
 import bool GUI_KeyDown( uint8 key, string& keyText ) from "client_gui";
 import bool GUI_KeyUp( uint8 key, string& keyText ) from "client_gui";
 import void GUI_InputLost() from "client_gui";
+import void Init_GUI_OnHead() from "gui_client_onhead";	// хп
+import void Draw_GUI_OnHead() from "gui_client_onhead";	// хп
+import void Change_GUI_OnHead() from "gui_client_onhead";  // хп
+import void ShowNPC_GUI_OnHead() from "gui_client_onhead"; // хп
 import bool PerkCheck( CritterCl& cr, uint perk ) from "perks";
 import void CritterGenerate( int[]& data ) from "parameters";
 import bool CritterGenerateCheck( int[]& data ) from "parameters";
@@ -40,10 +44,12 @@ import void Fill3DRegistrationParameters( int[]& params ) from "client_3d_cha_re
 import void PlayAnimSound( uint crType, int gender, uint anim1, uint anim2 ) from "animation";
 import uint CheckPlayerName( const string& name ) from "parameters";
 
+
 // //////////////////////////////////////////////////////////////////////////////////////////////////
 // Call on client loaded or new client_main.fos script received.
 bool start()
 {
+	Init_GUI_OnHead();
     InitializeGame();
 
     if( __ScreenWidth < 800 || __ScreenWidth > 1280 || __ScreenHeight < 600 || __ScreenHeight > 1024 )
@@ -154,6 +160,7 @@ void render_iface( uint layer )
     }
     else if( layer == 3 )
     {
+		Draw_GUI_OnHead();
         DrawChosenTabs();
         GUI_Render( false );
     }
@@ -273,6 +280,19 @@ bool key_down( uint8 key, string& keyText )
 		uint[] use = { CHOSEN_USE_ITEM, item.Id, 0, 0, 0, ITEM_MODE_USE, 0 };
 		SetChosenActions( use );
 	}
+
+
+	if( key == DIK_F6 )	 // Игрок
+	{
+	Change_GUI_OnHead();
+	return true;
+	}
+	if( key == DIK_F7 )	   // НПС
+	{
+	ShowNPC_GUI_OnHead();
+	return true;
+	}
+
 
 	return GUI_KeyDown( key, keyText );
 }

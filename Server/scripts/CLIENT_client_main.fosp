@@ -85,6 +85,10 @@ import void GUI_MouseMove(int x,int y)from"client_gui";
 import bool GUI_KeyDown(uint8 key,string&keyText)from"client_gui";
 import bool GUI_KeyUp(uint8 key,string&keyText)from"client_gui";
 import void GUI_InputLost()from"client_gui";
+import void Init_GUI_OnHead()from"gui_client_onhead";
+import void Draw_GUI_OnHead()from"gui_client_onhead";
+import void Change_GUI_OnHead()from"gui_client_onhead";
+import void ShowNPC_GUI_OnHead()from"gui_client_onhead";
 import bool PerkCheck(CritterCl&cr,uint perk)from"perks";
 import void CritterGenerate(int[]&data)from"parameters";
 import bool CritterGenerateCheck(int[]&data)from"parameters";
@@ -97,10 +101,11 @@ import void InitChosenTabs()from"chosen_tabs";
 import void DrawChosenTabs()from"chosen_tabs";    
 
 import void PlayAnimSound(uint crType,int gender,uint anim1,uint anim2)from"animation";
-import uint CheckPlayerName(const string&name)from"parameters";  
+import uint CheckPlayerName(const string&name)from"parameters";   
 
 bool start()
 {
+	Init_GUI_OnHead();
 	InitializeGame();
 	
 	if(__ScreenWidth<800||__ScreenWidth>1280||__ScreenHeight<600||__ScreenHeight>1024)
@@ -147,6 +152,7 @@ void render_iface(uint layer)
 	}
 	else if(layer==3)
 	{
+		Draw_GUI_OnHead();
 		DrawChosenTabs();
 		GUI_Render(false);
 	}
@@ -245,7 +251,18 @@ bool key_down(uint8 key,string&keyText)
 		ItemCl@item=cr.GetItem(pid,-1);
 		uint[]use={(6),item.Id,0,0,0,(4),0};
 		SetChosenActions(use);
+	} 
+	
+	if(key==0x40)
+	{
+		Change_GUI_OnHead();
+		return true;
 	}
+	if(key==0x41)
+	{
+		ShowNPC_GUI_OnHead();
+		return true;
+	} 
 	
 	return GUI_KeyDown(key,keyText);
 }
