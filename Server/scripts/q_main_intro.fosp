@@ -173,7 +173,7 @@ bool BeamCrossing2Section(Map&map,uint8 hexNum1,uint8 hexNum2,uint16 beamX,uint1
 	
 	float crossB=cbeam/z;
 	return(0<crossS&&crossS<1&&0<crossB&&crossB<1);
-}                  
+}                 
 
 import void ReplicateCritter(Critter&cr)from"replication";
 import void FlushScreen(Critter&cr,uint fromColor,uint toColor,uint timeMs)from"effects"; 
@@ -225,13 +225,7 @@ bool SetPlayerStartLocation(Critter&player)
 	if(!(@map!=null))
 	return false;
 	if(!player.TransitToMap(map.Id,(Random(0,1)==0?(0):(240))))
-	return false;  
-	
-	int crType=(player.Stat[(71)]==(0)?(13):(6));
-	if(player.Stat[(4)]<=(3))
-	crType=(player.Stat[(71)]==(0)?(64):(63));
-	player.ChangeCrType(crType);
-	player.StatBase[(112)]=crType;               
+	return false;
 	
 	;
 	return true;
@@ -401,7 +395,6 @@ uint e_ReplicateCritter(uint[]@values)
 	player.ChangeCrType(crType);
 	player.StatBase[(112)]=0;      
 	
-	player.AddHolodiskInfo((43));
 	CreateTimeEvent(__FullSecond+((3)*__TimeMultiplier),"e_ShowMessage",player.Id,true);
 	ReplicateCritter(player);
 	return 0;

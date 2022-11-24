@@ -9,27 +9,14 @@
 #define INTRO_WORLD_Y              ( 5 )    // координаты расположения стартовой локации на глобале, ось У
 #define ENTIRE_ENTRANCE1           ( 0 )    // номер Entire-гекса, на котором начинает игрок
 #define ENTIRE_ENTRANCE2           ( 240 )  // номер Entire-гекса, на котором начинает игрок
-#define TRIBAL_INT                 ( 3 )    // максимальный интелект, при котором вместо кожаной куртки у игрока будет скин дикаря
 #define MAINQ_ST_START_COMPLETE    ( 1 )    // Сюжетный квест: игрок вышел со стартовой локации. Используется при проверке, где должен появиться игрок
 #define MAINQ_ST_INTRO_COMPLETE    ( 2 )    // Сюжетный квест: игрок вышел из локации интро.
-#define HOLODISK_INFO_INTRO        ( 43 )   // номер голодиска, выдаваемого в центре репликации по завершению интерлюдии
-#define STR_NOTIFY_HOLODISK        ( 6000 ) // В вашем Пипбое записана важная информация.
 
 // #define DL                         # (s) ( Log( "" + s ) )
 #define DL                         # (s)
 import void ReplicateCritter( Critter& cr )  from "replication";
 import void FlushScreen( Critter& cr, uint fromColor, uint toColor, uint timeMs ) from "effects";
 
-// Статус основного квеста
-bool SetMainQuest( uint playerId, int value )
-{
-    GameVar @ qVar = GetLocalVar( LVAR_q_main_quest, playerId );
-    if( !valid( qVar ) )
-        return false;
-
-    qVar = value;
-    return true;
-}
 
 // Проверка: Вышел ли игрок со стартовой локации
 bool CheckPlayerCompleteStart( Critter& player )
@@ -73,29 +60,6 @@ bool SetPlayerStartLocation( Critter& player )
         return false;
     if( !player.TransitToMap( map.Id, ( Random( 0, 1 ) == 0 ? ENTIRE_ENTRANCE1 : ENTIRE_ENTRANCE2 ) ) )
         return false;
-
-    // Изменение типа криттера, чтобы не было пижамы с рождения
-    #ifndef PLAYERS_3D
-    int crType = ( player.Stat[ ST_GENDER ] == GENDER_MALE ? CRTYPE_DW_LEATHER_JACKET_M : CRTYPE_DW_LEATHER_JACKET_F );
-    if( player.Stat[ ST_INTELLECT ] <= TRIBAL_INT )
-        crType = ( player.Stat[ ST_GENDER ] == GENDER_MALE ? CRTYPE_DW_TRIBAL_M : CRTYPE_DW_TRIBAL_F );
-    player.ChangeCrType( crType );
-    player.StatBase[ ST_BASE_CRTYPE ] = crType;
-    #endif
-    #ifdef PLAYERS_3D
-    if( player.Stat[ ST_INTELLECT ] > TRIBAL_INT )
-    {
-        // Leather jacket set
-        player.StatBase[ ST_ANIM3D_LAYERS + ANIM3D_LAYER_BODY ] = ATTRIBUTE_Body_LeatherOutfit;
-        player.StatBase[ ST_ANIM3D_LAYERS + ANIM3D_LAYER_HANDS ] = ATTRIBUTE_Hands_LeatherOutfit;
-        player.StatBase[ ST_ANIM3D_LAYERS + ANIM3D_LAYER_FEET ] = ATTRIBUTE_Feet_LeatherOutfit;
-    }
-    else
-    {
-        // Naked
-        player.StatBase[ ST_ANIM3D_LAYERS + ANIM3D_LAYER_BODY ] = 1000;        // Some unaviable value
-    }
-    #endif
 
     DL( "Player successfully transited to start location  LocId=" + locId );
     return true;
@@ -143,7 +107,6 @@ bool SetPlayerStoryLineLocation( Critter& player ) // Export
 void r_TransitToIntro( Critter& player, Critter @ npc )
 {
     SetPlayerIntroLocation( player );
-    SetMainQuest( player.Id, MAINQ_ST_START_COMPLETE );
 }
 
 // обработка триггеров входа в лифт
@@ -155,7 +118,6 @@ void t_KillPlayerOnIntro( Critter& player, Scenery& trigger, bool entered, uint8
     CreateTimeEvent( __FullSecond + REAL_MS( 750 ), "e_KillPlayer", player.Id, true );
     CreateTimeEvent( __FullSecond + REAL_MS( 1000 ), "e_OnPlayerDead", player.Id, true );
     CreateTimeEvent( __FullSecond + REAL_SECOND( 5 ), "e_ReplicateCritter", player.Id, true );
-    SetMainQuest( player.Id, MAINQ_ST_INTRO_COMPLETE );
 }
 
 import void door_open( Critter& player, Scenery& trigger, bool entered, uint8 dir, int entireNum ) from "trigger";
@@ -281,22 +243,10 @@ uint e_ReplicateCritter( uint[] @ values )
     player.StatBase[ ST_ANIM3D_LAYERS + ANIM3D_LAYER_FEET ] = 0;
     #endif
 
-    player.AddHolodiskInfo( HOLODISK_INFO_INTRO );
-    CreateTimeEvent( __FullSecond + REAL_SECOND( 3 ), "e_ShowMessage", player.Id, true );
     ReplicateCritter( player );
     return 0;
 }
 
-uint e_ShowMessage( uint[] @ values )
-{
-    Critter @ player = GetCritter( values[ 0 ] );
-    player.StatBase[ ST_REPLICATION_COUNT ] = 0;
-    player.StatBase[ ST_REPLICATION_MONEY ] = 0;
-    player.ShowScreen( SCREEN_DIALOGBOX, 0, "answer_None" );
-    player.SayMsg( SAY_DIALOGBOX_TEXT, TEXTMSG_TEXT, STR_NOTIFY_HOLODISK );
-    player.SayMsg( SAY_NETMSG, TEXTMSG_TEXT, STR_NOTIFY_HOLODISK );
-    return 0;
-}
 
 void answer_None( Critter& player, uint answerI, string& answerS )
 {}
