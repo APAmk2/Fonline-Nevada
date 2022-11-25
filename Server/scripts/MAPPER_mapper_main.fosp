@@ -77,6 +77,12 @@ void InitializeTabs()
 	pids.insertLast((596));
 	pids.insertLast(1100);
 	TabSetItemPids((0),"002 - FOnline armor",pids);
+	pids.resize(0);
+	for(uint i=598;i<=599;i++)
+	pids.insertLast(i);
+	for(uint i=634;i<=641;i++)
+	pids.insertLast(i);
+	TabSetItemPids((0),"003 - Nevada armor",pids);
 	TabSetName((0),"Arm"); 
 	
 	TabDelete((1));
@@ -1271,8 +1277,9 @@ void InitializeTabs()
 	
 	pids.resize(0);
 	for(uint i=4052;i<=4276;i++)
-	pids.insertLast(i); 
-	
+	pids.insertLast(i);
+	for(uint i=4283;i<=4499;i++)
+	pids.insertLast(i);
 	TabSetItemPids((8),"Nevada",pids);
 	
 	TabSetName((8),"Gen"); 

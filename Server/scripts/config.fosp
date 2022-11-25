@@ -78,7 +78,7 @@ void InitializeGame()
 	__DlgTalkMinTime=100000;
 	__DlgBarterMinTime=50000;
 	__MinimumOfflineTime=180000;
-	__MainStoryLineActive=true;
+	__MainStoryLineActive=false;
 	__NoPvpMaps=true;
 	__MaxLifeLevelSoftCap=36;
 	

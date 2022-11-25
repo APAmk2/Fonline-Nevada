@@ -173,20 +173,10 @@ bool BeamCrossing2Section(Map&map,uint8 hexNum1,uint8 hexNum2,uint16 beamX,uint1
 	
 	float crossB=cbeam/z;
 	return(0<crossS&&crossS<1&&0<crossB&&crossB<1);
-}                 
+}               
 
 import void ReplicateCritter(Critter&cr)from"replication";
-import void FlushScreen(Critter&cr,uint fromColor,uint toColor,uint timeMs)from"effects"; 
-
-bool SetMainQuest(uint playerId,int value)
-{
-	GameVar@qVar=GetLocalVar((5001),playerId);
-	if(!(@qVar!=null))
-	return false;
-	
-	qVar=value;
-	return true;
-} 
+import void FlushScreen(Critter&cr,uint fromColor,uint toColor,uint timeMs)from"effects";  
 
 bool CheckPlayerCompleteStart(Critter&player)
 {
@@ -267,7 +257,6 @@ bool SetPlayerStoryLineLocation(Critter&player)
 void r_TransitToIntro(Critter&player,Critter@npc)
 {
 	SetPlayerIntroLocation(player);
-	SetMainQuest(player.Id,(1));
 } 
 
 void t_KillPlayerOnIntro(Critter&player,Scenery&trigger,bool entered,uint8 dir)
@@ -278,7 +267,6 @@ void t_KillPlayerOnIntro(Critter&player,Scenery&trigger,bool entered,uint8 dir)
 	CreateTimeEvent(__FullSecond+((750)*__TimeMultiplier/1000),"e_KillPlayer",player.Id,true);
 	CreateTimeEvent(__FullSecond+((1000)*__TimeMultiplier/1000),"e_OnPlayerDead",player.Id,true);
 	CreateTimeEvent(__FullSecond+((5)*__TimeMultiplier),"e_ReplicateCritter",player.Id,true);
-	SetMainQuest(player.Id,(2));
 }
 
 import void door_open(Critter&player,Scenery&trigger,bool entered,uint8 dir,int entireNum)from"trigger";  
@@ -395,21 +383,9 @@ uint e_ReplicateCritter(uint[]@values)
 	player.ChangeCrType(crType);
 	player.StatBase[(112)]=0;      
 	
-	CreateTimeEvent(__FullSecond+((3)*__TimeMultiplier),"e_ShowMessage",player.Id,true);
 	ReplicateCritter(player);
 	return 0;
-}
-
-uint e_ShowMessage(uint[]@values)
-{
-	Critter@player=GetCritter(values[0]);
-	player.StatBase[(83)]=0;
-	player.StatBase[(82)]=0;
-	player.ShowScreen((2),0,"answer_None");
-	player.SayMsg((18),(0),(6000));
-	player.SayMsg((11),(0),(6000));
-	return 0;
-}
+} 
 
 void answer_None(Critter&player,uint answerI,string&answerS)
 {}

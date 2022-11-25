@@ -176,7 +176,7 @@ import void InviteToEncounter(Critter@[]&group,Item@car,uint encounterDescriptor
 import bool NeedReplicateCritterToBattle(Critter&cr)from"purgatory";
 
 const uint16 HellMapPid=(225);
-const uint16[]ReplicatorsMapPids={(221),(222),(223),(224)};
+const uint16[]ReplicatorsMapPids={(16)};
 uint ReplicatorPos=0; 
 
 bool IsPermanentDeathInit=false;
@@ -276,23 +276,9 @@ void SetStartLocation(Critter&cr)
 	cr.SetKnownLoc(true,replicator.GetLocation().Id);
 	cr.SetKnownLoc(false,(44));
 	uint16 replPid=replicator.GetLocation().GetProtoId();
-	if(replPid==(40))
+	if(replPid==(16))
 	{
-		cr.SetKnownLoc(false,(1));
-		cr.SetKnownLoc(false,(2));
-	}
-	else if(replPid==(41))
-	{
-		cr.SetKnownLoc(false,(3));
-	}
-	else if(replPid==(42))
-	{
-		cr.SetKnownLoc(false,(13));
-	}
-	else if(replPid==(43))
-	{
-		cr.SetKnownLoc(false,(6));
-		cr.SetKnownLoc(false,(7));
+		cr.SetKnownLoc(false,(4));
 	}
 	
 	zoneX=cr.WorldX/__GlobalMapZoneLength;

@@ -91,7 +91,7 @@ void InitializeGame()                    // Export
     __DlgTalkMinTime            = 100000;
     __DlgBarterMinTime          = 50000;
     __MinimumOfflineTime        = 180000;  // 3 minutes
-    __MainStoryLineActive       = true;
+    __MainStoryLineActive       = false;
     __NoPvpMaps                 = true;
     __MaxLifeLevelSoftCap       = 36;
     // Look modifiers
@@ -158,7 +158,7 @@ void InitializeGame()                    // Export
 
     // / Client specific definitions
     #  ifdef __CLIENT
-    __RoofAlpha             = 0;
+    __RoofAlpha             = 1000;
     __HideCursor            = false;
     __DisableLMenu          = false;
     __DisableMouseEvents    = false;

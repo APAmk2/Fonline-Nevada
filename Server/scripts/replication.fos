@@ -12,7 +12,7 @@ import void InviteToEncounter( Critter@[]& group, Item@ car, uint encounterDescr
 import bool NeedReplicateCritterToBattle( Critter& cr ) from "purgatory";
 
 const uint16 HellMapPid = MAP_replication_hell;
-const        uint16[] ReplicatorsMapPids = { MAP_replication1, MAP_replication2, MAP_replication3, MAP_replication4 };
+const        uint16[] ReplicatorsMapPids = { MAP_vcity };
 uint         ReplicatorPos = 0;
 
 // Permanent death
@@ -115,23 +115,9 @@ void SetStartLocation( Critter& cr ) // Export
     cr.SetKnownLoc( true, replicator.GetLocation().Id );
     cr.SetKnownLoc( false, LOCATION_ReplicationHell );
     uint16 replPid = replicator.GetLocation().GetProtoId();
-    if( replPid == LOCATION_Replication1 )
+    if( replPid == MAP_vcity )
     {
-        cr.SetKnownLoc( false, LOCATION_Den );
-        cr.SetKnownLoc( false, LOCATION_Klamath );
-    }
-    else if( replPid == LOCATION_Replication2 )
-    {
-        cr.SetKnownLoc( false, LOCATION_Modoc );
-    }
-    else if( replPid == LOCATION_Replication3 )
-    {
-        cr.SetKnownLoc( false, LOCATION_Redding );
-    }
-    else if( replPid == LOCATION_Replication4 )
-    {
-        cr.SetKnownLoc( false, LOCATION_BrokenHills );
-        cr.SetKnownLoc( false, LOCATION_NewReno );
+        cr.SetKnownLoc( false, LOCATION_VaultCity );
     }
 
     zoneX = cr.WorldX / __GlobalMapZoneLength;

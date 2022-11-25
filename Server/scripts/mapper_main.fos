@@ -366,6 +366,12 @@ void InitializeTabs()
     pids.insertLast( PID_CHITIN_ARMOR_MK_II );
     pids.insertLast( 1100 );
     TabSetItemPids( TAB_CUSTOM0, "002 - FOnline armor", pids );
+    pids.resize( 0 );
+    for( uint i = 598; i <= 599; i++ )
+        pids.insertLast( i );
+    for( uint i = 634; i <= 641; i++ )
+        pids.insertLast( i );
+	TabSetItemPids( TAB_CUSTOM0, "003 - Nevada armor", pids );
     TabSetName( TAB_CUSTOM0, "Arm" );
 
     // DRUGS TAB
@@ -1578,8 +1584,8 @@ void InitializeTabs()
     pids.resize( 0 );
     for( uint i = 4052; i <= 4276; i++ )
         pids.insertLast( i );
-//    for( uint i = 4770; i <= 4999; i++ )
-//        pids.insertLast( i );
+    for( uint i = 4283; i <= 4499; i++ )
+        pids.insertLast( i );
     TabSetItemPids( TAB_CUSTOM8, "Nevada", pids );
 
     TabSetName( TAB_CUSTOM8, "Gen" );
