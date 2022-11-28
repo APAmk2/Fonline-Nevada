@@ -3,11 +3,13 @@
 [Proto]
 ProtoId=6806
 Type=5
+PicMap=art\items\nevada-items_ground\FArtF.frm
 PicInv=art\inven\nevada-items\FILTR.frm
 Flags=134217758
-Weight=2000
+Weight=9071
 Volume=5
 Material=1
+Weapon_Anim2_0=Anim2Single
 
 [Proto]
 ProtoId=6807
@@ -31,7 +33,7 @@ Type=7
 PicMap=art\items\rock.frm
 PicInv=art\inven\nevada-items\NEVADA.frm
 Flags=150994974
-Weight=3
+Weight=1360
 Volume=1
 Material=5
 
@@ -50,7 +52,7 @@ Type=5
 PicMap=art\items\bigbox2.frm
 PicInv=art\inven\nevada-items\COMPUTER.frm
 Flags=167772190
-Weight=1500
+Weight=6803
 Volume=5
 Material=1
 
@@ -60,7 +62,7 @@ Type=5
 PicMap=art\items\bigbox2.frm
 PicInv=art\inven\nevada-items\COMPUTER.frm
 Flags=167772190
-Weight=1500
+Weight=6803
 Volume=5
 Material=1
 
@@ -71,4 +73,49 @@ PicMap=art\items\book.frm
 PicInv=art\inven\nevada-items\BikrList.frm
 Flags=184549406
 Material=3
+
+[Proto]
+ProtoId=6814
+Type=5
+PicMap=art\items\smalbox2.frm
+PicInv=art\inven\nevada-items\locket.frm
+Flags=134217758
+Weight=453
+Volume=1
+Cost=400
+Material=1
+
+[Proto]
+ProtoId=6815
+Type=7
+PicMap=art\items\smalbox2.frm
+PicInv=art\inven\nevada-items\KEY8.frm
+
+[Proto]
+ProtoId=6816
+Type=5
+PicMap=art\items\book.frm
+PicInv=art\inven\nevada-items\DISK9.frm
+Weight=2267
+Volume=2
+
+[Proto]
+ProtoId=6817
+Type=5
+PicMap=art\items\bigbox2.frm
+PicInv=art\inven\nevada-items\ENCODER.frm
+Flags=167772188
+DisableEgg=1
+Weight=2267
+Volume=3
+Cost=10
+Material=1
+
+[Proto]
+ProtoId=6818
+Type=5
+PicMap=art\items\smalbox2.frm
+PicInv=art\inven\nevada-items\FNKEYBt.frm
+Flags=436207646
+Material=1
 

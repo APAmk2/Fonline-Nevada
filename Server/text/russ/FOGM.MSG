@@ -74,11 +74,11 @@
 
 # Map 15, base 160
 {160}{}{Vault City Courtyard}
-{165}{}{22vcity}
+{165}{}{03. Root Information.ogg}
 {166}{}{blank:40, brdchirp:25, brdchir1:25, potspans:5, potspan1:5}
 # Map 16, base 170
 {170}{}{Vault City Downtown}
-{175}{}{22vcity}
+{175}{}{03. Root Information.ogg}
 {176}{}{blank:40, brdchirp:25, brdchir1:25, potspans:5, potspan1:5}
 
 # Map 18, base 190
@@ -88,15 +88,15 @@
 
 # Map 20, base 210
 {210}{}{Vault City Vault Level 1}
-{215}{}{22vcity}
+{215}{}{03. Root Information.ogg}
 {216}{}{electri1:15, electric:15, elevator:20, elevato1:15, steam:20, steam:15}
 # Map 21, base 220
 {220}{}{Vault City Vault Level 2}
-{225}{}{22vcity}
+{225}{}{03. Root Information.ogg}
 {226}{}{electri1:15, electric:15, elevator:20, elevato1:15, steam:20, steam:15}
 # Map 22, base 230
 {230}{}{Vault City Vault Level 3}
-{235}{}{22vcity}
+{235}{}{03. Root Information.ogg}
 {236}{}{electri1:15, electric:15, elevator:20, elevato1:15, steam:20, steam:15}
 
 # Map 24, base 250

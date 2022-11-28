@@ -12,7 +12,7 @@ import void InviteToEncounter( Critter@[]& group, Item@ car, uint encounterDescr
 import bool NeedReplicateCritterToBattle( Critter& cr ) from "purgatory";
 
 const uint16 HellMapPid = MAP_replication_hell;
-const        uint16[] ReplicatorsMapPids = { MAP_vcity };
+const        uint16[] ReplicatorsMapPids = { MAP_vcity_intro1 };
 uint         ReplicatorPos = 0;
 
 // Permanent death

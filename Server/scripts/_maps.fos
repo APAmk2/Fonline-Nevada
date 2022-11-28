@@ -187,6 +187,7 @@
 #define MAP_vcity_vault_1                      ( 20 )
 #define MAP_vcity_vault_2                      ( 21 )
 #define MAP_vcity_vault_3                      ( 22 )
+#define MAP_vcity_intro1                       ( 417 )
 #define MAP_barter_ground                      ( 24 )
 #define MAP_sad_enter                          ( 25 )
 #define MAP_sad_powersub                       ( 26 )
