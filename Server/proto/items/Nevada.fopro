@@ -3724,7 +3724,7 @@ PicMap=art\scenery\nevada\TEMPLE06.frm
 ProtoId=6819
 Type=9
 PicMap=art\scenery\nevada\V13SECR2.frm
-Flags=512
+Flags=268435968
 Material=1
 
 [Proto]
@@ -4221,4 +4221,13 @@ PicMap=art\scenery\nevada\xander.frm
 ProtoId=6915
 Type=11
 PicMap=art\scenery\nevada\XFILES.frm
+
+[Proto]
+ProtoId=6928
+Type=8
+PicMap=art\items\nevada-items_ground\TRUNK.frm
+Flags=268435968
+Material=1
+Container_Volume=10
+Container_CannotPickUp=1
 
