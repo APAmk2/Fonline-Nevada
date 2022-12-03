@@ -176,7 +176,7 @@ PicMap=art\scenery\nevada\BOKCAS6.frm
 [Proto]
 ProtoId=4081
 Type=11
-PicMap=art\scenery\nevada\BOKCAS7.frrm
+PicMap=art\scenery\nevada\BOKCAS7.frm
 
 [Proto]
 ProtoId=4082
@@ -296,7 +296,7 @@ PicMap=art\scenery\nevada\CAMINE.frm
 [Proto]
 ProtoId=4105
 Type=11
-PicMap=art\scenery\nevada\CAR06.frm
+PicMap=art\scenery\nevada\CAR6.frm
 
 [Proto]
 ProtoId=4106
@@ -392,11 +392,15 @@ PicMap=art\scenery\nevada\casent06.frm
 ProtoId=4124
 Type=9
 PicMap=art\scenery\nevada\casent07.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4125
 Type=9
 PicMap=art\scenery\nevada\casent08.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4126
@@ -452,11 +456,15 @@ PicMap=art\scenery\nevada\casent30.frm
 ProtoId=4136
 Type=9
 PicMap=art\scenery\nevada\casent31.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4137
 Type=9
 PicMap=art\scenery\nevada\CASENT32.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4138
@@ -687,41 +695,57 @@ PicMap=art\scenery\nevada\DOOR04.frm
 ProtoId=4183
 Type=9
 PicMap=art\scenery\nevada\door10.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=4184
 Type=9
 PicMap=art\scenery\nevada\door11.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=4185
 Type=9
 PicMap=art\scenery\nevada\door12.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=4186
 Type=9
 PicMap=art\scenery\nevada\door13.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=4187
 Type=9
 PicMap=art\scenery\nevada\doorb05.frm
+Flags=268435456
+Material=3
 
 [Proto]
 ProtoId=4188
 Type=9
 PicMap=art\scenery\nevada\doorb06.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4189
 Type=9
 PicMap=art\scenery\nevada\doorb07.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4190
 Type=9
 PicMap=art\scenery\nevada\doorb08.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4191
@@ -928,7 +952,7 @@ PicMap=art\scenery\nevada\ELVIS.frm
 [Proto]
 ProtoId=4231
 Type=11
-PicMap=art\scenery\nevada\ENCDOC1.frm
+PicMap=art\scenery\nevada\ENCDOC01.frm
 
 [Proto]
 ProtoId=4232
@@ -983,17 +1007,17 @@ PicMap=art\scenery\nevada\ENCDOC11.frm
 [Proto]
 ProtoId=4242
 Type=11
-PicMap=art\scenery\nevada\ENCDOC12.frm
+PicMap=art\scenery\nevada\ENCDOR12.frm
 
 [Proto]
 ProtoId=4243
 Type=11
-PicMap=art\scenery\nevada\ENCDOC13.frm
+PicMap=art\scenery\nevada\ENCDOR13.frm
 
 [Proto]
 ProtoId=4244
 Type=11
-PicMap=art\scenery\nevada\ENCDOC14.frm
+PicMap=art\scenery\nevada\ENCDOR14.frm
 
 [Proto]
 ProtoId=4245
@@ -1044,6 +1068,8 @@ PicMap=art\scenery\nevada\encldor2.frm
 ProtoId=4254
 Type=9
 PicMap=art\scenery\nevada\encldor3.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=4255
@@ -1249,10 +1275,6 @@ PicMap=art\scenery\nevada\GX006.frm
 ProtoId=4301
 Type=11
 PicMap=art\scenery\nevada\GX008.frm
-
-[Proto]
-ProtoId=4302
-Type=11
 
 [Proto]
 ProtoId=4303
@@ -1729,22 +1751,22 @@ PicMap=art\scenery\nevada\minect12.frm
 [Proto]
 ProtoId=4398
 Type=11
-PicMap=art\scenery\nevada\mntDumbA.frm
+PicMap=art\scenery\nevada\mntDumA.frm
 
 [Proto]
 ProtoId=4399
 Type=11
-PicMap=art\scenery\nevada\mntDumbB.frm
+PicMap=art\scenery\nevada\mntDumB.frm
 
 [Proto]
 ProtoId=4400
 Type=11
-PicMap=art\scenery\nevada\mntDumbC.frm
+PicMap=art\scenery\nevada\mntDumC.frm
 
 [Proto]
 ProtoId=4401
 Type=11
-PicMap=art\scenery\nevada\mntDumbD.frm
+PicMap=art\scenery\nevada\mntDumD.frm
 
 [Proto]
 ProtoId=4402
@@ -2095,11 +2117,15 @@ PicMap=art\scenery\nevada\NCRSIGN6.frm
 ProtoId=4471
 Type=9
 PicMap=art\scenery\nevada\NECDOOR1.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4472
 Type=9
 PicMap=art\scenery\nevada\NECDOOR2.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=4473
@@ -2135,6 +2161,8 @@ PicMap=art\scenery\nevada\NUM04.frm
 ProtoId=4479
 Type=9
 PicMap=art\scenery\nevada\oildoor1.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=4480
@@ -2280,6 +2308,7 @@ PicMap=art\scenery\nevada\POWER3.frm
 ProtoId=4670
 Type=9
 PicMap=art\scenery\nevada\PRESDOOR.frm
+Flags=268435968
 
 [Proto]
 ProtoId=4671
@@ -2767,11 +2796,6 @@ Type=11
 PicMap=art\scenery\nevada\SFROAD13.frm
 
 [Proto]
-ProtoId=4844
-Type=11
-PicMap=art\scenery\nevada\
-
-[Proto]
 ProtoId=4845
 Type=11
 PicMap=art\scenery\nevada\Shina001.frm
@@ -3102,41 +3126,6 @@ Type=11
 PicMap=art\scenery\nevada\SIGN12.frm
 
 [Proto]
-ProtoId=4911
-Type=11
-PicMap=art\scenery\nevada\SIGN13.frm
-
-[Proto]
-ProtoId=4912
-Type=11
-PicMap=art\scenery\nevada\SIGN14.frm
-
-[Proto]
-ProtoId=4913
-Type=11
-PicMap=art\scenery\nevada\SIGN15.frm
-
-[Proto]
-ProtoId=4914
-Type=11
-PicMap=art\scenery\nevada\SIGN16.frm
-
-[Proto]
-ProtoId=4915
-Type=11
-PicMap=art\scenery\nevada\SIGN17.frm
-
-[Proto]
-ProtoId=4916
-Type=11
-PicMap=art\scenery\nevada\SIGN18.frm
-
-[Proto]
-ProtoId=4917
-Type=11
-PicMap=art\scenery\nevada\SIGN19.frm
-
-[Proto]
 ProtoId=4918
 Type=11
 PicMap=art\scenery\nevada\SIGN20.frm
@@ -3155,11 +3144,6 @@ PicMap=art\scenery\nevada\SIGN22.frm
 ProtoId=4921
 Type=11
 PicMap=art\scenery\nevada\SIGN22B.frm
-
-[Proto]
-ProtoId=4922
-Type=11
-PicMap=art\scenery\nevada\SIGN23.frm
 
 [Proto]
 ProtoId=4923
@@ -3740,6 +3724,7 @@ PicMap=art\scenery\nevada\TEMPLE06.frm
 ProtoId=6819
 Type=9
 PicMap=art\scenery\nevada\V13SECR2.frm
+Flags=512
 Material=1
 
 [Proto]
@@ -3831,6 +3816,7 @@ PicMap=art\scenery\nevada\TRACK03.frm
 ProtoId=6837
 Type=9
 PicMap=art\scenery\nevada\TRAPDR.frm
+Flags=268435968
 Door_NoBlockMove=1
 Door_NoBlockShoot=1
 Door_NoBlockLight=1
@@ -3884,11 +3870,15 @@ PicMap=art\scenery\nevada\v13comm.frm
 ProtoId=6847
 Type=9
 PicMap=art\scenery\nevada\V13DOORF.frm
+Flags=268435968
+Material=3
 
 [Proto]
 ProtoId=6848
 Type=9
 PicMap=art\scenery\nevada\V13DOORS.frm
+Flags=268435968
+Material=1
 
 [Proto]
 ProtoId=6849
@@ -3948,7 +3938,7 @@ PicMap=art\scenery\nevada\VATS7.frm
 [Proto]
 ProtoId=6860
 Type=11
-PicMap=art\scenery\nevada\vaulttc.frm
+PicMap=art\scenery\nevada\vaulttcB.frm
 
 [Proto]
 ProtoId=6861
@@ -3968,7 +3958,7 @@ PicMap=art\scenery\nevada\vcdoor08.frm
 [Proto]
 ProtoId=6864
 Type=11
-PicMap=art\scenery\nevada\VCDoor_out.frm
+PicMap=art\scenery\nevada\VDoor_out.frm
 
 [Proto]
 ProtoId=6865
@@ -4167,6 +4157,8 @@ PicMap=art\scenery\nevada\WPAP18.frm
 ProtoId=6903
 Type=9
 PicMap=art\scenery\nevada\WPAP19.frm
+Flags=268698112
+Material=1
 Door_NoBlockShoot=1
 Door_NoBlockLight=1
 
