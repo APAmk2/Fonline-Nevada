@@ -3,7 +3,7 @@
 _SetupCaravan( CARAVAN_WADE_REDD_VC, CRV_TYPE_TWOWAY, 2, LVAR_q_redd_wade_caravan_escort, 5 );
 _SetupCaravanLeader( CARAVAN_WADE_REDD_VC, DIALOG_redd_wade, NPC_PID_Wade, BAG_VaultCity_Military, TEAM_QuestNpc, AIPACKET_PEASANTS, 8 );
 _SetupCaravanLiderPosition( CARAVAN_WADE_REDD_VC, LOCATION_Redding, MAP_redding_outer, 61, 52, true );
-_SetupCaravanLiderPosition( CARAVAN_WADE_REDD_VC, LOCATION_VaultCity, MAP_vcity_courtyard, 116, 62, false );
+_SetupCaravanLiderPosition( CARAVAN_WADE_REDD_VC, LOCATION_VaultCity, MAP_vcity_south, 116, 62, false );
 _AddRoutePoint( CARAVAN_WADE_REDD_VC, 675, 525 );
 _AddRoutePoint( CARAVAN_WADE_REDD_VC, 617, 578 );
 _AddRoutePoint( CARAVAN_WADE_REDD_VC, 457, 464 );
@@ -238,8 +238,8 @@ _SheduleCaravan( PATROL_HATE_NCR, 0, 21, 0, 22 );
 // PATROL_SHRIM_VC
 _SetupCaravan( PATROL_SHRIM_VC, CRV_TYPE_ONEWAY_DELETELEADER, 2, LVAR_q_vc_shrim_patrol, 5 );
 _SetupCaravanLeader( PATROL_SHRIM_VC, DIALOG_vc_shrim, NPC_PID_BlackArmoredRebel, BAG_All_BountyHunters_10, TEAM_QuestNpc, AIPACKET_VAULT_GUARD, 50 );
-_SetupCaravanLiderPosition( PATROL_SHRIM_VC, LOCATION_VaultCity, MAP_vcity_courtyard, 58, 86, true );
-_SetupCaravanLiderPosition( PATROL_SHRIM_VC, LOCATION_VaultCity, MAP_vcity_courtyard, 58, 86, false );
+_SetupCaravanLiderPosition( PATROL_SHRIM_VC, LOCATION_VaultCity, MAP_vcity_south, 58, 86, true );
+_SetupCaravanLiderPosition( PATROL_SHRIM_VC, LOCATION_VaultCity, MAP_vcity_south, 58, 86, false );
 _AddRoutePoint( PATROL_SHRIM_VC, 1225, 325 );      // vc
 _AddRoutePoint( PATROL_SHRIM_VC, 1207, 383 );
 _AddRoutePoint( PATROL_SHRIM_VC, 1154, 303 );
@@ -255,7 +255,7 @@ _SheduleCaravan( PATROL_SHRIM_VC, 0, 1, 0, 23 );
 _SetupCaravan( CARAVAN_SELMA_ARR_VC, CRV_TYPE_TWOWAY, 2, 1807, 6 );
 _SetupCaravanLeader( CARAVAN_SELMA_ARR_VC, 1680, 211, 131, TEAM_QuestNpc, AIPACKET_VAULT_GUARD, 20 );
 _SetupCaravanLiderPosition( CARAVAN_SELMA_ARR_VC, LOCATION_Arroyo, MAP_arroyo_bridge, 64, 73, true );
-_SetupCaravanLiderPosition( CARAVAN_SELMA_ARR_VC, LOCATION_VaultCity, MAP_vcity_courtyard, 135, 108, false );
+_SetupCaravanLiderPosition( CARAVAN_SELMA_ARR_VC, LOCATION_VaultCity, MAP_vcity_south, 135, 108, false );
 _AddRoutePoint( CARAVAN_SELMA_ARR_VC, 175, 125 );
 _AddRoutePoint( CARAVAN_SELMA_ARR_VC, 400, 265 );
 _AddRoutePoint( CARAVAN_SELMA_ARR_VC, 571, 138 );

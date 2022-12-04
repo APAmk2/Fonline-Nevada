@@ -10,8 +10,8 @@ const uint[] noPvpMaps =
 {
     MAP_arroyo_temple_entrance,
     MAP_arroyo, MAP_arroyo_garden, MAP_arroyo_bridge, MAP_arroyo_temple,
-    MAP_den, MAP_klamath, MAP_klamath_mall,
-    MAP_vcity_courtyard, MAP_vcity, MAP_modoc, MAP_vcity_vault_1,
+    MAP_klamath, MAP_klamath_mall,
+    MAP_vcity, MAP_modoc, MAP_vcity_vault_1,
     MAP_vcity_vault_2, MAP_vcity_vault_3,  MAP_v15_village, MAP_ncr_downtown,
     MAP_ncr_council, MAP_ncr_ranch, MAP_ncr_bazaar,  MAP_redding_outer, MAP_redding_miners,
     MAP_vredding_lost, MAP_primal_tribe,

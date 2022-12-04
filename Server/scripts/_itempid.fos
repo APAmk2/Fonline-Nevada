@@ -847,4 +847,60 @@
 #define PID_FLYING_PLASMA_BLAST              ( 4010 )
 #define PID_FLYING_ELECTRICITY_BOLT          ( 4013 )
 
+/******************************************************************
+***************       Nevada                        ***************
+******************************************************************/
+
+#define PID_SIGN_ITEM                        ( 6929 )
+#define PID_EMPTY_HOLODISK                   ( 6930 )
+#define PID_TROSS                            ( 6931 )
+#define PID_FILTER                           ( 6806 )
+#define PID_KUBOTAN_KEY                      ( 6807 )
+#define PID_UNDER_KEY                        ( 6808 )
+#define PID_SYMBOL                           ( 6809 )
+#define PID_BUNKER_KEY                       ( 6810 )
+#define PID_COMP_WRECK                       ( 6811 )
+#define PID_COMP_FIX                         ( 6812 )
+#define PID_PAPER                            ( 6813 )
+#define PID_GOLD_LOCKET_NEVADA               ( 6814 )
+#define PID_POLICE_PAPER                     ( 6816 )
+#define PID_ENCODER                          ( 6817 )
+#define PID_RADIO_KEY                        ( 6818 )
+
+/******************************************************************
+***************       Nevada Armor                  ***************
+******************************************************************/
+
+#define PID_MED_ROBE                         ( 598 )
+#define PID_ARMORSUIT                        ( 599 )
+#define PID_CARAVANEER_SUIT                  ( 634 )
+#define PID_BIKER_JACKET                     ( 635 )
+#define PID_BEAR_PA                          ( 637 )
+#define PID_WHEEL_ARMOR                      ( 638 )
+#define PID_LEATHER_ARMOR_MK_III             ( 639 )
+#define PID_CHITIN_ARMOR_NEVADA              ( 640 )
+#define PID_UPPED_JACKET                     ( 641 )
+#define PID_GAS_SUIT                         ( 642 )
+#define PID_ANTIRAD_SUIT                     ( 643 )
+#define PID_ARMORSUIT_MKII                   ( 644 )
+
+/******************************************************************
+***************       Nevada Weapon                 ***************
+******************************************************************/
+
+#define PID_POLICE_CLUB                      ( 568 )
+#define PID_CARAVANEER_CARABIN               ( 569 )
+#define PID_DART                             ( 6916 )
+#define PID_STRIKER                          ( 6917 )
+#define PID_9MM_PISTOL                       ( 6918 )
+#define PID_POMP_SHOTGUN                     ( 6919 )
+#define PID_9MM_MOUSER                       ( 6920 )
+#define PID_DINAMYTE                         ( 6921 )
+#define PID_UDM                              ( 6922 )
+#define PID_9MM_BURSTER                      ( 6923 )
+#define PID_FOTON                            ( 6924 )
+#define PID_CIVIL_RIFLE                      ( 6925 )
+#define PID_MIKKY                            ( 6926 )
+#define PID_WELDER                           ( 6927 )
+
 #endif  // __ITEM_PID__
