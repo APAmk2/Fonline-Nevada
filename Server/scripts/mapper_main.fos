@@ -1596,6 +1596,10 @@ void InitializeTabs()
     for( uint i = 5000; i <= 9999; i++ )
         pids.insertLast( i );
     TabSetItemPids( TAB_CUSTOM9, "001 - Vault 13", pids );
+    pids.resize( 0 );
+    for( uint i = 6932; i <= 7024; i++ )
+        pids.insertLast( i );
+	TabSetItemPids( TAB_CUSTOM9, "002 - Nevada Walls", pids);
     TabSetName( TAB_CUSTOM9, "Wall" );
 
     // Tactics tiles, tiles_0.bos
