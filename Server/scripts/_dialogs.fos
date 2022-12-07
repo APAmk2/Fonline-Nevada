@@ -703,5 +703,6 @@
 #define DIALOG_se_woodsman                   ( 10150 )
 #define DIALOG_purg_executor                 ( 21100 )
 #define DIALOG_purg_replicant                ( 21102 )
+#define DIALOG_VC_Sarge                      ( 21108 ) 
 
 #endif // __DIALOGS__

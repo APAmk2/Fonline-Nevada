@@ -92,7 +92,7 @@ void InitializeGame()                    // Export
     __DlgBarterMinTime          = 50000;
     __MinimumOfflineTime        = 180000;  // 3 minutes
     __MainStoryLineActive       = false;
-    __NoPvpMaps                 = true;
+    __NoPvpMaps                 = false;
     __MaxLifeLevelSoftCap       = 36;
     // Look modifiers
     __LookChecks = 0;                        // See Look checks in _defines.fos

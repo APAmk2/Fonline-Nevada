@@ -233,25 +233,10 @@ bool key_down( uint8 key, string& keyText )
         if( AltDown && key == DIK_W )
             SetEffect( effectType, 0, "2D_BlackWhite.fx" );
     }
-
+        
     if( key == DIK_Z )
         __MapZooming = true;
 
-	// Перезарядка
-	if( key == DIK_R )
-	{
-	CritterCl@ chosen = GetChosen();
-	if( valid( chosen ) )
-	{
-	ItemCl@ weapon = _CritGetItemHand( chosen );
-	if( valid( weapon ) )
-	{
-	uint[] use = { CHOSEN_USE_ITEM, weapon.Id, 0, TARGET_SELF_ITEM, 0, ITEM_MODE_RELOAD, 0 };
-	SetChosenActions( use );
-	}
-	}
-	}
-	
 	if( AltDown && key == DIK_5 ) // санитар
 	{
 	uint[] use = { CHOSEN_USE_SKL_ON_CRITTER, SK_FIRST_AID, GetChosen().Id, 0, 0, 0, 0 };
@@ -281,17 +266,28 @@ bool key_down( uint8 key, string& keyText )
 		SetChosenActions( use );
 	}
 
-
-	if( key == DIK_F6 )	 // Игрок
-	{
-	Change_GUI_OnHead();
-	return true;
-	}
-	if( key == DIK_F7 )	   // НПС
-	{
-	ShowNPC_GUI_OnHead();
-	return true;
-	}
+	switch( key )
+		{
+		case DIK_F6:
+			Change_GUI_OnHead();
+			return true;
+		case DIK_F7:
+			ShowNPC_GUI_OnHead();
+			return true;
+		case DIK_R:
+			{
+			CritterCl@ chosen = GetChosen();
+			if( valid( chosen ) )
+				{
+				ItemCl@ weapon = _CritGetItemHand( chosen );
+				if( valid( weapon ) )
+				{
+					uint[] use = { CHOSEN_USE_ITEM, weapon.Id, 0, TARGET_SELF_ITEM, 0, ITEM_MODE_RELOAD, 0 };
+					SetChosenActions( use );
+			}
+			}
+			}
+		}
 
 
 	return GUI_KeyDown( key, keyText );

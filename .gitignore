@@ -5,3 +5,6 @@ Tools/FreePIDs/proto_path.cfg
 *.log
 Tools/FreePIDs/free_pids.txt
 Server/scripts/drugs.fosp
+*.fomapb
+*.fosb
+*.fosp
