@@ -1597,7 +1597,7 @@ void InitializeTabs()
         pids.insertLast( i );
     TabSetItemPids( TAB_CUSTOM9, "001 - Vault 13", pids );
     pids.resize( 0 );
-    for( uint i = 6932; i <= 7024; i++ )
+    for( uint i = 6932; i <= 7200; i++ )
         pids.insertLast( i );
 	TabSetItemPids( TAB_CUSTOM9, "002 - Nevada Walls", pids);
     TabSetName( TAB_CUSTOM9, "Wall" );
