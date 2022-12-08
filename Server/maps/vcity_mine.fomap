@@ -2,7 +2,7 @@
 Version              4
 MaxHexX              400
 MaxHexY              400
-WorkHexX             85
+WorkHexX             113
 WorkHexY             99
 ScriptModule         -
 ScriptFunc           -
@@ -9368,6 +9368,8 @@ MapObjType           2
 ProtoId              2584
 MapX                 80
 MapY                 87
+Scenery_ToMapPid     422
+Scenery_ToEntire     1
 
 MapObjType           2
 ProtoId              2067
@@ -10518,6 +10520,8 @@ MapObjType           2
 ProtoId              2584
 MapX                 67
 MapY                 111
+Scenery_ToMapPid     422
+Scenery_ToEntire     2
 
 MapObjType           2
 ProtoId              2067
@@ -17797,5 +17801,17 @@ MapObjType           2
 ProtoId              5622
 MapX                 91
 MapY                 112
+
+MapObjType           2
+ProtoId              3853
+MapX                 80
+MapY                 84
+Scenery_ToEntire     2
+
+MapObjType           2
+ProtoId              3853
+MapX                 69
+MapY                 113
+Scenery_ToEntire     3
 
 
