@@ -168,11 +168,11 @@ bool start()
 // minute            0      59
 void get_start_time( uint16& multiplier, uint16& year, uint16& month, uint16& day, uint16& hour, uint16& minute )
 {
-    multiplier = 1;
-    year = 2130;
+    multiplier = 20;
+    year = 2091;
     month = 10;
-    day = 30;
-    hour = 1;
+    day = 10;
+    hour = 3;
     minute = 0;
 }
 
