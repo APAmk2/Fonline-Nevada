@@ -4222,12 +4222,3 @@ ProtoId=6915
 Type=11
 PicMap=art\scenery\nevada\XFILES.frm
 
-[Proto]
-ProtoId=6928
-Type=8
-PicMap=art\items\nevada-items_ground\TRUNK.frm
-Flags=268435968
-Material=1
-Container_Volume=10
-Container_CannotPickUp=1
-
