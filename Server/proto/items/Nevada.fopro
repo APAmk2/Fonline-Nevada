@@ -4222,3 +4222,9 @@ ProtoId=6915
 Type=11
 PicMap=art\scenery\nevada\XFILES.frm
 
+[Proto]
+ProtoId=7407
+Type=5
+PicMap=art\scenery\ROCK08.frm
+Material=5
+

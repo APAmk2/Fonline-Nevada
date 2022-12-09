@@ -1586,6 +1586,7 @@ void InitializeTabs()
         pids.insertLast( i );
     for( uint i = 4283; i <= 4499; i++ )
         pids.insertLast( i );
+	pids.insertLast ( PID_INTRO_ROCK );
     TabSetItemPids( TAB_CUSTOM8, "Nevada", pids );
 
     TabSetName( TAB_CUSTOM8, "Gen" );

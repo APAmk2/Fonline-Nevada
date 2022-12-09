@@ -866,6 +866,7 @@
 #define PID_POLICE_PAPER                     ( 6816 )
 #define PID_ENCODER                          ( 6817 )
 #define PID_RADIO_KEY                        ( 6818 )
+#define PID_INTRO_ROCK                       ( 7407 )
 
 /******************************************************************
 ***************       Nevada Armor                  ***************
