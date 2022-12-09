@@ -1,29 +1,29 @@
 Logging with time.
-(47)Starting FOMapper...
-(47)
+(15)Starting FOMapper...
+(31)
 Mapper Initialization...
-(47)Create Direct3D...(62)SpriteManager Initialization...
-(140)CSpriteManager Initialization complete.
-(140)DInput init...
-(156)DInput init OK
-(156)ResourceMngr Initialization...
-(156)ResourceMngr Initialization complete
-(156)SoundManager Init.
-(187)SoundManager Init Success.
-(187)Init iface
-(187)Load data
-(203)Init iface success
-(203)Loading All MSG...
-(203)End loading All MSG.
-(203)Object manager init...
-(203)Clear protos, Type: All
-(203)Object manager init Ok
-(203)Loading of prototypes of objects from a new format in <.\data\proto\foobj\proto.fopro>
-(219)<7484> prototypes are successfully loaded
-(219)Clear protos, Type: All
-(219)Parse prototype objects, count: 7484
-(219)Parsing of prototype objects is complete
-(219)Hashes of prototype:
+(31)Create Direct3D...(78)SpriteManager Initialization...
+(406)CSpriteManager Initialization complete.
+(500)DInput init...
+(578)DInput init OK
+(578)ResourceMngr Initialization...
+(640)ResourceMngr Initialization complete
+(640)SoundManager Init.
+(765)SoundManager Init Success.
+(781)Init iface
+(781)Load data
+(859)Init iface success
+(859)Loading All MSG...
+(968)End loading All MSG.
+(968)Object manager init...
+(968)Clear protos, Type: All
+(968)Object manager init Ok
+(968)Loading of prototypes of objects from a new format in <.\data\proto\foobj\proto.fopro>
+(1000)<7484> prototypes are successfully loaded
+(1000)Clear protos, Type: All
+(1000)Parse prototype objects, count: 7484
+(1015)Parsing of prototype objects is complete
+(1015)Hashes of prototype:
 		CRC32 of protos Armor: <4221804708>
 		CRC32 of protos Drug: <572407196>
 		CRC32 of protos Weapon: <2963492830>
@@ -37,25 +37,27 @@ Mapper Initialization...
 		CRC32 of protos Generic: <1898486939>
 		CRC32 of protos Wall: <603298278>
 		CRC32 of protos Tile: <1259500259>
-(219)Critter Manager Init...(234)Critter Manager Init Success
-(265)Loaded <483> / <483> critter prototype
-(265)CHexField Initialization...
-(265)CHexField Initialization complete
-(265)FEngine Initialization complete
-(8719)Refresh proto map, pid<65535>, name<VAULT8_out>...(8719)CProtoMap::ReadObjectsOld - proto not find, pid<3893>
-(8719)Cannot read Objects.
-(8719)Proto map init fail
-(144750)Mapper Finish...
-(144750)ResourceMngr Finish...
-(144750)ResourceMngr Finish complete
-(144750)CHexField Clear...
-(144765)CHexField Clear complete
-(144765)SpriteManager Clear...
-(144765)SpriteManager Clear complete.
-(144765)SoundManager Clear.(144765).(144765).(144765).
-(144765)SoundManager Clear Complete.
-(144765)Critter manager finish...
-(144765)Critter manager finish Ok
-(144765)Mapper Finish complete
-(144765)
+(1015)Critter Manager Init...(1015)Critter Manager Init Success
+(1109)Loaded <483> / <483> critter prototype
+(1109)CHexField Initialization...
+(1171)CHexField Initialization complete
+(1171)FEngine Initialization complete
+(10718)Refresh proto map, pid<65535>, name<vcity_mine_u>...(10718)Ok.
+(10718)SetProtoMap begin
+(10734)CHexField::AddItem - Sprite not found, pid<2002>.
+(10734)Unable to parse item object
+(10765)SetProtoMap end
+(22843)Mapper Finish...
+(22843)ResourceMngr Finish...
+(22843)ResourceMngr Finish complete
+(22843)CHexField Clear...
+(22859)CHexField Clear complete
+(22859)SpriteManager Clear...
+(22859)SpriteManager Clear complete.
+(22859)SoundManager Clear.(22859).(22859).(22859).
+(22859)SoundManager Clear Complete.
+(22859)Critter manager finish...
+(22859)Critter manager finish Ok
+(22859)Mapper Finish complete
+(22859)
 FOMapper Closed

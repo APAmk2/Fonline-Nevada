@@ -1,7 +1,7 @@
 # 08.2007 Cvet
 
 # Version info
-{1}{}{0.1}
+{1}{}{0.2_Bravo}
 
 ####################################################################################################################################
 #
@@ -66,8 +66,8 @@
 # Main theme
 {80}{}{01. Fallout Nevada Theme.ogg}
 # Intro, from 90 to 99
-{90}{}{TheLifeAfterIntro.ogv|TheLifeAfterIntro.ogg}
-{91}{}{TheLifeAfterIntroSlide.ogv|TheLifeAfterIntroSlideRU.ogg}
+{90}{}{INTRO.ogv|INTRO.ogg}
+{91}{}{CREDITS.ogv|CREDITS.ogg}
 
 ####################################################################################################################################
 #
@@ -77,18 +77,18 @@
 
 # On head messages
 {100}{}{|0xF8F993 %s}                     # Normal
-{102}{}{|0xFF0000 !!!%s!!!}               # Shout
-{104}{}{|0xFF00FF **%s**}                 # Emote
-{106}{}{|0x00FFFF ...%s...}               # Whisp
+{102}{}{|0x800000 %s}               	  # Shout
+{104}{}{|0x6A5ACD **%s**}                 # Emote
+{106}{}{|0x008080 %s}               	  # Whisp
 {108}{}{|0xFFFFFF %s}                     # Social
 
 # Message box
 {120}{}{%s: |0xF8F993 %s}                 # Normal
-{122}{}{%s: |0xFF0000 !!!%s!!!}           # Shout
-{124}{}{%s: |0xFF00FF **%s**}             # Emote
-{126}{}{%s: |0x00FFFF ...%s...}           # Whisp
+{122}{}{%s: |0x800000 %s}          		  # Shout
+{124}{}{%s: |0x6A5ACD **%s**}             # Emote
+{126}{}{%s: |0x008080 %s}           	  # Whisp
 {128}{}{%s: |0xFFFFFF %s}                 # Social
-{130}{}{Рация %u> |0xFFFFFE ..%s..}       # Radio
+{130}{}{Радио %u> |0xFFFFFE ..%s..}       # Radio
 {132}{}{%s}                               # NetMsg
 
 ####################################################################################################################################
@@ -137,13 +137,13 @@
 {293}{}{Выход}
 {294}{}{Продолжить}
 # Login
-{300}{}{|0xAECF45 Новая игра}  # Singleplayer
-{301}{}{|0xAECF45 Загрузить}   # Singleplayer
-{302}{}{|0xAECF45 Играть}      # Multiplayer
-{303}{}{|0xAECF45 Новая игра} # Multiplayer
-{304}{}{|0xAECF45 Опции}
-{305}{}{|0xAECF45 Авторы}
-{306}{}{|0xAECF45 Выход}
+{300}{}{|0xFF8C00 Новая игра}  # Singleplayer
+{301}{}{|0xFF8C00 Загрузить}   # Singleplayer
+{302}{}{|0xFF8C00 Играть}      # Multiplayer
+{303}{}{|0xFF8C00 Новая игра} # Multiplayer
+{304}{}{|0xFF8C00 Опции}
+{305}{}{|0xFF8C00 Авторы}
+{306}{}{|0xFF8C00 Выход}
 # Dialog box
 {310}{}{Отмена}
 {311}{}{Дальше}
