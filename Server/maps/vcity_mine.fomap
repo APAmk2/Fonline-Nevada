@@ -2,8 +2,8 @@
 Version              4
 MaxHexX              400
 MaxHexY              400
-WorkHexX             113
-WorkHexY             99
+WorkHexX             100
+WorkHexY             118
 ScriptModule         -
 ScriptFunc           -
 NoLogOut             0
@@ -2777,33 +2777,33 @@ tile       66   80             art\tiles\edg6004.frm
 tile       68   80             art\tiles\edg5001.frm
 tile       70   80             art\tiles\edg1003.frm
 tile       72   80             art\tiles\edg4001.frm
-tile       74   80             art\tiles\Nevada-tiles\STOP026.FRM
+tile       74   80             art\tiles\nevada-tiles\stop026.frm
 roof       74   80             art\tiles\ruf1001.frm
-tile       76   80             art\tiles\Nevada-tiles\STOP025.FRM
+tile       76   80             art\tiles\nevada-tiles\stop025.frm
 roof       76   80             art\tiles\ruf1000.frm
-tile       78   80             art\tiles\Nevada-tiles\STOP024.FRM
+tile       78   80             art\tiles\nevada-tiles\stop024.frm
 roof       78   80             art\tiles\ruf1001.frm
 tile       80   80             art\tiles\crbm004.frm
 roof       80   80             art\tiles\ruf1000.frm
 tile       82   80             art\tiles\crbm004.frm
 roof       82   80             art\tiles\ruf1001.frm
-tile       84   80             art\tiles\Nevada-tiles\STOP026.FRM
+tile       84   80             art\tiles\nevada-tiles\stop026.frm
 roof       84   80             art\tiles\ruf1001.frm
-tile       86   80             art\tiles\Nevada-tiles\STOP025.FRM
+tile       86   80             art\tiles\nevada-tiles\stop025.frm
 roof       86   80             art\tiles\ruf1000.frm
-tile       88   80             art\tiles\Nevada-tiles\STOP026.FRM
+tile       88   80             art\tiles\nevada-tiles\stop026.frm
 roof       88   80             art\tiles\ruf1001.frm
-tile       90   80             art\tiles\Nevada-tiles\STOP025.FRM
+tile       90   80             art\tiles\nevada-tiles\stop025.frm
 roof       90   80             art\tiles\ruf2002.frm
-tile       92   80             art\tiles\Nevada-tiles\STOP024.FRM
+tile       92   80             art\tiles\nevada-tiles\stop024.frm
 roof       92   80             art\tiles\ruf2001.frm
 tile       94   80             art\tiles\crbm004.frm
 roof       94   80             art\tiles\ruf2001.frm
-tile       96   80             art\tiles\Nevada-tiles\STOP026.FRM
+tile       96   80             art\tiles\nevada-tiles\stop026.frm
 roof       96   80             art\tiles\ruf2000.frm
-tile       98   80             art\tiles\Nevada-tiles\STOP025.FRM
+tile       98   80             art\tiles\nevada-tiles\stop025.frm
 roof       98   80             art\tiles\ruf2002.frm
-tile       100  80             art\tiles\Nevada-tiles\STOP024.FRM
+tile       100  80             art\tiles\nevada-tiles\stop024.frm
 roof       100  80             art\tiles\ruf2001.frm
 tile       102  80             art\tiles\crbm004.frm
 roof       102  80             art\tiles\ruf2001.frm
@@ -2991,11 +2991,11 @@ roof       66   84             art\tiles\jrt1002.frm
 tile       68   84             art\tiles\edg5003.frm
 tile       70   84             art\tiles\edg5005.frm
 tile       72   84             art\tiles\edg5002.frm
-tile       74   84             art\tiles\Nevada-tiles\STOP025.FRM
+tile       74   84             art\tiles\nevada-tiles\stop025.frm
 roof       74   84             art\tiles\ruf2002.frm
-tile       76   84             art\tiles\Nevada-tiles\STOP024.FRM
+tile       76   84             art\tiles\nevada-tiles\stop024.frm
 roof       76   84             art\tiles\ruf2001.frm
-tile       78   84             art\tiles\Nevada-tiles\STOP026.FRM
+tile       78   84             art\tiles\nevada-tiles\stop026.frm
 roof       78   84             art\tiles\ruf2000.frm
 tile       80   84             art\tiles\crbm004.frm
 roof       80   84             art\tiles\ruf1001.frm
@@ -3092,9 +3092,9 @@ tile       56   86             art\tiles\edg5000.frm
 tile       58   86             art\tiles\edg5004.frm
 tile       60   86             art\tiles\edg5000.frm
 tile       62   86             art\tiles\edg6011.frm
-tile       64   86             art\tiles\Nevada-tiles\STOP025.FRM
+tile       64   86             art\tiles\nevada-tiles\stop025.frm
 roof       64   86             art\tiles\plk1000.frm
-tile       66   86             art\tiles\Nevada-tiles\STOP026.FRM
+tile       66   86             art\tiles\nevada-tiles\stop026.frm
 roof       66   86             art\tiles\plk3000.frm
 tile       68   86             art\tiles\edg5000.frm
 tile       70   86             art\tiles\edg5004.frm
@@ -4244,7 +4244,7 @@ tile       112  110            art\tiles\crbm004.frm
 roof       112  110            art\tiles\ruf1000.frm
 tile       114  110            art\tiles\crbm004.frm
 roof       114  110            art\tiles\ruf1001.frm
-tile       116  110            art\tiles\Nevada-tiles\STOP025.FRM
+tile       116  110            art\tiles\nevada-tiles\stop025.frm
 roof       116  110            art\tiles\ruf1000.frm
 tile       118  110            art\tiles\crbm004.frm
 roof       118  110            art\tiles\ruf1001.frm
@@ -4751,9 +4751,9 @@ tile       104  120            art\tiles\edg5003.frm
 tile       106  120            art\tiles\edg5000.frm
 tile       108  120            art\tiles\edg5006.frm
 roof       108  120            art\tiles\ruf3000.frm
-tile       110  120            art\tiles\Nevada-tiles\STOP026.FRM
+tile       110  120            art\tiles\nevada-tiles\stop026.frm
 roof       110  120            art\tiles\ruf1000.frm
-tile       112  120            art\tiles\Nevada-tiles\STOP024.FRM
+tile       112  120            art\tiles\nevada-tiles\stop024.frm
 roof       112  120            art\tiles\ruf1001.frm
 tile       114  120            art\tiles\crbm004.frm
 roof       114  120            art\tiles\ruf1000.frm
@@ -17813,5 +17813,10 @@ ProtoId              3853
 MapX                 69
 MapY                 113
 Scenery_ToEntire     3
+
+MapObjType           1
+ProtoId              7435
+MapX                 100
+MapY                 122
 
 

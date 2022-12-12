@@ -6,11 +6,13 @@
 
 }
 
- bool _Remove(Item& item, Critter& crit, Item@ usedItem ){
-  if( usedItem.GetProtoId() == PID_SIGN_ITEM )
+
+bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
+	if( usedItem.GetProtoId() == PID_SIGN_ITEM )
     {
         DeleteItem( item );
         return true;
     }
     return false;
 }
+
