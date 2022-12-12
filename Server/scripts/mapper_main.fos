@@ -1052,6 +1052,14 @@ void InitializeTabs()
     pids.insertLast( PID_DEAD_REDSHIRT_2 );
     pids.insertLast( PID_MINING_MACHINE );
     TabSetItemPids( TAB_CUSTOM6, "001 - Containers", pids );
+	pids.resize( 0 );
+    pids.insertLast( 6928 );
+	for( uint i = 7380; i <= 7406; i++ )
+        pids.insertLast( i );
+	for( uint i = 7408; i <= 7439; i++ )
+        pids.insertLast( i );
+	TabSetItemPids( TAB_CUSTOM6, "003 - Nevada Containers", pids );
+	
 
     // Door
     pids.resize( 0 );

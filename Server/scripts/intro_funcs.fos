@@ -1,10 +1,17 @@
-//  Includes some definitions
+
 #include "_macros.fos"
 
-
-
-bool RemoveRock()
+void _Init(Item& item, bool firstTime)
 {
-	if (DeleteItem(PID_INTRO_ROCK,1)) return true;
-	return false;
+	item.SetEvent( ITEM_EVENT_USE_ON_ME, "_RemoveRock");
+
 }
+bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
+	if( usedItem.GetProtoId() == PID_SIGN_ITEM )
+    {
+        DeleteItem( item );
+        return true;
+    }
+    return false;
+}
+
