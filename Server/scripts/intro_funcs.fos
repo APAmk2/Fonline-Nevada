@@ -1,5 +1,8 @@
 
 #include "_macros.fos"
+#include "_colors.fos"
+
+import void FlushScreen( Critter& cr, uint fromColor, uint toColor, uint timeMs ) from "effects";
 
 void _Init(Item& item, bool firstTime)
 {
@@ -9,6 +12,7 @@ void _Init(Item& item, bool firstTime)
 bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
 	if( usedItem.GetProtoId() == PID_SIGN_ITEM )
     {
+		FlushScreen( crit, COLOR_BLACK, COLOR_BLACK, 2000 );
         DeleteItem( item );
         return true;
     }
