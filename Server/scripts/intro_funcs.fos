@@ -1,14 +1,14 @@
-
 #include "_macros.fos"
 #include "_colors.fos"
 
 import void FlushScreen( Critter& cr, uint fromColor, uint toColor, uint timeMs ) from "effects";
 
-void _Init(Item& item, bool firstTime)
+ void _Init(Item& item, bool firstTime)
 {
-	item.SetEvent( ITEM_EVENT_USE_ON_ME, "_RemoveRock");
+    item.SetEvent( ITEM_EVENT_USE_ON_ME, "_Remove");
 
 }
+
 bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
 	if( usedItem.GetProtoId() == PID_SIGN_ITEM )
     {
