@@ -6,7 +6,6 @@
 
 }
 
-
 bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
 	if( usedItem.GetProtoId() == PID_SIGN_ITEM )
     {
