@@ -1,0 +1,10 @@
+//  Includes some definitions
+#include "_macros.fos"
+
+
+
+bool RemoveRock()
+{
+	if (DeleteItem(PID_INTRO_ROCK,1)) return true;
+	return false;
+}

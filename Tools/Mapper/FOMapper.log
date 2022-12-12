@@ -14,7 +14,7 @@ Loaded<325> critter types.
 Item manager initialization...
 Item manager initialization complete.
 Loading items prototypes...
-Items prototypes successfully loaded, count<4841>.
+Items prototypes successfully loaded, count<5935>.
 Critter manager initialization...
 Critter manager initialization complete.
 Loading critters prototypes...
@@ -23,15 +23,6 @@ Hex field initialization...
 Hex field initialization complete.
 Mapper initialization complete.
 Create map from prototype.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
-Proto<538> npc not found.
 Create map from prototype complete.
 Mapper finish...
 Resource manager finish...
