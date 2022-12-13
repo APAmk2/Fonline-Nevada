@@ -1,5 +1,8 @@
 Tools/FreePIDs/free_pids.txt
 Tools/FreePIDs/proto_path.cfg
+Client/
+Server/dumps
+Server/save/
 *.fo
 *.log
 *.fomapb
