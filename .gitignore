@@ -1,10 +1,9 @@
-
 Tools/FreePIDs/free_pids.txt
 Tools/FreePIDs/proto_path.cfg
+Client/
 *.fo
 *.log
-Tools/FreePIDs/free_pids.txt
-Server/scripts/drugs.fosp
 *.fomapb
 *.fosb
 *.fosp
+
