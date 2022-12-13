@@ -1,5 +1,5 @@
-[08.12.2022 17:53:39] Initializing Object Editor 3.1.8 compatible with 2.14.3 format.
-[08.12.2022 17:53:39]    OS version: Microsoft Windows NT 6.2.9200.0 32-bit
+[13.12.2022 8:40:08] Initializing Object Editor 3.1.8 compatible with 2.14.3 format.
+[13.12.2022 8:40:08]    OS version: Microsoft Windows NT 6.2.9200.0 32-bit
    .NET CLR version: 4.0.30319.42000
    .NET installed versions:
        2.0 (SP 2) - 2.0.50727.4927
@@ -8,10 +8,6 @@
        4.0 Client Profile
        4.0 Full Profile
 
-[08.12.2022 17:53:43] ..\..\Server\text\russ\foobj.msg parsed.
-[08.12.2022 17:53:43] Initializing successful.
-[08.12.2022 18:04:40] Data written to ..\..\Server\text\russ\foobj.msg
-[08.12.2022 18:05:35] Data written to ..\..\Server\text\russ\foobj.msg
-[08.12.2022 18:06:06] Data written to ..\..\Server\text\russ\foobj.msg
-[08.12.2022 18:34:09] Data written to ..\..\Server\text\russ\foobj.msg
-[08.12.2022 18:34:11] Exiting...
+[13.12.2022 8:40:09] ..\..\Server\text\russ\foobj.msg parsed.
+[13.12.2022 8:40:09] Initializing successful.
+[13.12.2022 8:45:59] Exiting...

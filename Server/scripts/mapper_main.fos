@@ -1059,6 +1059,31 @@ void InitializeTabs()
 	for( uint i = 7408; i <= 7439; i++ )
         pids.insertLast( i );
 	TabSetItemPids( TAB_CUSTOM6, "003 - Nevada Containers", pids );
+	pids.resize( 0 );
+	pids.insertLast( 4124 );
+	pids.insertLast( 4125 );
+	pids.insertLast( 4136 );
+	pids.insertLast( 4137 );
+	pids.insertLast( 4183 );
+	pids.insertLast( 4184 );
+	pids.insertLast( 4185 );
+	pids.insertLast( 4186 );
+	pids.insertLast( 4187 );
+	pids.insertLast( 4188 );
+	pids.insertLast( 4189 );
+	pids.insertLast( 4190 );
+	pids.insertLast( 4254 );
+	pids.insertLast( 4471 );
+	pids.insertLast( 4472 );
+	pids.insertLast( 4479 );
+	pids.insertLast( 4670 );
+	pids.insertLast( 6819 );
+	pids.insertLast( 6837 );
+	pids.insertLast( 6847 );
+	pids.insertLast( 6848 );
+	pids.insertLast( 6903 );
+	pids.insertLast( 7440 );
+	TabSetItemPids( TAB_CUSTOM6, "004 - Nevada Doors", pids );
 	
 
     // Door
