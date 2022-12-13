@@ -1,6 +1,5 @@
 Tools/FreePIDs/free_pids.txt
 Tools/FreePIDs/proto_path.cfg
-Client/
 *.fo
 *.log
 *.fomapb
