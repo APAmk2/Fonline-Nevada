@@ -14,7 +14,67 @@ Loaded<325> critter types.
 Item manager initialization...
 Item manager initialization complete.
 Loading items prototypes...
-Items prototypes successfully loaded, count<5935>.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<6928>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7380>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7381>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7382>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7383>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7384>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7385>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7386>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7387>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7388>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7389>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7390>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7391>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7392>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7393>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7394>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7395>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7396>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7397>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7398>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7399>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7400>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7401>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7402>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7403>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7404>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7405>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7406>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7408>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7409>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7410>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7411>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7412>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7413>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7414>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7415>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7416>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7417>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7418>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7419>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7420>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7421>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7422>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7423>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7424>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7425>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7426>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7427>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7428>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7429>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7430>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7431>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7432>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7433>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7434>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7435>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7436>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7437>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7438>. Rewrite.
+ItemManager::ParseProtos - Item prototype is already parsed, pid<7439>. Rewrite.
+Items prototypes successfully loaded, count<6056>.
 Critter manager initialization...
 Critter manager initialization complete.
 Loading critters prototypes...

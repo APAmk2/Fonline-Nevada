@@ -7,7 +7,7 @@ import void FlushScreen( Critter& cr, uint fromColor, uint toColor, uint timeMs 
 void _Init(Item& item, bool firstTime)
 {
 	item.SetEvent( ITEM_EVENT_USE_ON_ME, "_RemoveRock");
-
+    //item.SetEvent( ITEM_EVENT_USE, "_CountVmnoit")
 }
 bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
 	if( usedItem.GetProtoId() == PID_SIGN_ITEM )
@@ -18,4 +18,15 @@ bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
     }
     return false;
 }
+ 
+/* заготовка функции для голодисков
+bool _CountVmonit(Item& item, Critter& crit, Critter@ onCritter, Item@ onItem, Scenery@ onScenery){
+ if( item.GetProtoId() == PID_EMPTY_HOLODISK && onScenery.GetProtoId() == 6875 )
+    {
+    //сдесь код
+	 return true;
+    }
+    return false;
+} 
+*/
 
