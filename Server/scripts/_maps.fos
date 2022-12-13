@@ -37,6 +37,7 @@
 #define LOCATION_Replication4                  ( 43 )
 #define LOCATION_ReplicationHell               ( 44 )
 #define LOCATION_GeckCity                      ( 45 )
+#define LOCATION_BlackRock                     ( 263 )
 
 #define LOCATION_SpecialFirstSpecial           ( 50 )    // Todo
 #define LOCATION_SpecialToxicEncounter         ( 51 )
@@ -181,6 +182,7 @@
 #define MAP_klatoxcv                           ( 12 )
 #define MAP_klamath_trap                       ( 13 )
 #define MAP_klamath_graz                       ( 14 )
+#define MAP_BRock_main                         ( 423 )
 #define MAP_vcity_south                    ( 15 )
 #define MAP_vcity                              ( 16 )
 #define MAP_vcity_mine                         ( 420 )
