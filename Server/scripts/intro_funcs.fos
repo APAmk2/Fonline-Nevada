@@ -16,6 +16,7 @@ bool _RemoveRock(Item& item, Critter& crit, Item@ usedItem ){
 		FlushScreen( crit, COLOR_BLACK, COLOR_BLACK, 2000 );
         DeleteItem( item );
         return true;
+        //vc_monitors++;
     }
     return false;
 }
