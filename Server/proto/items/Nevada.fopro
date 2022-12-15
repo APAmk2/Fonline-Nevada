@@ -3724,6 +3724,7 @@ PicMap=art\scenery\nevada\TEMPLE06.frm
 ProtoId=6819
 Type=9
 PicMap=art\scenery\nevada\V13SECR2.frm
+Flags=4096
 Material=1
 
 [Proto]
@@ -4789,5 +4790,6 @@ Type=8
 ProtoId=7440
 Type=9
 PicMap=art\scenery\vltdr001.frm
+Flags=4096
 Material=1
 

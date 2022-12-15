@@ -129,6 +129,8 @@ Flags=184549406
 [Proto]
 ProtoId=6930
 Type=5
+ScriptModule=Intro_funcs
+ScriptFunc=_Init
 PicMap=art\items\fHldsk.frm
 PicInv=art\inven\tape3.frm
 Flags=184549406
