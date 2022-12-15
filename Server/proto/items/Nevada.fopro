@@ -3876,7 +3876,7 @@ Material=3
 ProtoId=6848
 Type=9
 PicMap=art\scenery\nevada\V13DOORS.frm
-Flags=268435968
+Flags=268435456
 Material=1
 
 [Proto]
@@ -4789,6 +4789,5 @@ Type=8
 ProtoId=7440
 Type=9
 PicMap=art\scenery\vltdr001.frm
-Flags=512
 Material=1
 
