@@ -2,8 +2,8 @@
 Version              4
 MaxHexX              400
 MaxHexY              400
-WorkHexX             114
-WorkHexY             78
+WorkHexX             140
+WorkHexY             104
 ScriptModule         -
 ScriptFunc           -
 NoLogOut             0
@@ -2616,9 +2616,9 @@ tile       98   74             art\tiles\edg5004.frm
 tile       100  74             art\tiles\edg5000.frm
 tile       102  74             art\tiles\edg5003.frm
 tile       104  74             art\tiles\edg5000.frm
-tile       106  74             art\tiles\Nevada-tiles\MBRF203.FRM
-tile       108  74             art\tiles\Nevada-tiles\MBRF202.FRM
-tile       110  74             art\tiles\Nevada-tiles\MBRF201.FRM
+tile       106  74             art\tiles\nevada-tiles\mbrf203.frm
+tile       108  74             art\tiles\nevada-tiles\mbrf202.frm
+tile       110  74             art\tiles\nevada-tiles\mbrf201.frm
 tile       112  74             art\tiles\edg7001.frm
 tile       114  74             art\tiles\edg2003.frm
 tile       116  74             art\tiles\edg4002.frm
@@ -2683,7 +2683,7 @@ tile       54   76             art\tiles\edg5001.frm
 tile       56   76             art\tiles\edg5005.frm
 tile       58   76             art\tiles\brick23.frm
 tile       60   76             art\tiles\brick22.frm
-tile       62   76             art\tiles\Nevada-tiles\CRBM015.FRM
+tile       62   76             art\tiles\nevada-tiles\crbm015.frm
 tile       64   76             art\tiles\road01.frm
 tile       66   76             art\tiles\road01.frm
 tile       68   76             art\tiles\road01.frm
@@ -3067,7 +3067,7 @@ tile       110  84             art\tiles\road02.frm
 tile       112  84             art\tiles\road02.frm
 tile       114  84             art\tiles\road01.frm
 tile       116  84             art\tiles\road01.frm
-tile       118  84             art\tiles\Nevada-tiles\ROAD_CRNR1.FRM
+tile       118  84             art\tiles\nevada-tiles\road_crnr1.frm
 tile       120  84             art\tiles\brick23.frm
 tile       122  84             art\tiles\brick22.frm
 tile       124  84             art\tiles\edg5001.frm
@@ -22405,7 +22405,7 @@ MapObjType           2
 ProtoId              3853
 MapX                 60
 MapY                 77
-Scenery_ToEntire     242
+Scenery_ToEntire     33
 
 MapObjType           2
 ProtoId              4919

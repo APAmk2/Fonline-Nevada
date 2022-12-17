@@ -1058,6 +1058,8 @@ void InitializeTabs()
         pids.insertLast( i );
 	for( uint i = 7408; i <= 7439; i++ )
         pids.insertLast( i );
+	for( uint i = 7441; i <= 7451; i++ )
+        pids.insertLast( i );
 	TabSetItemPids( TAB_CUSTOM6, "003 - Nevada Containers", pids );
 	pids.resize( 0 );
 	pids.insertLast( 4124 );
