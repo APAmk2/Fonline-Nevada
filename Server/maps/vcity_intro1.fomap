@@ -2,8 +2,8 @@
 Version              4
 MaxHexX              400
 MaxHexY              400
-WorkHexX             100
-WorkHexY             70
+WorkHexX             96
+WorkHexY             80
 ScriptModule         -
 ScriptFunc           -
 NoLogOut             0
@@ -8382,6 +8382,8 @@ MapObjType           2
 ProtoId              2012
 MapX                 94
 MapY                 71
+ScriptName           intro_funcs
+FuncName             _DoorControl
 
 MapObjType           2
 ProtoId              2141
@@ -12700,6 +12702,8 @@ MapObjType           1
 ProtoId              6819
 MapX                 96
 MapY                 97
+ScriptName           intro_funcs
+FuncName             _DoorControl
 
 MapObjType           1
 ProtoId              7440

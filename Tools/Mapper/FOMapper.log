@@ -74,7 +74,7 @@ ItemManager::ParseProtos - Item prototype is already parsed, pid<7436>. Rewrite.
 ItemManager::ParseProtos - Item prototype is already parsed, pid<7437>. Rewrite.
 ItemManager::ParseProtos - Item prototype is already parsed, pid<7438>. Rewrite.
 ItemManager::ParseProtos - Item prototype is already parsed, pid<7439>. Rewrite.
-Items prototypes successfully loaded, count<6056>.
+Items prototypes successfully loaded, count<6067>.
 Critter manager initialization...
 Critter manager initialization complete.
 Loading critters prototypes...
